@@ -194,12 +194,12 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		norm := false
 		nutaksebe := false
 		for _, v := range title {
-			if v >= 97 && v <= 122 || v >= 65 && v <= 90 && v >= 32 && v <= 64 {
+			if v >= 97 && v <= 122 || v >= 65 && v <= 90 && v >= 32 && v <= 64 || v > 128 {
 				norm = true
 			}
 		}
 		for _, v := range content {
-			if v >= 97 && v <= 122 || v >= 65 && v <= 90 && v >= 32 && v <= 64 {
+			if v >= 97 && v <= 122 || v >= 65 && v <= 90 && v >= 32 && v <= 64 || v > 128 {
 				nutaksebe = true
 			}
 		}
@@ -336,7 +336,7 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 
 		norm := false
 		for _, v := range comment {
-			if v >= 97 && v <= 122 || v >= 65 && v <= 90 && v >= 32 && v <= 64 {
+			if v >= 97 && v <= 122 || v >= 65 && v <= 90 && v >= 32 && v <= 64 || v > 128 {
 				norm = true
 			}
 		}
@@ -352,8 +352,7 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 
 			if err != nil {
 				panic(err.Error())
-				w.WriteHeader(http.StatusInternalServerError)
-				w.WriteHeader(http.StatusForbidden)
+
 			}
 		}
 		http.Redirect(w, r, "post?id="+r.FormValue("curr"), 301)
@@ -873,7 +872,7 @@ func LostVotesComment(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		http.Redirect(w, r, "http://localhost:6969/post?id="+pidc, 301)
+		http.Redirect(w, r, "http://localhost:8080/post?id="+pidc, 301)
 	}
 }
 

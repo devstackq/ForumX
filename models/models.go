@@ -3,7 +3,6 @@ package models
 import (
 	"database/sql"
 	"encoding/base64"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -97,7 +96,7 @@ func GetPostById(r *http.Request) ([]Comments, Posts, error) {
 	DB.QueryRow("SELECT * FROM posts WHERE  id = ?", id).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CategoryID, &p.CreationTime, &p.Image, &p.CountLike, &p.CountDislike)
 
 	//write values from tables Likes, and write data table Post fileds like, dislikes
-	fmt.Print(p.CountDislike)
+
 	//[]byte -> encode string, client render img base64
 	encodedString := base64.StdEncoding.EncodeToString(p.Image)
 	p.ImageHtml = encodedString
