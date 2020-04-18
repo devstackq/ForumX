@@ -50,7 +50,7 @@ func main() {
 //connect Db, create table if not exist
 func CreateDB() {
 
-	db, err := sql.Open("sqlite3", "forumx.db")
+	db, err := sql.Open("sqlite3", "forumx2.db")
 
 	if err != nil {
 		panic(err)
