@@ -44,7 +44,7 @@ func main() {
 	http.HandleFunc("/votes/comment", routing.LostVotesComment)
 	http.HandleFunc("/search", routing.Search)
 	// http.HandleFunc("/chat", routing.StartChat)
-	log.Fatal(http.ListenAndServe(":6970", nil))
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 //connect Db, create table if not exist
