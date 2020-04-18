@@ -872,7 +872,7 @@ func LostVotesComment(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		http.Redirect(w, r, "http://localhost:8080/post?id="+pidc, 301)
+		http.Redirect(w, r, "http://localhost:6969/post?id="+pidc, 301)
 	}
 }
 
