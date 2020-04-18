@@ -23,13 +23,13 @@
 	</div>
 	<br />
 	<div class="lukas">
-	<span class="like">	{{.CountLike}}</span>
-	<span class="like">	{{.CountDislike}}</span>
-</div>
-	
+		<span class="like"> {{.CountLike}}</span>
+		<span class="like"> {{.CountDislike}}</span>
+	</div>
+
 	<div class="like-wrapper">
 
-		<form class="like-wrap"    action="/votes?id={{.ID}}" method="POST">
+		<form class="like-wrap" action="/votes?id={{.ID}}" method="POST">
 			<input type="hidden" name="lukas" value="1">
 			<input class="" type="submit" value="&hearts;">
 
@@ -52,6 +52,5 @@
 
 </div>
 
-<!-- <a href="/">main page</a> -->
 {{end}}
 {{template "footer" }}

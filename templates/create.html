@@ -1,15 +1,14 @@
 {{define "create"}}
 
-
 <div class="create-post-wrapper">
     <div class="wrapp">
         <h2>Create post page</h2>
         <form method="POST" action="/create/post" class="wrapper-create" enctype="multipart/form-data"
             autocomplete="off">
-            
+
             <input type="text" name="title" placeholder="title" required>
             <textarea name="content" id="" cols="45" rows="10" required></textarea>
-            
+
             <label for="cars">Categories:</label>
 
             <select name="cats" class="category-form">
