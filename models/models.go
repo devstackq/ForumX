@@ -26,6 +26,7 @@ type Users struct {
 	Image       []byte
 	ImageHtml   string
 	Role        string
+	SVG         bool
 }
 
 type Category struct {
@@ -50,6 +51,7 @@ type Posts struct {
 	AuthorForPost int
 	CountLike     int
 	CountDislike  int
+	SVG           bool
 }
 
 //comment ID -> foreign key -> postID
@@ -98,8 +100,16 @@ func GetPostById(r *http.Request) ([]Comments, Posts, error) {
 	//write values from tables Likes, and write data table Post fileds like, dislikes
 
 	//[]byte -> encode string, client render img base64
+
+	if len(p.Image) > 0 {
+		if p.Image[0] == 60 {
+			p.SVG = true
+		}
+	}
+
 	encodedString := base64.StdEncoding.EncodeToString(p.Image)
 	p.ImageHtml = encodedString
+
 	//creator post
 	DB.QueryRow("SELECT full_name FROM users WHERE id = ?", p.CreatorID).Scan(&p.FullName)
 	//cateogry post
@@ -217,8 +227,13 @@ func GetUserProfile(r *http.Request) ([]Posts, []Posts, []Comments, Users, error
 
 	DB.QueryRow("SELECT * FROM users WHERE id = ?", s.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.Password, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
 
+	if u.Image[0] == 60 {
+		u.SVG = true
+	}
+
 	encStr := base64.StdEncoding.EncodeToString(u.Image)
 	u.ImageHtml = encStr
+
 	var likedpost *sql.Rows
 	LikedPosts := []Posts{}
 	var can []int
@@ -355,6 +370,9 @@ func GetOtherUser(r *http.Request) ([]Posts, Users, error) {
 	user := DB.QueryRow("SELECT * FROM users WHERE id = ?", uid)
 	u := Users{}
 	err = user.Scan(&u.ID, &u.FullName, &u.Email, &u.Password, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
+	if u.Image[0] == 60 {
+		u.SVG = true
+	}
 	encStr := base64.StdEncoding.EncodeToString(u.Image)
 	u.ImageHtml = encStr
 	psu, err := DB.Query("SELECT * FROM posts WHERE creator_id=?", u.ID)

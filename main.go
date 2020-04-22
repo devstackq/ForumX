@@ -8,6 +8,7 @@ import (
 
 	"github.com/devstackq/Forum-X/models"
 	"github.com/devstackq/Forum-X/routing"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -44,7 +45,7 @@ func main() {
 	http.HandleFunc("/votes/comment", routing.LostVotesComment)
 	http.HandleFunc("/search", routing.Search)
 	// http.HandleFunc("/chat", routing.StartChat)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":6969", nil))
 }
 
 //connect Db, create table if not exist

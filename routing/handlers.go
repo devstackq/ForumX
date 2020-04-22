@@ -1,6 +1,7 @@
 package routing
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
 	"html/template"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/devstackq/Forum-X/models"
 	uuid "github.com/satori/go.uuid"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -171,14 +173,33 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 
 		r.ParseMultipartForm(10 << 20)
 		file, _, err := r.FormFile("uploadfile")
-
 		if err != nil {
 			panic(err)
 
 		}
+
+		var buff bytes.Buffer
+		fileSize, _ := buff.ReadFrom(file)
 		defer file.Close()
 
-		fileBytes, err := ioutil.ReadAll(file)
+		// fmt.Println(fileSize)
+		var max int64
+		max = 20000000
+
+		var fileBytes []byte
+
+		if fileSize < max {
+			file2, _, _ := r.FormFile("uploadfile")
+			fileBytes, _ = ioutil.ReadAll(file2)
+		} else {
+			fmt.Print("file more 20mb")
+			//messga clinet send
+			msg.Msg = "Large file, more than 20mb"
+			displayTemplate(w, "header", auth)
+			displayTemplate(w, "create", &msg)
+			return
+		}
+		// fmt.Println(fileBytes)
 
 		if err != nil {
 			panic(err)
@@ -193,6 +214,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		//check empty values
 		norm := false
 		nutaksebe := false
+
 		for _, v := range title {
 			if v >= 97 && v <= 122 || v >= 65 && v <= 90 && v >= 32 && v <= 64 || v > 128 {
 				norm = true
@@ -647,12 +669,19 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 		// get user in info by session Id
 		DB.QueryRow("SELECT id, uuid FROM session WHERE user_id = ?", s.UserID).Scan(&s.ID, &s.UUID)
 		//set cookie
+		//uuidUSoro@mail.com -> 9128ueq9widjaisdh238yrhdeiuwandijsan
+		//CLient, DB
+		// Crete post -> Cleint cookie == session, Userd
 		cookie := http.Cookie{
 			Name:     "_cookie",
 			Value:    s.UUID,
 			Path:     "/",
-			MaxAge:   8640,
+			MaxAge:   84000,
 			HttpOnly: false,
+		}
+		fmt.Println(cookie.MaxAge)
+		if cookie.MaxAge == 0 {
+			_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
 		}
 		http.SetCookie(w, &cookie)
 		http.Redirect(w, r, "/profile", http.StatusFound)
@@ -680,6 +709,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
+
 		// then delete cookie from client
 		cookieDelete := http.Cookie{
 			Name:     "_cookie",
@@ -707,7 +737,6 @@ func CheckCookies(w http.ResponseWriter, r *http.Request) bool {
 	if !cookieHave {
 		http.Redirect(w, r, "/signin", 302)
 	} else {
-
 		//get client cookie
 		cookie, _ := r.Cookie("_cookie")
 		//set local struct -> cookie value
