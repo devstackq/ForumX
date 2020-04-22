@@ -5,7 +5,11 @@
     <div class="profile-info">
         <h3>Hello {{.FullName}}</h3>
 
-        <img src="data:image/jpeg;base64, {{.ImageHtml}}" alt="img">
+        {{if .SVG}}
+		<img alt=" " width="500px" src="data:image/svg+xml;base64, {{.ImageHtml}} ">
+		{{else}}
+		<img class="post-img" src="data:image/jpeg;base64, {{.ImageHtml}}" alt=" ">
+		{{end}}
         <br>
 
         <label for="">Name:</label>

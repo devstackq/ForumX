@@ -3,7 +3,18 @@
 <div class="post-wrapper">
 	<h2> {{.Title}}</h2>
 	<div class="post-img-wrapper">
-		<img class="post-img" src="data:image/jpeg;base64, {{.ImageHtml}}" alt="img">
+
+		{{if .SVG}}
+
+		<img alt=" " width="500px" src="data:image/svg+xml;base64, {{.ImageHtml}} ">
+
+		{{else}}
+
+		<img class="post-img" src="data:image/jpeg;base64, {{.ImageHtml}}" alt=" ">
+
+		{{end}}
+
+
 	</div>
 
 	<p> {{.Content}} </p>
