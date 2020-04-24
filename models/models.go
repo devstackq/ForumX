@@ -98,7 +98,6 @@ func GetPostById(r *http.Request) ([]Comments, Posts, error) {
 	DB.QueryRow("SELECT * FROM posts WHERE  id = ?", id).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CategoryID, &p.CreationTime, &p.Image, &p.CountLike, &p.CountDislike)
 
 	//write values from tables Likes, and write data table Post fileds like, dislikes
-
 	//[]byte -> encode string, client render img base64
 
 	if len(p.Image) > 0 {
