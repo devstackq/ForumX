@@ -79,4 +79,5 @@ func CreateDB() {
 	routing.DB = db
 	models.DB = db
 }
+
 //devstackq
