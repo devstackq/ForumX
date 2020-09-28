@@ -27,6 +27,7 @@ type Users struct {
 	ImageHtml   string
 	Role        string
 	SVG         bool
+	Type        string
 }
 
 type Category struct {
@@ -68,7 +69,7 @@ type Comments struct {
 
 var API struct {
 	Authenticated bool
-	Msg           string
+	Msg           string `json: "message"`
 }
 
 //save session, by client cookie

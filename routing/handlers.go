@@ -3,6 +3,7 @@ package routing
 import (
 	"bytes"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -10,7 +11,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/devstackq/Forum-X/models"
+	"github.com/devstackq/ForumX/models"
 	uuid "github.com/satori/go.uuid"
 
 	"golang.org/x/crypto/bcrypt"
@@ -624,66 +625,102 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 		displayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
-
 	r.Header.Add("Accept", "text/html")
 	r.Header.Add("User-Agent", "MSIE/15.0")
 	msg := models.API
 	msg.Msg = ""
+
 	if r.Method == "GET" {
 		displayTemplate(w, "signin", &msg)
 	}
 
 	if r.Method == "POST" {
-		r.ParseForm()
-
-		email := r.FormValue("email")
-		pwd := r.FormValue("password")
-
-		u := DB.QueryRow("SELECT id, password FROM users WHERE email=?", email)
-
-		var user models.Users
-		//check pwd, if not correct, error
-		u.Scan(&user.ID, &user.Password)
-
-		if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(pwd)); err != nil {
-			// If the two passwords don't match, return a 401 status
-			w.WriteHeader(http.StatusUnauthorized)
-			msg.Msg = "Email or password incorrect lel"
-			displayTemplate(w, "signin", &msg)
+		var person models.Users
+		//b, _ := ioutil.ReadAll(r.Body)
+		err := json.NewDecoder(r.Body).Decode(&person)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		fmt.Println(person)
 
-		//get user by Id, and write session struct
-		s := models.Session{
-			UserID: user.ID,
+		if person.Type == "default" {
+			fmt.Println(" default auth")
+			// email := r.FormValue("email")123 d
+			// pwd := r.FormValue("password")
+
+			email := person.Email
+			pwd := person.Password
+
+			fmt.Println(pwd, email, "give struct data")
+
+			u := DB.QueryRow("SELECT id, password FROM users WHERE email=?", email)
+
+			var user models.Users
+			//check pwd, if not correct, error
+			u.Scan(&user.ID, &user.Password)
+
+			if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(pwd)); err != nil {
+				// If the two passwords don't match, return a 401 status
+				w.WriteHeader(http.StatusUnauthorized)
+				msg.Msg = "Email or password incorrect lel"
+				displayTemplate(w, "signin", &msg)
+				return
+			}
+
+			//get user by Id, and write session struct
+			s := models.Session{
+				UserID: user.ID,
+			}
+			uuid := uuid.Must(uuid.NewV4(), err).String()
+			if err != nil {
+				panic(err)
+			}
+			//create uuid and set uid DB table session by userid,
+			_, err = DB.Exec("INSERT INTO session(uuid, user_id) VALUES (?, ?)", uuid, s.UserID)
+			if err != nil {
+				panic(err)
+			}
+			// get user in info by session Id
+			DB.QueryRow("SELECT id, uuid FROM session WHERE user_id = ?", s.UserID).Scan(&s.ID, &s.UUID)
+			//set cookie
+			//uuid USoro@mail.com -> 9128ueq9widjaisdh238yrhdeiuwandijsan
+			//CLient, DB
+			// Crete post -> Cleint cookie == session, Userd
+			cookie := http.Cookie{
+				Name:     "_cookie",
+				Value:    s.UUID,
+				Path:     "/",
+				MaxAge:   84000,
+				HttpOnly: false,
+			}
+			fmt.Println(cookie.Value, "cook value from uuid send client")
+
+			if cookie.MaxAge == 0 {
+				_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
+			}
+			http.SetCookie(w, &cookie)
+			http.Redirect(w, r, "/profile", http.StatusFound)
+
+			//citiesArtist := FindCityArtist(w, r, strings.ToLower(string(body)))
+			//w.Header().Set("Content-Type", "application/json")
+			//json.NewEncoder(w).Encode(citiesArtist)
+
+			// json.NewEncoder(w).Encode(msg)
+			// ok := "okay"
+			// b := []byte(ok)
+
+			// msg.Msg = "okay"
+			// w.Header().Set("Content-Type", "application/json")
+			// m, _ := json.Marshal(msg)
+			// w.Write(m)
+		} else if person.Type == "google" {
+			fmt.Println("todo google auth")
+			http.Redirect(w, r, "/profile", http.StatusFound)
+		} else if person.Type == "github" {
+			fmt.Println("todo github")
+			http.Redirect(w, r, "/profile", http.StatusFound)
 		}
-		uuid := uuid.Must(uuid.NewV4(), err).String()
-		if err != nil {
-			panic(err)
-		}
-		//create uuid and set uid DB table session by userid,
-		_, err = DB.Exec("INSERT INTO session(uuid, user_id) VALUES (?, ?)", uuid, s.UserID)
-		if err != nil {
-			panic(err)
-		}
-		// get user in info by session Id
-		DB.QueryRow("SELECT id, uuid FROM session WHERE user_id = ?", s.UserID).Scan(&s.ID, &s.UUID)
-		//set cookie
-		//uuidUSoro@mail.com -> 9128ueq9widjaisdh238yrhdeiuwandijsan
-		//CLient, DB
-		// Crete post -> Cleint cookie == session, Userd
-		cookie := http.Cookie{
-			Name:     "_cookie",
-			Value:    s.UUID,
-			Path:     "/",
-			MaxAge:   84000,
-			HttpOnly: false,
-		}
-		fmt.Println(cookie.MaxAge)
-		if cookie.MaxAge == 0 {
-			_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
-		}
-		http.SetCookie(w, &cookie)
 		http.Redirect(w, r, "/profile", http.StatusFound)
 	}
 }

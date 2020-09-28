@@ -361,8 +361,8 @@ a.dislike  {
   background-color: blue;
   color: white;
 }
-.like-wrapper {
-  display: flex;
+  .like-wrapper {
+    display: flex;
   background-color: transparent;
   border: none;
 }
@@ -376,4 +376,13 @@ like {
   color: red;
   font-size: 20px;
   background-color: red;
+}
+#authWrapperId {
+  display: none;
+
+}
+.btn-default {
+  border: 1px solid green;
+  background: #fff;
+  padding: 5px;
 }
