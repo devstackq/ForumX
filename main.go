@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/devstackq/Forum-X/models"
-	"github.com/devstackq/Forum-X/routing"
+	"github.com/devstackq/ForumX/models"
+	"github.com/devstackq/ForumX/routing"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -79,3 +79,8 @@ func CreateDB() {
 	routing.DB = db
 	models.DB = db
 }
+
+//google token, client id, event signin Google, -> get data User,
+//Name. email, photo, -> then save Db. -> authorized Forum
+// Logout event, logout system, delete cookie, logout Google
+//272819090705-qu6arlmkvs66hc5fuvalv6liuf2n9fj8.apps.googleusercontent.com   || W42c6sfYqhPc4O5wXMobY3av
