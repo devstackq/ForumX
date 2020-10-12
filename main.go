@@ -60,7 +60,7 @@ func CreateDB() {
 		panic(err)
 	}
 
-	cats, err := db.Prepare(`CREATE TABLE IF NOT EXISTS  categories( id	INTEGER PRIMARY KEY AUTOINCREMENT,	title	TEXT, user_id	INTEGER, FOREIGN KEY(user_id) REFERENCES users)`)
+	//cats, err := db.Prepare(`CREATE TABLE IF NOT EXISTS  categories( id	INTEGER PRIMARY KEY AUTOINCREMENT,	title	TEXT, user_id	INTEGER, FOREIGN KEY(user_id) REFERENCES users)`)
 	post_cat_bridge, err := db.Prepare(`CREATE TABLE IF NOT EXISTS post_cat_bridge(id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER, category TEXT, FOREIGN KEY(post_id) REFERENCES posts(id) )`)
 	comments, err := db.Prepare(`CREATE TABLE IF NOT EXISTS comments(id	INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT, post_id	INTEGER, user_idx	INTEGER, created_time	datetime DEFAULT current_timestamp,  com_like	INTEGER DEFAULT 0, com_dislike	INTEGER DEFAULT 0, FOREIGN KEY(post_id) REFERENCES posts(id), FOREIGN KEY(user_idx) REFERENCES users(id) )`)
 	likes, err := db.Prepare(`CREATE   TABLE IF NOT EXISTS likes (id INTEGER PRIMARY KEY AUTOINCREMENT, 	state_id INTEGER, 	post_id	INTEGER, user_id	INTEGER,  	comment_id	INTEGER,	FOREIGN KEY(post_id) REFERENCES posts(id), 	FOREIGN KEY(user_id) REFERENCES users(id) )`)
@@ -72,7 +72,6 @@ func CreateDB() {
 	session.Exec()
 	posts.Exec()
 	comments.Exec()
-	cats.Exec()
 	likes.Exec()
 	users.Exec()
 
@@ -85,13 +84,12 @@ func CreateDB() {
 	models.DB = db
 }
 
-//todo
-//show correct time
+//todo:
+//photo not required
 //refactor function 1 func
 //код вынести в отдельные файлы
 //like dislike reafctor -> normal system
 //design refactor
-// category -> show
 //обработать ошикбки, log
 
 //start Auth

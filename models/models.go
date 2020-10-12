@@ -104,11 +104,10 @@ func GetPostById(r *http.Request) ([]Comments, Posts, error) {
 	p := Posts{}
 
 	//take from all post, only post by id, then write data struct Post
-	DB.QueryRow("SELECT * FROM posts WHERE  id = ?", id).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CategoryID, &p.CreationTime, &p.Image, &p.CountLike, &p.CountDislike)
-
+	DB.QueryRow("SELECT * FROM posts WHERE id = ?", id).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CategoryID, &p.CreationTime, &p.Image, &p.CountLike, &p.CountDislike)
+	p.CreationTime.Format(time.RFC1123)
 	//write values from tables Likes, and write data table Post fileds like, dislikes
 	//[]byte -> encode string, client render img base64
-
 	if len(p.Image) > 0 {
 		if p.Image[0] == 60 {
 			p.SVG = true
@@ -120,8 +119,8 @@ func GetPostById(r *http.Request) ([]Comments, Posts, error) {
 
 	//creator post
 	DB.QueryRow("SELECT full_name FROM users WHERE id = ?", p.CreatorID).Scan(&p.FullName)
-	//cateogry post
-	DB.QueryRow("SELECT title FROM categories WHERE id=?", p.CategoryID).Scan(&p.CategoryName)
+	//get category post
+	DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=?", p.ID).Scan(&p.CategoryName)
 	//get all comments from post
 	stmp, err := DB.Query("SELECT * FROM comments WHERE  post_id =?", p.ID)
 	if err != nil {
@@ -140,7 +139,6 @@ func GetPostById(r *http.Request) ([]Comments, Posts, error) {
 		if err != nil {
 			panic(err.Error)
 		}
-
 		comment.ID = id
 		comment.Commentik = content
 		comment.PostID = postID
@@ -172,8 +170,8 @@ func (c *Comments) LostComment() error {
 
 //create post
 func (p *Posts) CreatePost() (int64, error) {
-	db, err := DB.Exec("INSERT INTO posts (title, content, creator_id, category_id, image) VALUES ( ?,?, ?, ?, ?)",
-		p.Title, p.Content, p.CreatorID, p.CategoryID, p.Image)
+	db, err := DB.Exec("INSERT INTO posts (title, content, creator_id,  image) VALUES ( ?,?, ?, ?, ?)",
+		p.Title, p.Content, p.CreatorID, p.Image)
 	if err != nil {
 		return 0, err
 	}
