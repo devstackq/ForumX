@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
+	"log"
+	"os"
 
 	"net/http"
 	"strconv"
@@ -21,7 +23,7 @@ var (
 	rows *sql.Rows
 	err  error
 	DB   *sql.DB
-	temp = template.Must(template.ParseFiles("templates/header.html", "templates/likedpost.html", "templates/likes.html", "templates/404page.html", "templates/postupdate.html", "templates/postuser.html", "templates/commentuser.html", "templates/userupdate.html", "templates/search.html", "templates/user.html", "templates/commentuser.html", "templates/postuser.html", "templates/profile.html", "templates/signin.html", "templates/user.html", "templates/signup.html", "templates/filter.html", "templates/posts.html", "templates/comment.html", "templates/create.html", "templates/footer.html", "templates/index.html"))
+	temp = template.Must(template.ParseFiles("templates/header.html", "templates/category_temp.html", "templates/likedpost.html", "templates/likes.html", "templates/404page.html", "templates/postupdate.html", "templates/postuser.html", "templates/commentuser.html", "templates/userupdate.html", "templates/search.html", "templates/user.html", "templates/commentuser.html", "templates/postuser.html", "templates/profile.html", "templates/signin.html", "templates/user.html", "templates/signup.html", "templates/filter.html", "templates/posts.html", "templates/comment.html", "templates/create.html", "templates/footer.html", "templates/index.html"))
 )
 
 //cahce html file
@@ -38,7 +40,7 @@ func displayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 //receive request, from client, query params, category ID, then query DB, depends catID, get Post this catID
 func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 
-	if r.URL.Path != "/" && r.URL.Path != "/school" && r.URL.Path != "/people" && r.URL.Path != "/events" && r.URL.Path != "/qa" && r.URL.Path != "/sapid" {
+	if r.URL.Path != "/" && r.URL.Path != "/science" && r.URL.Path != "/love" && r.URL.Path != "/sapid" {
 		displayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
@@ -55,61 +57,74 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	like := r.FormValue("likes")
 	date := r.FormValue("date")
-	category, _ := strconv.Atoi(r.FormValue("cats"))
+	category := r.FormValue("cats")
+	var leftJoin bool
+	var PostsAll []models.Posts
 
 	switch r.URL.Path {
 	//check what come client, cats, and filter by like, date and cats
 	case "/":
+		leftJoin = false
 		post.EndpointPost = "/"
 		if date == "asc" {
-			rows, err = DB.Query("SELECT  * FROM posts WHERE category_id =?  ORDER BY  created_time ASC limit 8", category)
+			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time ASC LIMIT 6")
 		} else if date == "desc" {
-			rows, err = DB.Query("SELECT  * FROM posts WHERE category_id  =?  ORDER BY  created_time  DESC limit 8", category)
-		} else if like == "big" {
-			rows, err = DB.Query("SELECT  * FROM posts  WHERE   category_id  =? ORDER BY  count_like DESC limit 8", category)
-		} else if like == "letter" {
-			rows, err = DB.Query("SELECT  * FROM posts  WHERE category_id  =?  ORDER BY  count_dislike DESC limit 8", category)
-		} else if category > 0 {
-			rows, err = DB.Query("SELECT  * FROM posts  WHERE category_id  =?   ORDER BY  created_time  DESC limit 8", category)
+			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time DESC LIMIT 6")
+		} else if like == "like" {
+			rows, err = DB.Query("SELECT * FROM posts  ORDER BY count_like DESC LIMIT 6")
+		} else if like == "dislike" {
+			rows, err = DB.Query("SELECT * FROM posts  ORDER BY count_dislike DESC LIMIT 6")
+		} else if category != "" {
+			leftJoin = true
+			rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category=? ORDER  BY created_time  DESC LIMIT 6", category)
 		} else {
-			rows, err = DB.Query("SELECT  * FROM posts  ORDER BY  created_time  DESC limit 8")
+			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time DESC LIMIT 6")
 		}
 
-	case "/school":
-		post.EndpointPost = "/school"
-		rows, err = DB.Query("SELECT  * FROM posts  WHERE category_id =?   ORDER  BY created_time  DESC   LIMIT 4", 1)
-	case "/people":
-		post.EndpointPost = "/people"
-		rows, err = DB.Query("SELECT  * FROM posts  WHERE category_id =?   ORDER  BY created_time  DESC LIMIT 4", 2)
-	case "/events":
-		post.EndpointPost = "/events"
-		rows, err = DB.Query("SELECT  * FROM posts  WHERE category_id =?   ORDER  BY created_time  DESC LIMIT 4", 3)
-	case "/qa":
-		post.EndpointPost = "/qa"
-		rows, err = DB.Query("SELECT  * FROM posts  WHERE category_id =?   ORDER  BY created_time  DESC LIMIT 4", 4)
+	case "/science":
+		leftJoin = true
+		post.EndpointPost = "/science"
+		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category=?  ORDER  BY created_time  DESC LIMIT 4", "science")
+	case "/love":
+		leftJoin = true
+		post.EndpointPost = "/love"
+		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category=?   ORDER  BY created_time  DESC LIMIT 4", "love")
 	case "/sapid":
+		leftJoin = true
 		post.EndpointPost = "/sapid"
-		rows, err = DB.Query("SELECT  * FROM posts  WHERE category_id =?   ORDER  BY created_time  DESC LIMIT 4", 5)
+		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category=?  ORDER  BY created_time  DESC LIMIT 4", "sapid")
 	}
 
 	defer rows.Close()
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		//os.Exit(1)
 	}
-
-	var PostsAll []models.Posts
 
 	for rows.Next() {
 		postik := models.Posts{}
-		if err := rows.Scan(&postik.ID, &postik.Title, &postik.Content, &postik.CreatorID, &postik.CategoryID, &postik.CreationTime, &postik.Image, &postik.CountLike, &postik.CountDislike); err != nil {
-			panic(err)
+		if leftJoin {
+			if err := rows.Scan(&postik.ID, &postik.Title, &postik.Content, &postik.CreatorID, &postik.CategoryID, &postik.CreationTime, &postik.Image, &postik.CountLike, &postik.CountDislike, &postik.PBGID, &postik.PBGPostID, &postik.PBGCategory); err != nil {
+				fmt.Println(err)
+			}
+		} else {
+			if err := rows.Scan(&postik.ID, &postik.Title, &postik.Content, &postik.CreatorID, &postik.CategoryID, &postik.CreationTime, &postik.Image, &postik.CountLike, &postik.CountDislike); err != nil {
+				fmt.Println(err)
+			}
 		}
-		DB.QueryRow("SELECT title FROM categories WHERE id=?", postik.CategoryID).Scan(&postik.CategoryName)
+		fmt.Println(postik.ID, "ID")
+		//refactor category name Query
+		DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=?", postik.ID).Scan(&postik.CategoryName)
+		//DB.QueryRow("SELECT title FROM categories WHERE id=?", postik.CategoryID).Scan(&postik.CategoryName)
 		PostsAll = append(PostsAll, postik)
 	}
-
 	displayTemplate(w, "header", auth)
-	displayTemplate(w, "index", PostsAll)
+
+	if post.EndpointPost == "/" {
+		displayTemplate(w, "index", PostsAll)
+	} else {
+		displayTemplate(w, "catTemp", PostsAll)
+	}
 }
 
 //view 1 post by id
@@ -174,9 +189,35 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 
 		r.ParseMultipartForm(10 << 20)
 		file, _, err := r.FormFile("uploadfile")
-		if err != nil {
-			panic(err)
 
+		// fImg, err := os.Open("./1553259670.jpg")
+
+		// if err != nil {
+		// 	fmt.Println(err)
+		// 	os.Exit(1)
+		// }
+		// defer fImg.Close()
+
+		// imgInfo, err := fImg.Stat()
+		// if err != nil {
+		// 	fmt.Println(err, "stats")
+		// 	os.Exit(1)
+		// }
+
+		// var size int64 = imgInfo.Size()
+		// fmt.Println(size, "size")
+		// byteArr := make([]byte, size)
+
+		// read file into bytes
+		// buffer := bufio.NewReader(fImg)
+		// _, err = buffer.Read(byteArr)
+		//defer fImg.Close()
+		var fileBytes []byte
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+			//file = fImg
+			//fileBytes = byteArr
 		}
 
 		var buff bytes.Buffer
@@ -184,13 +225,17 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		defer file.Close()
 
 		// fmt.Println(fileSize)
-		var max int64
-		max = 20000000
+		// var max int64
+		// max = 20000000
 
-		var fileBytes []byte
-
-		if fileSize < max {
-			file2, _, _ := r.FormFile("uploadfile")
+		if fileSize < 20000000 {
+			file2, _, err := r.FormFile("uploadfile")
+			if err != nil {
+				log.Fatal(err)
+				//file2 = fImg
+				//fileBytes = byteArr
+			}
+			defer file2.Close()
 			fileBytes, _ = ioutil.ReadAll(file2)
 		} else {
 			fmt.Print("file more 20mb")
@@ -200,48 +245,59 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 			displayTemplate(w, "create", &msg)
 			return
 		}
-		// fmt.Println(fileBytes)
-
-		if err != nil {
-			panic(err)
-		}
 
 		DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
-
-		category, _ := strconv.Atoi(r.FormValue("cats"))
 
 		title := r.FormValue("title")
 		content := r.FormValue("content")
 		//check empty values
-		norm := false
-		nutaksebe := false
+		checkInputTitle := false
+		checkInputContent := false
 
 		for _, v := range title {
 			if v >= 97 && v <= 122 || v >= 65 && v <= 90 && v >= 32 && v <= 64 || v > 128 {
-				norm = true
+				checkInputTitle = true
 			}
 		}
 		for _, v := range content {
 			if v >= 97 && v <= 122 || v >= 65 && v <= 90 && v >= 32 && v <= 64 || v > 128 {
-				nutaksebe = true
+				checkInputContent = true
 			}
 		}
 
-		if norm && nutaksebe {
+		if checkInputTitle && checkInputContent {
 
 			p := models.Posts{
 				Title:      title,
 				Content:    content,
 				CreatorID:  s.UserID,
-				CategoryID: category,
+				CategoryID: 1,
 				Image:      fileBytes,
 			}
 
-			err = p.CreatePost()
+			lastPost, err := p.CreatePost()
 
 			if err != nil {
 				panic(err.Error())
+			}
 
+			//insert cat_post_bridge value
+			categories, _ := r.Form["input"]
+			if len(categories) == 1 {
+				pcb := models.PostCategory{
+					PostID:   lastPost,
+					Category: categories[0],
+				}
+				err = pcb.CreateBridge()
+			} else if len(categories) > 1 {
+				//loop
+				for _, v := range categories {
+					pcb := models.PostCategory{
+						PostID:   lastPost,
+						Category: v,
+					}
+					err = pcb.CreateBridge()
+				}
 			}
 
 			http.Redirect(w, r, "/", http.StatusFound)
