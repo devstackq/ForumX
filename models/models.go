@@ -53,6 +53,14 @@ type Posts struct {
 	CountLike     int
 	CountDislike  int
 	SVG           bool
+	PBGID         int
+	PBGPostID     int
+	PBGCategory   string
+}
+
+type PostCategory struct {
+	PostID   int64
+	Category string
 }
 
 //comment ID -> foreign key -> postID
@@ -163,9 +171,22 @@ func (c *Comments) LostComment() error {
 }
 
 //create post
-func (p *Posts) CreatePost() error {
-	_, err := DB.Exec("INSERT INTO posts (title, content, creator_id, category_id, image) VALUES ( ?,?, ?, ?, ?)",
+func (p *Posts) CreatePost() (int64, error) {
+	db, err := DB.Exec("INSERT INTO posts (title, content, creator_id, category_id, image) VALUES ( ?,?, ?, ?, ?)",
 		p.Title, p.Content, p.CreatorID, p.CategoryID, p.Image)
+	if err != nil {
+		return 0, err
+	}
+	last, err := db.LastInsertId()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return last, nil
+}
+
+func (pcb *PostCategory) CreateBridge() error {
+	_, err := DB.Exec("INSERT INTO post_cat_bridge (post_id, category) VALUES (?, ?)",
+		pcb.PostID, pcb.Category)
 	if err != nil {
 		return err
 	}
