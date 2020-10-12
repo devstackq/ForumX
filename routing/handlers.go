@@ -59,7 +59,7 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 	date := r.FormValue("date")
 	category := r.FormValue("cats")
 	var leftJoin bool
-	var PostsAll []models.Posts
+	var arrayPosts []models.Posts
 
 	switch r.URL.Path {
 	//check what come client, cats, and filter by like, date and cats
@@ -112,18 +112,16 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 				fmt.Println(err)
 			}
 		}
-		fmt.Println(postik.ID, "ID")
 		//refactor category name Query
 		DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=?", postik.ID).Scan(&postik.CategoryName)
-		//DB.QueryRow("SELECT title FROM categories WHERE id=?", postik.CategoryID).Scan(&postik.CategoryName)
-		PostsAll = append(PostsAll, postik)
+
+		arrayPosts = append(arrayPosts, postik)
 	}
 	displayTemplate(w, "header", auth)
-
 	if post.EndpointPost == "/" {
-		displayTemplate(w, "index", PostsAll)
+		displayTemplate(w, "index", arrayPosts)
 	} else {
-		displayTemplate(w, "catTemp", PostsAll)
+		displayTemplate(w, "catTemp", arrayPosts)
 	}
 }
 
@@ -146,7 +144,6 @@ func GetPostById(w http.ResponseWriter, r *http.Request) {
 	comments, post, err := models.GetPostById(r)
 	if err != nil {
 		panic(err)
-		return
 	}
 	displayTemplate(w, "header", auth)
 	displayTemplate(w, "posts", post)
@@ -268,11 +265,10 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		if checkInputTitle && checkInputContent {
 
 			p := models.Posts{
-				Title:      title,
-				Content:    content,
-				CreatorID:  s.UserID,
-				CategoryID: 1,
-				Image:      fileBytes,
+				Title:     title,
+				Content:   content,
+				CreatorID: s.UserID,
+				Image:     fileBytes,
 			}
 
 			lastPost, err := p.CreatePost()
