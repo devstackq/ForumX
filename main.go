@@ -91,6 +91,7 @@ func CreateDB() {
 //like dislike reafctor -> normal system
 //design refactor
 //обработать ошикбки, log
+// pagination for posts
 
 //start Auth
 //google token, client id, event signin Google, -> get data User,
