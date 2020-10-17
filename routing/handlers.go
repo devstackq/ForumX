@@ -272,9 +272,11 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 			}
 
 			lastPost, err := p.CreatePost()
-
+			//fmt.Println(lastPost)
+			//query last post -> db
 			if err != nil {
-				panic(err.Error())
+				fmt.Println(err)
+				//	panic(err.Error())
 			}
 
 			//insert cat_post_bridge value
@@ -732,6 +734,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 			_, err = DB.Exec("INSERT INTO session(uuid, user_id) VALUES (?, ?)", uuid, s.UserID)
 			if err != nil {
 				panic(err)
+				fmt.Println("user uje v systeme ept")
 			}
 			// get user in info by session Id
 			DB.QueryRow("SELECT id, uuid FROM session WHERE user_id = ?", s.UserID).Scan(&s.ID, &s.UUID)
@@ -752,8 +755,8 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 				_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
 			}
 			http.SetCookie(w, &cookie)
-			http.Redirect(w, r, "/profile", http.StatusFound)
 
+			http.Redirect(w, r, "/profile", 200)
 			//citiesArtist := FindCityArtist(w, r, strings.ToLower(string(body)))
 			//w.Header().Set("Content-Type", "application/json")
 			//json.NewEncoder(w).Encode(citiesArtist)
@@ -773,7 +776,8 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("todo github")
 			http.Redirect(w, r, "/profile", http.StatusFound)
 		}
-		http.Redirect(w, r, "/profile", http.StatusFound)
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		//http.Redirect(w, r, "/profile", 200)
 	}
 }
 

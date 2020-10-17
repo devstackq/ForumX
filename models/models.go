@@ -56,6 +56,7 @@ type Posts struct {
 	PBGID         int
 	PBGPostID     int
 	PBGCategory   string
+	LastPostId    int
 }
 
 type PostCategory struct {
@@ -170,11 +171,12 @@ func (c *Comments) LostComment() error {
 
 //create post
 func (p *Posts) CreatePost() (int64, error) {
-	db, err := DB.Exec("INSERT INTO posts (title, content, creator_id,  image) VALUES ( ?,?, ?, ?, ?)",
+	db, err := DB.Exec("INSERT INTO posts (title, content, creator_id,  image) VALUES ( ?,?, ?, ?)",
 		p.Title, p.Content, p.CreatorID, p.Image)
 	if err != nil {
 		return 0, err
 	}
+	//DB.QueryRow("SELECT id FROM posts").Scan(&p.La)
 	last, err := db.LastInsertId()
 	if err != nil {
 		log.Fatal(err)
@@ -194,8 +196,8 @@ func (pcb *PostCategory) CreateBridge() error {
 //update post
 func (p *Posts) UpdatePost() error {
 
-	_, err := DB.Exec("UPDATE  posts SET title=?, content=?, category_id=?, image=? WHERE id =?",
-		p.Title, p.Content, p.CategoryID, p.Image, p.PostIDEdit)
+	_, err := DB.Exec("UPDATE  posts SET title=?, content=?, image=? WHERE id =?",
+		p.Title, p.Content, p.Image, p.PostIDEdit)
 
 	if err != nil {
 		return err
