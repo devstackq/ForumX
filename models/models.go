@@ -4,12 +4,12 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/devstackq/ForumX/routing"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -18,6 +18,7 @@ var (
 	err  error
 	DB   *sql.DB
 	rows *sql.Rows
+	temp = template.Must(template.ParseFiles("templates/header.html", "templates/category_temp.html", "templates/likedpost.html", "templates/likes.html", "templates/404page.html", "templates/postupdate.html", "templates/postuser.html", "templates/commentuser.html", "templates/userupdate.html", "templates/search.html", "templates/user.html", "templates/commentuser.html", "templates/postuser.html", "templates/profile.html", "templates/signin.html", "templates/user.html", "templates/signup.html", "templates/filter.html", "templates/posts.html", "templates/comment.html", "templates/create.html", "templates/footer.html", "templates/index.html"))
 )
 
 type Users struct {
@@ -84,7 +85,7 @@ type Comments struct {
 
 var API struct {
 	Authenticated bool
-	Msg           string `json: "message"`
+	Message       string
 }
 
 //save session, by client cookie
@@ -101,6 +102,18 @@ type Likes struct {
 	PostID  int
 	UserID  int
 	Voted   bool
+}
+
+//cahce html file
+func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
+
+	err := temp.ExecuteTemplate(w, tmpl, data)
+	fmt.Println(data, "D", err)
+	if err != nil {
+		http.Error(w, err.Error(),
+			http.StatusInternalServerError)
+		fmt.Fprintf(w, err.Error())
+	}
 }
 
 //link to COmments struct, then call func(r), return arr comments, post, err
@@ -309,41 +322,59 @@ func Signin(w http.ResponseWriter, r *http.Request, email, password string) {
 	u := DB.QueryRow("SELECT id, password FROM users WHERE email=?", email)
 
 	var user Users
+	var err error
 	//check pwd, if not correct, error
-	u.Scan(&user.ID, &user.Password)
-	if user.ID == 0 {
-		fmt.Println("user not found")
-		//
+	err = u.Scan(&user.ID, &user.Password)
+	if err != nil {
+		authError(w, err, "user not found")
+		return
 	}
+	// if user.ID == 0 {
+	// 	fmt.Println("user not found")
+	// 	return
+	// }
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		fmt.Println("not correct pwd")
-		//
+		authError(w, err, "password incorrect")
+		return
 	}
+	// if err != nil {
+	// 	fmt.Println("not correct pwd")
+	// 	//
+	// }
 	// err != nil{
 	// 	// If the two passwords don't match, return a 401 status
 
 	// }
-
 	//get user by Id, and write session struct
 	s := Session{
 		UserID: user.ID,
 	}
 	uuid := uuid.Must(uuid.NewV4(), err).String()
 	if err != nil {
-
-		fmt.Println(err)
-		//panic(err)
+		authError(w, err, "uuid trouble")
+		return
 	}
+
 	//create uuid and set uid DB table session by userid,
 	_, err = DB.Exec("INSERT INTO session(uuid, user_id) VALUES (?, ?)", uuid, s.UserID)
 	if err != nil {
-		//panic(err)
-		fmt.Println("user uje v systeme ept")
+		authError(w, err, "the user is already in the system")
+		return
 	}
+
+	// if err != nil {
+	// 	//panic(err)
+	// 	fmt.Println("user uje v systeme ept")
+	// }
 	// get user in info by session Id
-	DB.QueryRow("SELECT id, uuid FROM session WHERE user_id = ?", s.UserID).Scan(&s.ID, &s.UUID)
+	err = DB.QueryRow("SELECT id, uuid FROM session WHERE user_id = ?", s.UserID).Scan(&s.ID, &s.UUID)
+	if err != nil {
+		authError(w, err, "not find user from session")
+		return
+	}
+
 	//set cookie
 	//uuid USoro@mail.com -> 9128ueq9widjaisdh238yrhdeiuwandijsan
 	//CLient, DB
@@ -352,30 +383,39 @@ func Signin(w http.ResponseWriter, r *http.Request, email, password string) {
 		Name:     "_cookie",
 		Value:    s.UUID,
 		Path:     "/",
-		MaxAge:   120,
+		MaxAge:   5,
 		HttpOnly: false,
 	}
 	fmt.Println(cookie.Value, "cook value from uuid send client")
-
-	if cookie.MaxAge == 0 {
-		_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
-
-		// cookieDelete := http.Cookie{
-		// 	Name:     "_cookie",
-		// 	Value:    "",
-		// 	Path:     "/",
-		// 	MaxAge:   -1,
-		// 	HttpOnly: true,
-		// }
-		// http.SetCookie(w, &cookieDelete)
-		// http.Redirect(w, r, "/", http.StatusFound)
-	}
 	http.SetCookie(w, &cookie)
-	if err != nil {
 
+	//check every 50 sec, cookie still live ?
+	go func() {
+		time.Sleep(time.Second * 50)
+		// your code here
+		if cookie.MaxAge == 0 {
+			_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
+
+			cookieDelete := http.Cookie{
+				Name:     "_cookie",
+				Value:    "",
+				Path:     "/",
+				MaxAge:   -1,
+				HttpOnly: true,
+			}
+			http.SetCookie(w, &cookieDelete)
+			http.Redirect(w, r, "/", http.StatusFound)
+		}
+	}()
+
+}
+
+func authError(w http.ResponseWriter, err error, text string) {
+	fmt.Println(text, "errka")
+	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		API.Msg = "Email or password incorrect lel"
-		routing.DisplayTemplate(w, "signin", &API.Msg)
+		API.Message = text
+		DisplayTemplate(w, "signin", &API.Message)
 		return
 	}
 }

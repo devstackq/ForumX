@@ -11,10 +11,9 @@
     </div>
     <div class="btn-default" onclick="defAuthShow()">default</div>
     <div class="g-signin2" data-onsuccess="onSignIn"></div>
-    <p>{{.Msg}}</p>
+    <p class="notify">{{.}}</p>
 
-    <a href="#" onclick="signOut();">Sign out</a>
-
+    <a href="#" onclick="signOut();">Sign out</a> API
 </div>
 
 <script>
@@ -78,9 +77,7 @@
                 let response = await fetch('http://localhost:6969/signin', {
                     method: 'post',
                     body: JSON.stringify(user),
-                });
-                //check status
-
+                })
                 if (!response.ok) {
                     throw new Error('Failed to fetch USER');
                 } else {

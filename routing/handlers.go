@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"io/ioutil"
 	"log"
 	"os"
@@ -18,27 +17,17 @@ import (
 )
 
 var (
-	err  error
-	DB   *sql.DB
-	temp = template.Must(template.ParseFiles("templates/header.html", "templates/category_temp.html", "templates/likedpost.html", "templates/likes.html", "templates/404page.html", "templates/postupdate.html", "templates/postuser.html", "templates/commentuser.html", "templates/userupdate.html", "templates/search.html", "templates/user.html", "templates/commentuser.html", "templates/postuser.html", "templates/profile.html", "templates/signin.html", "templates/user.html", "templates/signup.html", "templates/filter.html", "templates/posts.html", "templates/comment.html", "templates/create.html", "templates/footer.html", "templates/index.html"))
+	err error
+	DB  *sql.DB
+	API struct{ Message string }
 )
-
-//cahce html file
-func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
-	err := temp.ExecuteTemplate(w, tmpl, data)
-	if err != nil {
-		http.Error(w, err.Error(),
-			http.StatusInternalServerError)
-		fmt.Fprintf(w, err.Error())
-	}
-}
 
 //getAllPost and Posts by cateogry
 //receive request, from client, query params, category ID, then query DB, depends catID, get Post this catID
 func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/" && r.URL.Path != "/science" && r.URL.Path != "/love" && r.URL.Path != "/sapid" {
-		DisplayTemplate(w, "404page", http.StatusNotFound)
+		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 
@@ -54,14 +43,14 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	DisplayTemplate(w, "header", auth)
+	models.DisplayTemplate(w, "header", auth)
 
 	// endpoint -> get post by category
 	// profile/ fix, create, get post fix
 	if endpoint == "/" {
-		DisplayTemplate(w, "index", posts)
+		models.DisplayTemplate(w, "index", posts)
 	} else {
-		DisplayTemplate(w, "catTemp", posts)
+		models.DisplayTemplate(w, "catTemp", posts)
 	}
 }
 
@@ -69,7 +58,7 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 func GetPostById(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/post" {
-		DisplayTemplate(w, "404page", http.StatusNotFound)
+		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 	//check cookie for  navbar, if not cookie - signin
@@ -85,16 +74,16 @@ func GetPostById(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	DisplayTemplate(w, "header", auth)
-	DisplayTemplate(w, "posts", post)
-	DisplayTemplate(w, "comment", comments)
+	models.DisplayTemplate(w, "header", auth)
+	models.DisplayTemplate(w, "posts", post)
+	models.DisplayTemplate(w, "comment", comments)
 }
 
 //create post
 func CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/create/post" {
-		DisplayTemplate(w, "404page", http.StatusNotFound)
+		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 
@@ -106,13 +95,12 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	msg := models.API
-	msg.Msg = ""
+	API.Message = ""
 
 	switch r.Method {
 	case "GET":
-		DisplayTemplate(w, "header", auth)
-		DisplayTemplate(w, "create", &msg)
+		models.DisplayTemplate(w, "header", auth)
+		models.DisplayTemplate(w, "create", &API.Message)
 	case "POST":
 		access := CheckCookies(w, r)
 		if !access {
@@ -177,9 +165,9 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		} else {
 			fmt.Print("file more 20mb")
 			//messga clinet send
-			msg.Msg = "Large file, more than 20mb"
-			DisplayTemplate(w, "header", auth)
-			DisplayTemplate(w, "create", &msg)
+			API.Message = "Large file, more than 20mb"
+			models.DisplayTemplate(w, "header", auth)
+			models.DisplayTemplate(w, "create", &API.Message)
 			return
 		}
 
@@ -241,9 +229,9 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/", http.StatusFound)
 			w.WriteHeader(http.StatusCreated)
 		} else {
-			msg.Msg = "Empty title or content"
-			DisplayTemplate(w, "header", auth)
-			DisplayTemplate(w, "create", &msg)
+			API.Message = "Empty title or content"
+			models.DisplayTemplate(w, "header", auth)
+			models.DisplayTemplate(w, "create", &API.Message)
 		}
 	}
 }
@@ -256,7 +244,7 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 		pid, _ = strconv.Atoi(r.URL.Query().Get("id"))
 		p := models.Posts{}
 		p.PostIDEdit = pid
-		DisplayTemplate(w, "updatepost", p)
+		models.DisplayTemplate(w, "updatepost", p)
 
 	}
 	if r.Method == "POST" {
@@ -328,7 +316,7 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 func CreateComment(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/comment" {
-		DisplayTemplate(w, "404page", http.StatusNotFound)
+		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 
@@ -377,7 +365,7 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 func GetProfileById(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/profile" {
-		DisplayTemplate(w, "404page", http.StatusNotFound)
+		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 
@@ -396,11 +384,11 @@ func GetProfileById(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		DisplayTemplate(w, "header", auth)
-		DisplayTemplate(w, "profile", user)
-		DisplayTemplate(w, "likedpost", likedpost)
-		DisplayTemplate(w, "postuser", posts)
-		DisplayTemplate(w, "commentuser", comments)
+		models.DisplayTemplate(w, "header", auth)
+		models.DisplayTemplate(w, "profile", user)
+		models.DisplayTemplate(w, "likedpost", likedpost)
+		models.DisplayTemplate(w, "postuser", posts)
+		models.DisplayTemplate(w, "commentuser", comments)
 	}
 }
 
@@ -422,9 +410,9 @@ func GetUserById(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		DisplayTemplate(w, "header", auth)
-		DisplayTemplate(w, "user", user)
-		DisplayTemplate(w, "postuser", posts)
+		models.DisplayTemplate(w, "header", auth)
+		models.DisplayTemplate(w, "user", user)
+		models.DisplayTemplate(w, "postuser", posts)
 	}
 }
 
@@ -441,8 +429,8 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
-		DisplayTemplate(w, "header", auth)
-		DisplayTemplate(w, "updateuser", "")
+		models.DisplayTemplate(w, "header", auth)
+		models.DisplayTemplate(w, "updateuser", "")
 	}
 
 	if r.Method == "POST" {
@@ -499,12 +487,12 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 func Search(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/search" {
-		DisplayTemplate(w, "404page", http.StatusNotFound)
+		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 
 	if r.Method == "GET" {
-		DisplayTemplate(w, "search", http.StatusFound)
+		models.DisplayTemplate(w, "search", http.StatusFound)
 	}
 
 	if r.Method == "POST" {
@@ -523,8 +511,8 @@ func Search(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		DisplayTemplate(w, "header", auth)
-		DisplayTemplate(w, "index", findPosts)
+		models.DisplayTemplate(w, "header", auth)
+		models.DisplayTemplate(w, "index", findPosts)
 	}
 }
 
@@ -532,13 +520,13 @@ func Search(w http.ResponseWriter, r *http.Request) {
 func Signup(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/signup" {
-		DisplayTemplate(w, "404page", http.StatusNotFound)
+		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 	msg := models.API
 
 	if r.Method == "GET" {
-		DisplayTemplate(w, "signup", &msg)
+		models.DisplayTemplate(w, "signup", &msg)
 	}
 
 	if r.Method == "POST" {
@@ -591,8 +579,8 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 
 		for _, v := range all {
 			if v.Email == e {
-				msg.Msg = "Not unique email lel"
-				DisplayTemplate(w, "signup", &msg)
+				API.Message = "Not unique email lel"
+				models.DisplayTemplate(w, "signup", &API.Message)
 				return
 			}
 		}
@@ -612,16 +600,16 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 func Signin(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/signin" {
-		DisplayTemplate(w, "404page", http.StatusNotFound)
+		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 	r.Header.Add("Accept", "text/html")
 	r.Header.Add("User-Agent", "MSIE/15.0")
-	msg := models.API
-	msg.Msg = ""
+
+	API.Message = ""
 
 	if r.Method == "GET" {
-		DisplayTemplate(w, "signin", &msg)
+		models.DisplayTemplate(w, "signin", &API.Message)
 	}
 
 	if r.Method == "POST" {
@@ -671,7 +659,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 func Logout(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/logout" {
-		DisplayTemplate(w, "404page", http.StatusNotFound)
+		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 
