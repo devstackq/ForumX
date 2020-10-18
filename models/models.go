@@ -3,14 +3,17 @@ package models
 import (
 	"database/sql"
 	"encoding/base64"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
 var (
-	err error
-	DB  *sql.DB
+	err  error
+	DB   *sql.DB
+	rows *sql.Rows
 )
 
 type Users struct {
@@ -156,6 +159,77 @@ func GetPostById(r *http.Request) ([]Comments, Posts, error) {
 		return nil, p, err
 	}
 	return ComentsPost, p, nil
+}
+
+//get all post
+func GetAllPost(r *http.Request) ([]Posts, string, error) {
+
+	var post Posts
+	r.ParseForm()
+	like := r.FormValue("likes")
+	date := r.FormValue("date")
+	category := r.FormValue("cats")
+	var leftJoin bool
+	var arrayPosts []Posts
+
+	switch r.URL.Path {
+	//check what come client, cats, and filter by like, date and cats
+	case "/":
+		leftJoin = false
+		post.EndpointPost = "/"
+		if date == "asc" {
+			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time ASC LIMIT 6")
+		} else if date == "desc" {
+			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time DESC LIMIT 6")
+		} else if like == "like" {
+			rows, err = DB.Query("SELECT * FROM posts  ORDER BY count_like DESC LIMIT 6")
+		} else if like == "dislike" {
+			rows, err = DB.Query("SELECT * FROM posts  ORDER BY count_dislike DESC LIMIT 6")
+		} else if category != "" {
+			leftJoin = true
+			rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category=? ORDER  BY created_time  DESC LIMIT 6", category)
+		} else {
+			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time DESC LIMIT 6")
+		}
+
+	case "/science":
+		leftJoin = true
+		post.EndpointPost = "/science"
+		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category=?  ORDER  BY created_time  DESC LIMIT 4", "science")
+	case "/love":
+		leftJoin = true
+		post.EndpointPost = "/love"
+		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category=?   ORDER  BY created_time  DESC LIMIT 4", "love")
+	case "/sapid":
+		leftJoin = true
+		post.EndpointPost = "/sapid"
+		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category=?  ORDER  BY created_time  DESC LIMIT 4", "sapid")
+	}
+
+	defer rows.Close()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	for rows.Next() {
+		postik := Posts{}
+		if leftJoin {
+			if err := rows.Scan(&postik.ID, &postik.Title, &postik.Content, &postik.CreatorID, &postik.CreationTime, &postik.Image, &postik.CountLike, &postik.CountDislike, &postik.PBGID, &postik.PBGPostID, &postik.PBGCategory); err != nil {
+				fmt.Println(err)
+			}
+		} else {
+			if err := rows.Scan(&postik.ID, &postik.Title, &postik.Content, &postik.CreatorID, &postik.CreationTime, &postik.Image, &postik.CountLike, &postik.CountDislike); err != nil {
+				fmt.Println(err)
+			}
+		}
+
+		//refactor category name Query
+		DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=?", postik.ID).Scan(&postik.CategoryName)
+		arrayPosts = append(arrayPosts, postik)
+	}
+
+	return arrayPosts, post.EndpointPost, nil
 }
 
 //get data from client, put data in Handler, then models -> query db
