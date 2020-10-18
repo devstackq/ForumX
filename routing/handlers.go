@@ -14,7 +14,6 @@ import (
 	"strconv"
 
 	"github.com/devstackq/ForumX/models"
-	uuid "github.com/satori/go.uuid"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -59,10 +58,8 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 
 	displayTemplate(w, "header", auth)
 
-	fmt.Print(endpoint, "end")
-
-	endpoint -> get post by category
-	profile/ fix, create, get post fix
+	// endpoint -> get post by category
+	// profile/ fix, create, get post fix
 	if endpoint == "/" {
 		displayTemplate(w, "index", posts)
 	} else {
@@ -287,14 +284,12 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		cat, _ := strconv.Atoi(r.FormValue("cats"))
 		pid := r.FormValue("pid")
 		pidnum, _ := strconv.Atoi(pid)
 
 		p := models.Posts{
 			Title:      r.FormValue("title"),
 			Content:    r.FormValue("content"),
-			CategoryID: cat,
 			Image:      fileBytes,
 			PostIDEdit: pidnum,
 		}
@@ -328,7 +323,6 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err.Error())
 	}
-
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
@@ -356,14 +350,14 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 		pid, _ := strconv.Atoi(r.FormValue("curr"))
 		comment := r.FormValue("comment-text")
 
-		norm := false
+		checkLetter := false
 		for _, v := range comment {
 			if v >= 97 && v <= 122 || v >= 65 && v <= 90 && v >= 32 && v <= 64 || v > 128 {
-				norm = true
+				checkLetter = true
 			}
 		}
 
-		if norm {
+		if checkLetter {
 			com := models.Comments{
 				Commentik: comment,
 				PostID:    pid,
@@ -381,7 +375,7 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//profile current user page
+//profile current -> user page
 func GetProfileById(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/profile" {
@@ -399,7 +393,6 @@ func GetProfileById(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		//if userId now, createdPost uid equal -> show
-
 		likedpost, posts, comments, user, err := models.GetUserProfile(r)
 		if err != nil {
 			panic(err)
@@ -651,57 +644,9 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 			email := person.Email
 			pwd := person.Password
 
-			fmt.Println(pwd, email, "give struct data")
+			models.Signin(r, email, pwd)
 
-			u := DB.QueryRow("SELECT id, password FROM users WHERE email=?", email)
-
-			var user models.Users
-			//check pwd, if not correct, error
-			u.Scan(&user.ID, &user.Password)
-
-			if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(pwd)); err != nil {
-				// If the two passwords don't match, return a 401 status
-				w.WriteHeader(http.StatusUnauthorized)
-				msg.Msg = "Email or password incorrect lel"
-				displayTemplate(w, "signin", &msg)
-				return
-			}
-
-			//get user by Id, and write session struct
-			s := models.Session{
-				UserID: user.ID,
-			}
-			uuid := uuid.Must(uuid.NewV4(), err).String()
-			if err != nil {
-				panic(err)
-			}
-			//create uuid and set uid DB table session by userid,
-			_, err = DB.Exec("INSERT INTO session(uuid, user_id) VALUES (?, ?)", uuid, s.UserID)
-			if err != nil {
-				panic(err)
-				fmt.Println("user uje v systeme ept")
-			}
-			// get user in info by session Id
-			DB.QueryRow("SELECT id, uuid FROM session WHERE user_id = ?", s.UserID).Scan(&s.ID, &s.UUID)
-			//set cookie
-			//uuid USoro@mail.com -> 9128ueq9widjaisdh238yrhdeiuwandijsan
-			//CLient, DB
-			// Crete post -> Cleint cookie == session, Userd
-			cookie := http.Cookie{
-				Name:     "_cookie",
-				Value:    s.UUID,
-				Path:     "/",
-				MaxAge:   84000,
-				HttpOnly: false,
-			}
-			fmt.Println(cookie.Value, "cook value from uuid send client")
-
-			if cookie.MaxAge == 0 {
-				_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
-			}
-			http.SetCookie(w, &cookie)
-
-			http.Redirect(w, r, "/profile", 200)
+			//http.Redirect(w, r, "/profile", 200)
 			//citiesArtist := FindCityArtist(w, r, strings.ToLower(string(body)))
 			//w.Header().Set("Content-Type", "application/json")
 			//json.NewEncoder(w).Encode(citiesArtist)

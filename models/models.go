@@ -8,6 +8,10 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/devstackq/ForumX/Forum-X2/models"
+	uuid "github.com/satori/go.uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -44,8 +48,7 @@ type Posts struct {
 	Title         string
 	Content       string
 	CreatorID     int
-	CategoryID    int
-	CreationTime  time.Time
+	CreatedTime   time.Time
 	EndpointPost  string
 	FullName      string
 	CategoryName  string
@@ -108,8 +111,8 @@ func GetPostById(r *http.Request) ([]Comments, Posts, error) {
 	p := Posts{}
 
 	//take from all post, only post by id, then write data struct Post
-	DB.QueryRow("SELECT * FROM posts WHERE id = ?", id).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CategoryID, &p.CreationTime, &p.Image, &p.CountLike, &p.CountDislike)
-	p.CreationTime.Format(time.RFC1123)
+	DB.QueryRow("SELECT * FROM posts WHERE id = ?", id).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreatedTime, &p.Image, &p.CountLike, &p.CountDislike)
+	p.CreatedTime.Format(time.RFC1123)
 	//write values from tables Likes, and write data table Post fileds like, dislikes
 	//[]byte -> encode string, client render img base64
 	if len(p.Image) > 0 {
@@ -215,11 +218,11 @@ func GetAllPost(r *http.Request) ([]Posts, string, error) {
 	for rows.Next() {
 		postik := Posts{}
 		if leftJoin {
-			if err := rows.Scan(&postik.ID, &postik.Title, &postik.Content, &postik.CreatorID, &postik.CreationTime, &postik.Image, &postik.CountLike, &postik.CountDislike, &postik.PBGID, &postik.PBGPostID, &postik.PBGCategory); err != nil {
+			if err := rows.Scan(&postik.ID, &postik.Title, &postik.Content, &postik.CreatorID, &postik.CreatedTime, &postik.Image, &postik.CountLike, &postik.CountDislike, &postik.PBGID, &postik.PBGPostID, &postik.PBGCategory); err != nil {
 				fmt.Println(err)
 			}
 		} else {
-			if err := rows.Scan(&postik.ID, &postik.Title, &postik.Content, &postik.CreatorID, &postik.CreationTime, &postik.Image, &postik.CountLike, &postik.CountDislike); err != nil {
+			if err := rows.Scan(&postik.ID, &postik.Title, &postik.Content, &postik.CreatorID, &postik.CreatedTime, &postik.Image, &postik.CountLike, &postik.CountDislike); err != nil {
 				fmt.Println(err)
 			}
 		}
@@ -228,7 +231,7 @@ func GetAllPost(r *http.Request) ([]Posts, string, error) {
 		DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=?", postik.ID).Scan(&postik.CategoryName)
 		arrayPosts = append(arrayPosts, postik)
 	}
-
+	//	fmt.Println(arrayPosts, "osts all")
 	return arrayPosts, post.EndpointPost, nil
 }
 
@@ -299,6 +302,59 @@ func (u *Users) UpdateProfile() error {
 	return nil
 }
 
+//siginin
+
+func Signin(r *http.Request, email, password string) {
+
+	u := DB.QueryRow("SELECT id, password FROM users WHERE email=?", email)
+
+	var user models.Users
+	//check pwd, if not correct, error
+	u.Scan(&user.ID, &user.Password)
+
+	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(pwd)); err != nil {
+		// If the two passwords don't match, return a 401 status
+		w.WriteHeader(http.StatusUnauthorized)
+		msg.Msg = "Email or password incorrect lel"
+		displayTemplate(w, "signin", &msg)
+		return
+	}
+
+	//get user by Id, and write session struct
+	s := models.Session{
+		UserID: user.ID,
+	}
+	uuid := uuid.Must(uuid.NewV4(), err).String()
+	if err != nil {
+		panic(err)
+	}
+	//create uuid and set uid DB table session by userid,
+	_, err = DB.Exec("INSERT INTO session(uuid, user_id) VALUES (?, ?)", uuid, s.UserID)
+	if err != nil {
+		panic(err)
+		fmt.Println("user uje v systeme ept")
+	}
+	// get user in info by session Id
+	DB.QueryRow("SELECT id, uuid FROM session WHERE user_id = ?", s.UserID).Scan(&s.ID, &s.UUID)
+	//set cookie
+	//uuid USoro@mail.com -> 9128ueq9widjaisdh238yrhdeiuwandijsan
+	//CLient, DB
+	// Crete post -> Cleint cookie == session, Userd
+	cookie := http.Cookie{
+		Name:     "_cookie",
+		Value:    s.UUID,
+		Path:     "/",
+		MaxAge:   84000,
+		HttpOnly: false,
+	}
+	fmt.Println(cookie.Value, "cook value from uuid send client")
+
+	if cookie.MaxAge == 0 {
+		_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
+	}
+	http.SetCookie(w, &cookie)
+}
+
 //get profile by id
 func GetUserProfile(r *http.Request) ([]Posts, []Posts, []Comments, Users, error) {
 
@@ -319,9 +375,9 @@ func GetUserProfile(r *http.Request) ([]Posts, []Posts, []Comments, Users, error
 		l.PostID = lpid
 		lps = append(lps, l)
 	}
+	fmt.Println(u, "U", s.UserID)
 
 	DB.QueryRow("SELECT * FROM users WHERE id = ?", s.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.Password, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
-
 	if u.Image[0] == 60 {
 		u.SVG = true
 	}
@@ -349,12 +405,12 @@ func GetUserProfile(r *http.Request) ([]Posts, []Posts, []Comments, Users, error
 
 			post := Posts{}
 
-			var id, creatorid, categoryid, countlike, countdislike int
+			var id, creatorid, countlike, countdislike int
 			var content, title string
 			var creationtime time.Time
 			var image []byte
 
-			err = likedpost.Scan(&id, &title, &content, &creatorid, &categoryid, &creationtime, &image, &countlike, &countdislike)
+			err = likedpost.Scan(&id, &title, &content, &creatorid, &creationtime, &image, &countlike, &countdislike)
 			if err != nil {
 				panic(err.Error)
 			}
@@ -363,8 +419,7 @@ func GetUserProfile(r *http.Request) ([]Posts, []Posts, []Comments, Users, error
 			post.Title = title
 			post.Content = content
 			post.CreatorID = creatorid
-			post.CategoryID = categoryid
-			post.CreationTime = creationtime
+			post.CreatedTime = creationtime
 			post.Image = image
 			post.CountLike = countlike
 			post.CountDislike = countdislike
@@ -381,12 +436,12 @@ func GetUserProfile(r *http.Request) ([]Posts, []Posts, []Comments, Users, error
 
 		post := Posts{}
 
-		var id, creatorid, categoryid, countlike, countdislike int
+		var id, creatorid, countlike, countdislike int
 		var content, title string
 		var creationtime time.Time
 		var image []byte
 
-		err = psu.Scan(&id, &title, &content, &creatorid, &categoryid, &creationtime, &image, &countlike, &countdislike)
+		err = psu.Scan(&id, &title, &content, &creatorid, &creationtime, &image, &countlike, &countdislike)
 		if err != nil {
 			panic(err.Error)
 		}
@@ -397,8 +452,7 @@ func GetUserProfile(r *http.Request) ([]Posts, []Posts, []Comments, Users, error
 		post.Title = title
 		post.Content = content
 		post.CreatorID = creatorid
-		post.CategoryID = categoryid
-		post.CreationTime = creationtime
+		post.CreatedTime = creationtime
 		post.Image = image
 		post.CountLike = countlike
 		post.CountDislike = countdislike
@@ -479,12 +533,12 @@ func GetOtherUser(r *http.Request) ([]Posts, Users, error) {
 	for psu.Next() {
 		post := Posts{}
 
-		var id, creatorid, categoryid, countlike, countdislike int
+		var id, creatorid, countlike, countdislike int
 		var content, title string
 		var creationtime time.Time
 		var image []byte
 
-		err = psu.Scan(&id, &title, &content, &creatorid, &categoryid, &creationtime, &image, &countlike, &countdislike)
+		err = psu.Scan(&id, &title, &content, &creatorid, &creationtime, &image, &countlike, &countdislike)
 		if err != nil {
 			panic(err.Error)
 		}
@@ -493,8 +547,7 @@ func GetOtherUser(r *http.Request) ([]Posts, Users, error) {
 		post.Title = title
 		post.Content = content
 		post.CreatorID = creatorid
-		post.CategoryID = categoryid
-		post.CreationTime = creationtime
+		post.CreatedTime = creationtime
 		post.CountLike = countlike
 		post.CountDislike = countdislike
 		PostsOtherUser = append(PostsOtherUser, post)
@@ -518,12 +571,12 @@ func Search(w http.ResponseWriter, r *http.Request) ([]Posts, error) {
 
 		post := Posts{}
 
-		var id, creatorid, categoryid, countlike, countdislike int
+		var id, creatorid, countlike, countdislike int
 		var content, title string
 		var creationtime time.Time
 		var image []byte
 
-		err = psu.Scan(&id, &title, &content, &creatorid, &categoryid, &creationtime, &image, &countlike, &countdislike)
+		err = psu.Scan(&id, &title, &content, &creatorid, &creationtime, &image, &countlike, &countdislike)
 
 		if err != nil {
 			panic(err.Error)
@@ -532,8 +585,7 @@ func Search(w http.ResponseWriter, r *http.Request) ([]Posts, error) {
 		post.Title = title
 		post.Content = content
 		post.CreatorID = creatorid
-		post.CategoryID = categoryid
-		post.CreationTime = creationtime
+		post.CreatedTime = creationtime
 		post.Image = image
 		post.CountLike = countlike
 		post.CountDislike = countdislike
