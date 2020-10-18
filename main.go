@@ -55,8 +55,8 @@ func main() {
 func CreateDB() {
 
 	db, err := sql.Open("sqlite3", "forumx2.db")
-
 	if err != nil {
+		log.Fatalln(err)
 		panic(err)
 	}
 

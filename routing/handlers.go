@@ -52,76 +52,21 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-
-	var post models.Posts
-	r.ParseForm()
-	like := r.FormValue("likes")
-	date := r.FormValue("date")
-	category := r.FormValue("cats")
-	var leftJoin bool
-	var arrayPosts []models.Posts
-
-	switch r.URL.Path {
-	//check what come client, cats, and filter by like, date and cats
-	case "/":
-		leftJoin = false
-		post.EndpointPost = "/"
-		if date == "asc" {
-			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time ASC LIMIT 6")
-		} else if date == "desc" {
-			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time DESC LIMIT 6")
-		} else if like == "like" {
-			rows, err = DB.Query("SELECT * FROM posts  ORDER BY count_like DESC LIMIT 6")
-		} else if like == "dislike" {
-			rows, err = DB.Query("SELECT * FROM posts  ORDER BY count_dislike DESC LIMIT 6")
-		} else if category != "" {
-			leftJoin = true
-			rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category=? ORDER  BY created_time  DESC LIMIT 6", category)
-		} else {
-			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time DESC LIMIT 6")
-		}
-
-	case "/science":
-		leftJoin = true
-		post.EndpointPost = "/science"
-		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category=?  ORDER  BY created_time  DESC LIMIT 4", "science")
-	case "/love":
-		leftJoin = true
-		post.EndpointPost = "/love"
-		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category=?   ORDER  BY created_time  DESC LIMIT 4", "love")
-	case "/sapid":
-		leftJoin = true
-		post.EndpointPost = "/sapid"
-		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category=?  ORDER  BY created_time  DESC LIMIT 4", "sapid")
-	}
-
-	defer rows.Close()
+	posts, endpoint, err := models.GetAllPost(r)
 	if err != nil {
-		fmt.Println(err)
-		//os.Exit(1)
+		log.Fatal(err)
 	}
 
-	for rows.Next() {
-		postik := models.Posts{}
-		if leftJoin {
-			if err := rows.Scan(&postik.ID, &postik.Title, &postik.Content, &postik.CreatorID, &postik.CategoryID, &postik.CreationTime, &postik.Image, &postik.CountLike, &postik.CountDislike, &postik.PBGID, &postik.PBGPostID, &postik.PBGCategory); err != nil {
-				fmt.Println(err)
-			}
-		} else {
-			if err := rows.Scan(&postik.ID, &postik.Title, &postik.Content, &postik.CreatorID, &postik.CategoryID, &postik.CreationTime, &postik.Image, &postik.CountLike, &postik.CountDislike); err != nil {
-				fmt.Println(err)
-			}
-		}
-		//refactor category name Query
-		DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=?", postik.ID).Scan(&postik.CategoryName)
-
-		arrayPosts = append(arrayPosts, postik)
-	}
 	displayTemplate(w, "header", auth)
-	if post.EndpointPost == "/" {
-		displayTemplate(w, "index", arrayPosts)
+
+	fmt.Print(endpoint, "end")
+
+	endpoint -> get post by category
+	profile/ fix, create, get post fix
+	if endpoint == "/" {
+		displayTemplate(w, "index", posts)
 	} else {
-		displayTemplate(w, "catTemp", arrayPosts)
+		displayTemplate(w, "catTemp", posts)
 	}
 }
 
