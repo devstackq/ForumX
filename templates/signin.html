@@ -11,10 +11,10 @@
     </div>
     <div class="btn-default" onclick="defAuthShow()">default</div>
     <div class="g-signin2" data-onsuccess="onSignIn"></div>
-    <p>{{.Msg}}</p>
+
+    <p id="notify"></p>
 
     <a href="#" onclick="signOut();">Sign out</a>
-
 </div>
 
 <script>
@@ -62,6 +62,11 @@
         let el = document.getElementById("authWrapperId");
         el.style.display = "block"
     }
+    const showNotify = (msg) => {
+        console.log(msg, "MSG")
+        let ns = document.getElementById('notify')
+        ns.innerText = msg
+    }
 
     function defAuthSendData() {
 
@@ -76,15 +81,15 @@
             //async fetch query
             (async() => {
                 let response = await fetch('http://localhost:6969/signin', {
-                    method: 'post',
-                    body: JSON.stringify(user),
-                });
-                //check status
-                if (!response.ok) {
-                    throw new Error('Failed to fetch USER');
-                } else {
-                    window.location.replace("http://localhost:6969/profile")
-                }
+                        method: 'post',
+                        body: JSON.stringify(user),
+                    })
+                    .then((res => res.json()))
+                    .then(reska => showNotify(reska))
+                    .then(window.location.replace("http://localhost:6969/profile"))
+                // if (response => !response.ok) {
+                //     throw new Error('Failed to fetch USER');
+                // } 
             })();
         }
     }

@@ -8,7 +8,6 @@ import (
 
 	"github.com/devstackq/ForumX/models"
 	"github.com/devstackq/ForumX/routing"
-
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -23,7 +22,6 @@ func main() {
 	// http.HandleFunc("/school", routing.GetAllPosts)
 	// http.HandleFunc("/people", routing.GetAllPosts)
 	// http.HandleFunc("/events", routing.GetAllPosts)
-	// http.HandleFunc("/qa", routing.GetAllPosts)
 
 	http.HandleFunc("/sapid", routing.GetAllPosts)
 	http.HandleFunc("/love", routing.GetAllPosts)
@@ -84,16 +82,18 @@ func CreateDB() {
 	models.DB = db
 }
 
+//redirect todo
 // refactor Architect -> category table, bridge table, posts table -> for update, delete post -> change category
 //todo:
+//checkCookieLife(now, w, r, cookie) - del cookie client and backend - redirect main page
+//google acc signin -> -> back signin ? what??
 //photo not required
 //refactor function 1 func
 //код вынести в отдельные файлы
-//like dislike reafctor -> normal system
+//like dislike reafctor -> normal system -> || logic client side ?
 //design refactor
 //обработать ошикбки, log
 // pagination for posts
-//session norm delete
 
 //start Auth
 //google token, client id, event signin Google, -> get data User,

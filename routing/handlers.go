@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"io/ioutil"
 	"log"
 	"os"
@@ -14,67 +13,65 @@ import (
 	"strconv"
 
 	"github.com/devstackq/ForumX/models"
-	uuid "github.com/satori/go.uuid"
-
 	"golang.org/x/crypto/bcrypt"
 )
 
 var (
-	rows *sql.Rows
-	err  error
-	DB   *sql.DB
-	temp = template.Must(template.ParseFiles("templates/header.html", "templates/category_temp.html", "templates/likedpost.html", "templates/likes.html", "templates/404page.html", "templates/postupdate.html", "templates/postuser.html", "templates/commentuser.html", "templates/userupdate.html", "templates/search.html", "templates/user.html", "templates/commentuser.html", "templates/postuser.html", "templates/profile.html", "templates/signin.html", "templates/user.html", "templates/signup.html", "templates/filter.html", "templates/posts.html", "templates/comment.html", "templates/create.html", "templates/footer.html", "templates/index.html"))
+	err error
+	DB  *sql.DB
+	API struct{ Message string }
 )
-
-//cahce html file
-func displayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
-	err := temp.ExecuteTemplate(w, tmpl, data)
-	if err != nil {
-		http.Error(w, err.Error(),
-			http.StatusInternalServerError)
-		fmt.Fprintf(w, err.Error())
-	}
-}
 
 //getAllPost and Posts by cateogry
 //receive request, from client, query params, category ID, then query DB, depends catID, get Post this catID
 func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/" && r.URL.Path != "/science" && r.URL.Path != "/love" && r.URL.Path != "/sapid" {
-		displayTemplate(w, "404page", http.StatusNotFound)
+		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
+	// go func() {
+	// 	for now := range time.Tick(6 * time.Second) {
+	// 		checkCookieLife(now, w, r, cookie)
+	// 	}
+	// }()
 
 	auth := models.API
 	for _, cookie := range r.Cookies() {
 		if cookie.Name == "_cookie" {
 			auth.Authenticated = true
-			break
+
 		}
+
 	}
 	posts, endpoint, err := models.GetAllPost(r)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	displayTemplate(w, "header", auth)
+	models.DisplayTemplate(w, "header", auth)
 
-	fmt.Print(endpoint, "end")
-
-	endpoint -> get post by category
-	profile/ fix, create, get post fix
+	// endpoint -> get post by category
+	// profile/ fix, create, get post fix
 	if endpoint == "/" {
-		displayTemplate(w, "index", posts)
+		models.DisplayTemplate(w, "index", posts)
 	} else {
-		displayTemplate(w, "catTemp", posts)
+		models.DisplayTemplate(w, "catTemp", posts)
 	}
+}
+func checkCookieLife(w http.ResponseWriter, r *http.Request) {
+	//time.Sleep(6 * time.Second)
+	//http.Redirect(w, r, "/", http.StatusFound)
+	Logout(w, r)
+	fmt.Println("logout ept")
+	return
 }
 
 //view 1 post by id
 func GetPostById(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/post" {
-		displayTemplate(w, "404page", http.StatusNotFound)
+		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 	//check cookie for  navbar, if not cookie - signin
@@ -90,16 +87,16 @@ func GetPostById(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	displayTemplate(w, "header", auth)
-	displayTemplate(w, "posts", post)
-	displayTemplate(w, "comment", comments)
+	models.DisplayTemplate(w, "header", auth)
+	models.DisplayTemplate(w, "posts", post)
+	models.DisplayTemplate(w, "comment", comments)
 }
 
 //create post
 func CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/create/post" {
-		displayTemplate(w, "404page", http.StatusNotFound)
+		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 
@@ -111,13 +108,12 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	msg := models.API
-	msg.Msg = ""
+	API.Message = ""
 
 	switch r.Method {
 	case "GET":
-		displayTemplate(w, "header", auth)
-		displayTemplate(w, "create", &msg)
+		models.DisplayTemplate(w, "header", auth)
+		models.DisplayTemplate(w, "create", &API.Message)
 	case "POST":
 		access := CheckCookies(w, r)
 		if !access {
@@ -182,9 +178,9 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		} else {
 			fmt.Print("file more 20mb")
 			//messga clinet send
-			msg.Msg = "Large file, more than 20mb"
-			displayTemplate(w, "header", auth)
-			displayTemplate(w, "create", &msg)
+			API.Message = "Large file, more than 20mb"
+			models.DisplayTemplate(w, "header", auth)
+			models.DisplayTemplate(w, "create", &API.Message)
 			return
 		}
 
@@ -246,9 +242,9 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/", http.StatusFound)
 			w.WriteHeader(http.StatusCreated)
 		} else {
-			msg.Msg = "Empty title or content"
-			displayTemplate(w, "header", auth)
-			displayTemplate(w, "create", &msg)
+			API.Message = "Empty title or content"
+			models.DisplayTemplate(w, "header", auth)
+			models.DisplayTemplate(w, "create", &API.Message)
 		}
 	}
 }
@@ -261,7 +257,7 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 		pid, _ = strconv.Atoi(r.URL.Query().Get("id"))
 		p := models.Posts{}
 		p.PostIDEdit = pid
-		displayTemplate(w, "updatepost", p)
+		models.DisplayTemplate(w, "updatepost", p)
 
 	}
 	if r.Method == "POST" {
@@ -287,14 +283,12 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		cat, _ := strconv.Atoi(r.FormValue("cats"))
 		pid := r.FormValue("pid")
 		pidnum, _ := strconv.Atoi(pid)
 
 		p := models.Posts{
 			Title:      r.FormValue("title"),
 			Content:    r.FormValue("content"),
-			CategoryID: cat,
 			Image:      fileBytes,
 			PostIDEdit: pidnum,
 		}
@@ -328,7 +322,6 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err.Error())
 	}
-
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
@@ -336,7 +329,7 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 func CreateComment(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/comment" {
-		displayTemplate(w, "404page", http.StatusNotFound)
+		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 
@@ -356,14 +349,14 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 		pid, _ := strconv.Atoi(r.FormValue("curr"))
 		comment := r.FormValue("comment-text")
 
-		norm := false
+		checkLetter := false
 		for _, v := range comment {
 			if v >= 97 && v <= 122 || v >= 65 && v <= 90 && v >= 32 && v <= 64 || v > 128 {
-				norm = true
+				checkLetter = true
 			}
 		}
 
-		if norm {
+		if checkLetter {
 			com := models.Comments{
 				Commentik: comment,
 				PostID:    pid,
@@ -381,36 +374,34 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//profile current user page
+//profile current -> user page
 func GetProfileById(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/profile" {
-		displayTemplate(w, "404page", http.StatusNotFound)
+		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 
-	if r.Method == "GET" {
-
-		auth := models.API
-		for _, cookie := range r.Cookies() {
-			if cookie.Name == "_cookie" {
-				auth.Authenticated = true
-				break
-			}
+	//	if r.Method == "GET" {
+	auth := models.API
+	for _, cookie := range r.Cookies() {
+		if cookie.Name == "_cookie" {
+			auth.Authenticated = true
+			break
 		}
-		//if userId now, createdPost uid equal -> show
-
-		likedpost, posts, comments, user, err := models.GetUserProfile(r)
-		if err != nil {
-			panic(err)
-		}
-
-		displayTemplate(w, "header", auth)
-		displayTemplate(w, "profile", user)
-		displayTemplate(w, "likedpost", likedpost)
-		displayTemplate(w, "postuser", posts)
-		displayTemplate(w, "commentuser", comments)
 	}
+	//if userId now, createdPost uid equal -> show
+	likedpost, posts, comments, user, err := models.GetUserProfile(r, w)
+	if err != nil {
+		panic(err)
+	}
+
+	models.DisplayTemplate(w, "header", auth)
+	models.DisplayTemplate(w, "profile", user)
+	models.DisplayTemplate(w, "likedpost", likedpost)
+	models.DisplayTemplate(w, "postuser", posts)
+	models.DisplayTemplate(w, "commentuser", comments)
+	//}
 }
 
 //user page, other anyone
@@ -431,9 +422,9 @@ func GetUserById(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		displayTemplate(w, "header", auth)
-		displayTemplate(w, "user", user)
-		displayTemplate(w, "postuser", posts)
+		models.DisplayTemplate(w, "header", auth)
+		models.DisplayTemplate(w, "user", user)
+		models.DisplayTemplate(w, "postuser", posts)
 	}
 }
 
@@ -450,8 +441,8 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
-		displayTemplate(w, "header", auth)
-		displayTemplate(w, "updateuser", "")
+		models.DisplayTemplate(w, "header", auth)
+		models.DisplayTemplate(w, "updateuser", "")
 	}
 
 	if r.Method == "POST" {
@@ -508,12 +499,12 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 func Search(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/search" {
-		displayTemplate(w, "404page", http.StatusNotFound)
+		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 
 	if r.Method == "GET" {
-		displayTemplate(w, "search", http.StatusFound)
+		models.DisplayTemplate(w, "search", http.StatusFound)
 	}
 
 	if r.Method == "POST" {
@@ -532,8 +523,8 @@ func Search(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		displayTemplate(w, "header", auth)
-		displayTemplate(w, "index", findPosts)
+		models.DisplayTemplate(w, "header", auth)
+		models.DisplayTemplate(w, "index", findPosts)
 	}
 }
 
@@ -541,13 +532,13 @@ func Search(w http.ResponseWriter, r *http.Request) {
 func Signup(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/signup" {
-		displayTemplate(w, "404page", http.StatusNotFound)
+		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 	msg := models.API
 
 	if r.Method == "GET" {
-		displayTemplate(w, "signup", &msg)
+		models.DisplayTemplate(w, "signup", &msg)
 	}
 
 	if r.Method == "POST" {
@@ -600,8 +591,8 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 
 		for _, v := range all {
 			if v.Email == e {
-				msg.Msg = "Not unique email lel"
-				displayTemplate(w, "signup", &msg)
+				API.Message = "Not unique email lel"
+				models.DisplayTemplate(w, "signup", &API.Message)
 				return
 			}
 		}
@@ -621,16 +612,16 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 func Signin(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/signin" {
-		displayTemplate(w, "404page", http.StatusNotFound)
+		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 	r.Header.Add("Accept", "text/html")
 	r.Header.Add("User-Agent", "MSIE/15.0")
-	msg := models.API
-	msg.Msg = ""
+
+	API.Message = ""
 
 	if r.Method == "GET" {
-		displayTemplate(w, "signin", &msg)
+		models.DisplayTemplate(w, "signin", &API.Message)
 	}
 
 	if r.Method == "POST" {
@@ -645,63 +636,13 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 
 		if person.Type == "default" {
 			fmt.Println(" default auth")
-			// email := r.FormValue("email")123 d
-			// pwd := r.FormValue("password")
 
 			email := person.Email
 			pwd := person.Password
 
-			fmt.Println(pwd, email, "give struct data")
-
-			u := DB.QueryRow("SELECT id, password FROM users WHERE email=?", email)
-
-			var user models.Users
-			//check pwd, if not correct, error
-			u.Scan(&user.ID, &user.Password)
-
-			if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(pwd)); err != nil {
-				// If the two passwords don't match, return a 401 status
-				w.WriteHeader(http.StatusUnauthorized)
-				msg.Msg = "Email or password incorrect lel"
-				displayTemplate(w, "signin", &msg)
-				return
-			}
-
-			//get user by Id, and write session struct
-			s := models.Session{
-				UserID: user.ID,
-			}
-			uuid := uuid.Must(uuid.NewV4(), err).String()
-			if err != nil {
-				panic(err)
-			}
-			//create uuid and set uid DB table session by userid,
-			_, err = DB.Exec("INSERT INTO session(uuid, user_id) VALUES (?, ?)", uuid, s.UserID)
-			if err != nil {
-				panic(err)
-				fmt.Println("user uje v systeme ept")
-			}
-			// get user in info by session Id
-			DB.QueryRow("SELECT id, uuid FROM session WHERE user_id = ?", s.UserID).Scan(&s.ID, &s.UUID)
-			//set cookie
-			//uuid USoro@mail.com -> 9128ueq9widjaisdh238yrhdeiuwandijsan
-			//CLient, DB
-			// Crete post -> Cleint cookie == session, Userd
-			cookie := http.Cookie{
-				Name:     "_cookie",
-				Value:    s.UUID,
-				Path:     "/",
-				MaxAge:   84000,
-				HttpOnly: false,
-			}
-			fmt.Println(cookie.Value, "cook value from uuid send client")
-
-			if cookie.MaxAge == 0 {
-				_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
-			}
-			http.SetCookie(w, &cookie)
-
-			http.Redirect(w, r, "/profile", 200)
+			models.Signin(w, r, email, pwd)
+			//http.Redirect(w, r, "/profile", 200)
+			//http.Redirect(w, r, "/profile", 200)
 			//citiesArtist := FindCityArtist(w, r, strings.ToLower(string(body)))
 			//w.Header().Set("Content-Type", "application/json")
 			//json.NewEncoder(w).Encode(citiesArtist)
@@ -722,7 +663,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/profile", http.StatusFound)
 		}
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		//http.Redirect(w, r, "/profile", 200)
+
 	}
 }
 
@@ -730,34 +671,12 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 func Logout(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/logout" {
-		displayTemplate(w, "404page", http.StatusNotFound)
+		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 
 	if r.Method == "GET" {
-		cookie, _ := r.Cookie("_cookie")
-		//add cookie -> fields uuid
-		s := models.Session{UUID: cookie.Value}
-		//get ssesion id, by local struct uuid
-		DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).
-			Scan(&s.ID)
-		//delete session by id session
-		_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
-
-		if err != nil {
-			panic(err)
-		}
-
-		// then delete cookie from client
-		cookieDelete := http.Cookie{
-			Name:     "_cookie",
-			Value:    "",
-			Path:     "/",
-			MaxAge:   -1,
-			HttpOnly: true,
-		}
-		http.SetCookie(w, &cookieDelete)
-		http.Redirect(w, r, "/", http.StatusFound)
+		models.Logout(w, r)
 	}
 }
 
