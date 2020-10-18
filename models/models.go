@@ -3,17 +3,23 @@ package models
 import (
 	"database/sql"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	uuid "github.com/satori/go.uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
 	err  error
 	DB   *sql.DB
 	rows *sql.Rows
+	temp = template.Must(template.ParseFiles("templates/header.html", "templates/category_temp.html", "templates/likedpost.html", "templates/likes.html", "templates/404page.html", "templates/postupdate.html", "templates/postuser.html", "templates/commentuser.html", "templates/userupdate.html", "templates/search.html", "templates/user.html", "templates/commentuser.html", "templates/postuser.html", "templates/profile.html", "templates/signin.html", "templates/user.html", "templates/signup.html", "templates/filter.html", "templates/posts.html", "templates/comment.html", "templates/create.html", "templates/footer.html", "templates/index.html"))
 )
 
 type Users struct {
@@ -44,8 +50,7 @@ type Posts struct {
 	Title         string
 	Content       string
 	CreatorID     int
-	CategoryID    int
-	CreationTime  time.Time
+	CreatedTime   time.Time
 	EndpointPost  string
 	FullName      string
 	CategoryName  string
@@ -81,7 +86,6 @@ type Comments struct {
 
 var API struct {
 	Authenticated bool
-	Msg           string `json: "message"`
 }
 
 //save session, by client cookie
@@ -99,6 +103,21 @@ type Likes struct {
 	UserID  int
 	Voted   bool
 }
+type Notify struct {
+	Message string
+}
+
+//cahce html file
+func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
+
+	err := temp.ExecuteTemplate(w, tmpl, data)
+	fmt.Println("err exectute", err)
+	if err != nil {
+		http.Error(w, err.Error(),
+			http.StatusInternalServerError)
+		fmt.Fprintf(w, err.Error())
+	}
+}
 
 //link to COmments struct, then call func(r), return arr comments, post, err
 func GetPostById(r *http.Request) ([]Comments, Posts, error) {
@@ -108,8 +127,8 @@ func GetPostById(r *http.Request) ([]Comments, Posts, error) {
 	p := Posts{}
 
 	//take from all post, only post by id, then write data struct Post
-	DB.QueryRow("SELECT * FROM posts WHERE id = ?", id).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CategoryID, &p.CreationTime, &p.Image, &p.CountLike, &p.CountDislike)
-	p.CreationTime.Format(time.RFC1123)
+	DB.QueryRow("SELECT * FROM posts WHERE id = ?", id).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreatedTime, &p.Image, &p.CountLike, &p.CountDislike)
+	p.CreatedTime.Format(time.RFC1123)
 	//write values from tables Likes, and write data table Post fileds like, dislikes
 	//[]byte -> encode string, client render img base64
 	if len(p.Image) > 0 {
@@ -215,11 +234,11 @@ func GetAllPost(r *http.Request) ([]Posts, string, error) {
 	for rows.Next() {
 		postik := Posts{}
 		if leftJoin {
-			if err := rows.Scan(&postik.ID, &postik.Title, &postik.Content, &postik.CreatorID, &postik.CreationTime, &postik.Image, &postik.CountLike, &postik.CountDislike, &postik.PBGID, &postik.PBGPostID, &postik.PBGCategory); err != nil {
+			if err := rows.Scan(&postik.ID, &postik.Title, &postik.Content, &postik.CreatorID, &postik.CreatedTime, &postik.Image, &postik.CountLike, &postik.CountDislike, &postik.PBGID, &postik.PBGPostID, &postik.PBGCategory); err != nil {
 				fmt.Println(err)
 			}
 		} else {
-			if err := rows.Scan(&postik.ID, &postik.Title, &postik.Content, &postik.CreatorID, &postik.CreationTime, &postik.Image, &postik.CountLike, &postik.CountDislike); err != nil {
+			if err := rows.Scan(&postik.ID, &postik.Title, &postik.Content, &postik.CreatorID, &postik.CreatedTime, &postik.Image, &postik.CountLike, &postik.CountDislike); err != nil {
 				fmt.Println(err)
 			}
 		}
@@ -228,7 +247,7 @@ func GetAllPost(r *http.Request) ([]Posts, string, error) {
 		DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=?", postik.ID).Scan(&postik.CategoryName)
 		arrayPosts = append(arrayPosts, postik)
 	}
-
+	//	fmt.Println(arrayPosts, "osts all")
 	return arrayPosts, post.EndpointPost, nil
 }
 
@@ -299,32 +318,130 @@ func (u *Users) UpdateProfile() error {
 	return nil
 }
 
+//siginin
+func Signin(w http.ResponseWriter, r *http.Request, email, password string) {
+
+	u := DB.QueryRow("SELECT id, password FROM users WHERE email=?", email)
+
+	var user Users
+	var err error
+	//check pwd, if not correct, error
+	err = u.Scan(&user.ID, &user.Password)
+	if err != nil {
+		authError(w, err, "user not found")
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		authError(w, err, "password incorrect")
+		return
+	}
+	//get user by Id, and write session struct
+	s := Session{
+		UserID: user.ID,
+	}
+	uuid := uuid.Must(uuid.NewV4(), err).String()
+	if err != nil {
+		authError(w, err, "uuid trouble")
+		return
+	}
+
+	//create uuid and set uid DB table session by userid,
+	_, err = DB.Exec("INSERT INTO session(uuid, user_id) VALUES (?, ?)", uuid, s.UserID)
+	if err != nil {
+		authError(w, err, "the user is already in the system")
+		return
+	}
+
+	// get user in info by session Id
+	err = DB.QueryRow("SELECT id, uuid FROM session WHERE user_id = ?", s.UserID).Scan(&s.ID, &s.UUID)
+	if err != nil {
+		authError(w, err, "not find user from session")
+		return
+	}
+	//set cookie 9128ueq9widjaisdh238yrhdeiuwandijsan
+	// Crete post -> Cleint cookie == session, Userd
+	cookie := http.Cookie{
+		Name:     "_cookie",
+		Value:    s.UUID,
+		Path:     "/",
+		MaxAge:   20,
+		HttpOnly: false,
+	}
+	http.SetCookie(w, &cookie)
+
+	//	http.Redirect(w, r, "/profile", 200)
+	//fmt.Println(cookie.Value, "cook value from uuid send client")
+}
+
+func authError(w http.ResponseWriter, err error, text string) {
+	fmt.Println(text, "errka")
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Header().Set("Content-Type", "application/json")
+		m, _ := json.Marshal(text)
+		w.Write(m)
+		//DisplayTemplate(w, "signin", "")
+		return
+	}
+}
+
+func Logout(w http.ResponseWriter, r *http.Request) {
+
+	cookie, _ := r.Cookie("_cookie")
+	//add cookie -> fields uuid
+	s := Session{UUID: cookie.Value}
+	//get ssesion id, by local struct uuid
+	DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).
+		Scan(&s.ID)
+	fmt.Println(s.ID, "id del session")
+	//delete session by id session
+	_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
+
+	if err != nil {
+		panic(err)
+	}
+
+	// then delete cookie from client
+	cookieDelete := http.Cookie{
+		Name:     "_cookie",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+	}
+	http.SetCookie(w, &cookieDelete)
+	http.Redirect(w, r, "/", http.StatusFound)
+}
+
 //get profile by id
-func GetUserProfile(r *http.Request) ([]Posts, []Posts, []Comments, Users, error) {
+func GetUserProfile(r *http.Request, w http.ResponseWriter) ([]Posts, []Posts, []Comments, Users, error) {
 
 	cookie, _ := r.Cookie("_cookie")
 
+	//time.AfterFunc(10, checkCookieLife(cookie, w, r))
 	s := Session{UUID: cookie.Value}
 	u := Users{}
 	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
 	lps := []Likes{}
 	lp, err := DB.Query("select post_id from likes where user_id =?", s.UserID)
-
+	fmt.Print("her1")
 	for lp.Next() {
 		l := Likes{}
-
 		var lpid int
 
 		err = lp.Scan(&lpid)
+		fmt.Print("her2")
 		l.PostID = lpid
 		lps = append(lps, l)
 	}
 
-	DB.QueryRow("SELECT * FROM users WHERE id = ?", s.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.Password, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
-
+	err = DB.QueryRow("SELECT * FROM users WHERE id = ?", s.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.Password, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
 	if u.Image[0] == 60 {
 		u.SVG = true
 	}
+	fmt.Print("her3", err)
 
 	encStr := base64.StdEncoding.EncodeToString(u.Image)
 	u.ImageHtml = encStr
@@ -336,10 +453,11 @@ func GetUserProfile(r *http.Request) ([]Posts, []Posts, []Comments, Users, error
 	for _, v := range lps {
 		can = append(can, v.PostID)
 	}
+	fmt.Print("her4")
 
 	//unique liked post by user
 	fin := isUnique(can)
-
+	fmt.Print("her5")
 	//accum liked post
 	for _, v := range fin {
 		//get each liked post by ID, then likedpost, puth array post
@@ -349,12 +467,12 @@ func GetUserProfile(r *http.Request) ([]Posts, []Posts, []Comments, Users, error
 
 			post := Posts{}
 
-			var id, creatorid, categoryid, countlike, countdislike int
+			var id, creatorid, countlike, countdislike int
 			var content, title string
 			var creationtime time.Time
 			var image []byte
 
-			err = likedpost.Scan(&id, &title, &content, &creatorid, &categoryid, &creationtime, &image, &countlike, &countdislike)
+			err = likedpost.Scan(&id, &title, &content, &creatorid, &creationtime, &image, &countlike, &countdislike)
 			if err != nil {
 				panic(err.Error)
 			}
@@ -363,8 +481,7 @@ func GetUserProfile(r *http.Request) ([]Posts, []Posts, []Comments, Users, error
 			post.Title = title
 			post.Content = content
 			post.CreatorID = creatorid
-			post.CategoryID = categoryid
-			post.CreationTime = creationtime
+			post.CreatedTime = creationtime
 			post.Image = image
 			post.CountLike = countlike
 			post.CountDislike = countdislike
@@ -372,7 +489,7 @@ func GetUserProfile(r *http.Request) ([]Posts, []Posts, []Comments, Users, error
 			LikedPosts = append(LikedPosts, post)
 		}
 	}
-
+	fmt.Print("her6")
 	psu, err := DB.Query("SELECT * FROM posts WHERE creator_id=?", s.UserID)
 
 	PostsCreatedUser := []Posts{}
@@ -381,12 +498,12 @@ func GetUserProfile(r *http.Request) ([]Posts, []Posts, []Comments, Users, error
 
 		post := Posts{}
 
-		var id, creatorid, categoryid, countlike, countdislike int
+		var id, creatorid, countlike, countdislike int
 		var content, title string
 		var creationtime time.Time
 		var image []byte
 
-		err = psu.Scan(&id, &title, &content, &creatorid, &categoryid, &creationtime, &image, &countlike, &countdislike)
+		err = psu.Scan(&id, &title, &content, &creatorid, &creationtime, &image, &countlike, &countdislike)
 		if err != nil {
 			panic(err.Error)
 		}
@@ -397,15 +514,14 @@ func GetUserProfile(r *http.Request) ([]Posts, []Posts, []Comments, Users, error
 		post.Title = title
 		post.Content = content
 		post.CreatorID = creatorid
-		post.CategoryID = categoryid
-		post.CreationTime = creationtime
+		post.CreatedTime = creationtime
 		post.Image = image
 		post.CountLike = countlike
 		post.CountDislike = countdislike
 
 		PostsCreatedUser = append(PostsCreatedUser, post)
 	}
-
+	fmt.Print("her7")
 	csu, err := DB.Query("SELECT * FROM comments WHERE user_idx=?", s.UserID)
 
 	CommentsLostUser := []Comments{}
@@ -435,11 +551,13 @@ func GetUserProfile(r *http.Request) ([]Posts, []Posts, []Comments, Users, error
 
 		CommentsLostUser = append(CommentsLostUser, comment)
 	}
-
+	fmt.Print("her8")
 	if err != nil {
 		return nil, nil, nil, u, err
 	}
 
+	// /2020-10-18T17:33:35.013Z
+	fmt.Print(cookie.Value, "cook")
 	return LikedPosts, PostsCreatedUser, CommentsLostUser, u, nil
 }
 
@@ -477,14 +595,14 @@ func GetOtherUser(r *http.Request) ([]Posts, Users, error) {
 	defer psu.Close()
 
 	for psu.Next() {
-		post := Posts{}
 
-		var id, creatorid, categoryid, countlike, countdislike int
+		post := Posts{}
+		var id, creatorid, countlike, countdislike int
 		var content, title string
 		var creationtime time.Time
 		var image []byte
 
-		err = psu.Scan(&id, &title, &content, &creatorid, &categoryid, &creationtime, &image, &countlike, &countdislike)
+		err = psu.Scan(&id, &title, &content, &creatorid, &creationtime, &image, &countlike, &countdislike)
 		if err != nil {
 			panic(err.Error)
 		}
@@ -493,8 +611,7 @@ func GetOtherUser(r *http.Request) ([]Posts, Users, error) {
 		post.Title = title
 		post.Content = content
 		post.CreatorID = creatorid
-		post.CategoryID = categoryid
-		post.CreationTime = creationtime
+		post.CreatedTime = creationtime
 		post.CountLike = countlike
 		post.CountDislike = countdislike
 		PostsOtherUser = append(PostsOtherUser, post)
@@ -518,12 +635,12 @@ func Search(w http.ResponseWriter, r *http.Request) ([]Posts, error) {
 
 		post := Posts{}
 
-		var id, creatorid, categoryid, countlike, countdislike int
+		var id, creatorid, countlike, countdislike int
 		var content, title string
 		var creationtime time.Time
 		var image []byte
 
-		err = psu.Scan(&id, &title, &content, &creatorid, &categoryid, &creationtime, &image, &countlike, &countdislike)
+		err = psu.Scan(&id, &title, &content, &creatorid, &creationtime, &image, &countlike, &countdislike)
 
 		if err != nil {
 			panic(err.Error)
@@ -532,8 +649,7 @@ func Search(w http.ResponseWriter, r *http.Request) ([]Posts, error) {
 		post.Title = title
 		post.Content = content
 		post.CreatorID = creatorid
-		post.CategoryID = categoryid
-		post.CreationTime = creationtime
+		post.CreatedTime = creationtime
 		post.Image = image
 		post.CountLike = countlike
 		post.CountDislike = countdislike
