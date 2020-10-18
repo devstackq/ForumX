@@ -23,7 +23,6 @@ func main() {
 	// http.HandleFunc("/school", routing.GetAllPosts)
 	// http.HandleFunc("/people", routing.GetAllPosts)
 	// http.HandleFunc("/events", routing.GetAllPosts)
-	// http.HandleFunc("/qa", routing.GetAllPosts)
 
 	http.HandleFunc("/sapid", routing.GetAllPosts)
 	http.HandleFunc("/love", routing.GetAllPosts)
