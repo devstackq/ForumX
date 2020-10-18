@@ -431,7 +431,7 @@ like {
     padding: 5px;
 }
 
-.notify {
-    border: 1px solid red;
-    color: blue;
+#notify {
+    font-size: 18px;
+    color: pink;
 }

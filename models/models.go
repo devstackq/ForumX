@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -85,7 +86,6 @@ type Comments struct {
 
 var API struct {
 	Authenticated bool
-	Message       string
 }
 
 //save session, by client cookie
@@ -103,12 +103,15 @@ type Likes struct {
 	UserID  int
 	Voted   bool
 }
+type Notify struct {
+	Message string
+}
 
 //cahce html file
 func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 
 	err := temp.ExecuteTemplate(w, tmpl, data)
-	fmt.Println(data, "D", err)
+	fmt.Println("err exectute", err)
 	if err != nil {
 		http.Error(w, err.Error(),
 			http.StatusInternalServerError)
@@ -383,7 +386,7 @@ func Signin(w http.ResponseWriter, r *http.Request, email, password string) {
 		Name:     "_cookie",
 		Value:    s.UUID,
 		Path:     "/",
-		MaxAge:   5,
+		MaxAge:   5000,
 		HttpOnly: false,
 	}
 	fmt.Println(cookie.Value, "cook value from uuid send client")
@@ -391,7 +394,7 @@ func Signin(w http.ResponseWriter, r *http.Request, email, password string) {
 
 	//check every 50 sec, cookie still live ?
 	go func() {
-		time.Sleep(time.Second * 50)
+		time.Sleep(time.Second * 5000)
 		// your code here
 		if cookie.MaxAge == 0 {
 			_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
@@ -412,10 +415,14 @@ func Signin(w http.ResponseWriter, r *http.Request, email, password string) {
 
 func authError(w http.ResponseWriter, err error, text string) {
 	fmt.Println(text, "errka")
+
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		API.Message = text
-		DisplayTemplate(w, "signin", &API.Message)
+
+		w.Header().Set("Content-Type", "application/json")
+		m, _ := json.Marshal(text)
+		w.Write(m)
+		//DisplayTemplate(w, "signin", "")
 		return
 	}
 }
@@ -433,14 +440,12 @@ func GetUserProfile(r *http.Request) ([]Posts, []Posts, []Comments, Users, error
 
 	for lp.Next() {
 		l := Likes{}
-
 		var lpid int
 
 		err = lp.Scan(&lpid)
 		l.PostID = lpid
 		lps = append(lps, l)
 	}
-	fmt.Println(u, "U", s.UserID)
 
 	DB.QueryRow("SELECT * FROM users WHERE id = ?", s.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.Password, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
 	if u.Image[0] == 60 {
