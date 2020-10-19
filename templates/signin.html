@@ -63,9 +63,12 @@
         el.style.display = "block"
     }
     const showNotify = (msg) => {
-        console.log(msg, "MSG")
-        let ns = document.getElementById('notify')
-        ns.innerText = msg
+        if (msg != "success") {
+            let ns = document.getElementById('notify')
+            ns.innerText = msg
+        } else {
+            window.location.replace("http://localhost:6969/profile")
+        }
     }
 
     function defAuthSendData() {
@@ -79,18 +82,16 @@
 
         if (user.email != '' && user.password != '') {
             //async fetch query
-            (async() => {
+            async function getUserAsync() {
                 let response = await fetch('http://localhost:6969/signin', {
-                        method: 'post',
-                        body: JSON.stringify(user),
-                    })
-                    .then((res => res.json()))
-                    .then(reska => showNotify(reska))
-                    .then(window.location.replace("http://localhost:6969/profile"))
-                // if (response => !response.ok) {
-                //     throw new Error('Failed to fetch USER');
-                // } 
-            })();
+                    method: 'post',
+                    body: JSON.stringify(user),
+                });
+                let data = await response.json()
+                return data;
+            }
+            getUserAsync()
+                .then(data => showNotify(data));
         }
     }
 </script>

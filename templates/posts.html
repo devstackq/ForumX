@@ -10,7 +10,7 @@
 
     <p> {{.Content}} </p>
 
-    <span id="time" class="time-post"> </span>
+    <span id="time" class="time-post">  </span>
     <span class="category-post"> Category : {{.CategoryName}}</span>
     <br />
     <div class="author-wrapper">
@@ -49,11 +49,7 @@
 
 <script>
     const formatTime = () => {
-        let d = {
-            {.CreationTime
-            }
-        }
-        document.getElementById('time').innerText = d.slice(0, 10) + " " + d.slice(11, 16)
+        document.getElementById('time').innerText = `{{.CreatedTime}}`.slice(1, 11) + " " + `{{.CreatedTime}}`.slice(12, 17)
     }
     formatTime()
 </script>

@@ -107,11 +107,11 @@ type Notify struct {
 	Message string
 }
 
-//cahce html file
+//cache html file
 func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 
-	err := temp.ExecuteTemplate(w, tmpl, data)
-	fmt.Println("err exectute", err)
+	err = temp.ExecuteTemplate(w, tmpl, data)
+	//	fmt.Println("err exectute", err)
 	if err != nil {
 		http.Error(w, err.Error(),
 			http.StatusInternalServerError)
@@ -366,30 +366,34 @@ func Signin(w http.ResponseWriter, r *http.Request, email, password string) {
 		Name:     "_cookie",
 		Value:    s.UUID,
 		Path:     "/",
-		MaxAge:   20,
+		Expires:  time.Now().Add(30 * time.Minute),
 		HttpOnly: false,
 	}
 	http.SetCookie(w, &cookie)
-
-	//	http.Redirect(w, r, "/profile", 200)
-	//fmt.Println(cookie.Value, "cook value from uuid send client")
+	authError(w, nil, "success")
 }
 
 func authError(w http.ResponseWriter, err error, text string) {
 	fmt.Println(text, "errka")
+	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Header().Set("Content-Type", "application/json")
 		m, _ := json.Marshal(text)
 		w.Write(m)
-		//DisplayTemplate(w, "signin", "")
 		return
+	} else {
+		w.WriteHeader(200)
+		m, _ := json.Marshal(text)
+		w.Write(m)
 	}
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {
 
-	cookie, _ := r.Cookie("_cookie")
+	cookie, err := r.Cookie("_cookie")
+	if err != nil {
+		fmt.Println(err, "cookie err")
+	}
 	//add cookie -> fields uuid
 	s := Session{UUID: cookie.Value}
 	//get ssesion id, by local struct uuid
@@ -404,15 +408,16 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// then delete cookie from client
-	cookieDelete := http.Cookie{
+	cDel := http.Cookie{
 		Name:     "_cookie",
 		Value:    "",
 		Path:     "/",
-		MaxAge:   -1,
-		HttpOnly: true,
+		Expires:  time.Unix(0, 0),
+		HttpOnly: false,
 	}
-	http.SetCookie(w, &cookieDelete)
-	http.Redirect(w, r, "/", http.StatusFound)
+	http.SetCookie(w, &cDel)
+	http.Redirect(w, r, "/", http.StatusOK)
+
 }
 
 //get profile by id

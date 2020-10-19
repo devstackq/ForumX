@@ -83,6 +83,7 @@ func CreateDB() {
 }
 
 //redirect todo
+//slow operation -> improve
 // refactor Architect -> category table, bridge table, posts table -> for update, delete post -> change category
 //todo:
 //checkCookieLife(now, w, r, cookie) - del cookie client and backend - redirect main page
