@@ -74,6 +74,16 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
+	r.ParseForm()
+
+	f, _, _ := r.FormFile("uploadfile")
+	post := models.Posts{
+		Title:   r.FormValue("title"),
+		Content: r.FormValue("content"),
+		File:    f,
+	}
+
+	models.CreatePosts(w, r, post) todo nah
 
 	API.Message = ""
 
@@ -82,16 +92,15 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		models.DisplayTemplate(w, "header", util.IsAuth(r))
 		models.DisplayTemplate(w, "create", &API.Message)
 	case "POST":
-		access := CheckCookies(w, r)
+		access, session := util.CheckForCookies(w, r)
 		log.Println(access, "access")
 		if !access {
 			http.Redirect(w, r, "/signin", 302)
 			return
 		}
-		r.ParseForm()
 
-		c, _ := r.Cookie("_cookie")
-		s := models.Session{UUID: c.Value}
+		// c, _ := r.Cookie("_cookie")
+		// s := models.Session{UUID: c.Value}
 
 		r.ParseMultipartForm(10 << 20)
 		file, _, err := r.FormFile("uploadfile")
@@ -152,31 +161,18 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
+		DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", session.UUID).Scan(&session.UserID)
 
 		title := r.FormValue("title")
 		content := r.FormValue("content")
 		//check empty values
-		checkInputTitle := false
-		checkInputContent := false
 
-		for _, v := range title {
-			if v >= 97 && v <= 122 || v >= 65 && v <= 90 && v >= 32 && v <= 64 || v > 128 {
-				checkInputTitle = true
-			}
-		}
-		for _, v := range content {
-			if v >= 97 && v <= 122 || v >= 65 && v <= 90 && v >= 32 && v <= 64 || v > 128 {
-				checkInputContent = true
-			}
-		}
-
-		if checkInputTitle && checkInputContent {
+		if util.CheckLetter(title) && util.CheckLetter(content) {
 
 			p := models.Posts{
 				Title:     title,
 				Content:   content,
-				CreatorID: s.UserID,
+				CreatorID: session.UserID,
 				Image:     fileBytes,
 			}
 
@@ -229,7 +225,7 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 
 	}
 	if r.Method == "POST" {
-		access := CheckCookies(w, r)
+		access, _ := util.CheckForCookies(w, r)
 		if !access {
 			http.Redirect(w, r, "/signin", 302)
 			return
@@ -279,7 +275,7 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 	p := models.Posts{}
 	p.PostIDEdit = pid
 
-	access := CheckCookies(w, r)
+	access, _ := util.CheckForCookies(w, r)
 	if !access {
 		http.Redirect(w, r, "/signin", 302)
 		return
@@ -303,15 +299,15 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 
-		access := CheckCookies(w, r)
+		access, s := util.CheckForCookies(w, r)
 		if !access {
 			http.Redirect(w, r, "/signin", 302)
 			return
 		}
 
 		r.ParseForm()
-		c, _ := r.Cookie("_cookie")
-		s := models.Session{UUID: c.Value}
+		//c, _ := r.Cookie("_cookie")
+		//s := models.Session{UUID: c.Value}
 		DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
 
 		pid, _ := strconv.Atoi(r.FormValue("curr"))
@@ -411,7 +407,7 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "POST" {
-		access := CheckCookies(w, r)
+		access, s := util.CheckForCookies(w, r)
 		if !access {
 			http.Redirect(w, r, "/signin", 302)
 			return
@@ -433,8 +429,8 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		c, _ := r.Cookie("_cookie")
-		s := models.Session{UUID: c.Value}
+		//		c, _ := r.Cookie("_cookie")
+		//s := models.Session{UUID: c.Value}
 
 		DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).
 			Scan(&s.UserID)
@@ -637,38 +633,6 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//check cookie client side and Db
-func CheckCookies(w http.ResponseWriter, r *http.Request) bool {
-
-	flag := false
-	cookieHave := false
-	for _, cookie := range r.Cookies() {
-		if cookie.Name == "_cookie" {
-			cookieHave = true
-			break
-		}
-	}
-	if !cookieHave {
-		http.Redirect(w, r, "/signin", 302)
-	} else {
-		//get client cookie
-		//set local struct -> cookie value
-		cookie, _ := r.Cookie("_cookie")
-		s := models.Session{UUID: cookie.Value}
-		var tmp string
-		// get userid by Client sessionId
-		DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).
-			Scan(&s.UserID)
-		//get uuid by userid, and write UUID data
-		DB.QueryRow("SELECT uuid FROM session WHERE user_id = ?", s.UserID).Scan(&tmp)
-		//check local and DB session
-		if cookie.Value == tmp {
-			flag = true
-		}
-	}
-	return flag
-}
-
 //like dislike post
 func LostVotes(w http.ResponseWriter, r *http.Request) {
 
@@ -677,13 +641,13 @@ func LostVotes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	access := CheckCookies(w, r)
+	access, s := util.CheckForCookies(w, r)
 	if !access {
 		http.Redirect(w, r, "/signin", 302)
 		return
 	}
-	c, _ := r.Cookie("_cookie")
-	s := models.Session{UUID: c.Value}
+	//c, _ := r.Cookie("_cookie")
+	//s := models.Session{UUID: c.Value}
 
 	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).
 		Scan(&s.UserID)
@@ -749,13 +713,13 @@ func LostVotesComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	access := CheckCookies(w, r)
+	access, s := util.CheckForCookies(w, r)
 	if !access {
 		http.Redirect(w, r, "/signin", 302)
 		return
 	}
-	c, _ := r.Cookie("_cookie")
-	s := models.Session{UUID: c.Value}
+	//c, _ := r.Cookie("_cookie")
+	//s := models.Session{UUID: c.Value}
 	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).
 		Scan(&s.UserID)
 

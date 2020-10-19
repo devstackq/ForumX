@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"time"
@@ -65,6 +66,7 @@ type Posts struct {
 	PBGPostID     int
 	PBGCategory   string
 	LastPostId    int
+	File          multipart.File
 }
 
 type PostCategory struct {
@@ -419,6 +421,127 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusOK)
 
 }
+func CreatePosts(w http.ResponseWriter, r *http.Request, data Posts) string {
+	fmt.Println(data, "dd")
+	return ""
+}
+
+// 		c, _ := r.Cookie("_cookie")
+// 		s := models.Session{UUID: c.Value}
+
+// 		r.ParseMultipartForm(10 << 20)
+// 		file, _, err := r.FormFile("uploadfile")
+
+// 		// fImg, err := os.Open("./1553259670.jpg")
+
+// 		// if err != nil {
+// 		// 	fmt.Println(err)
+// 		// 	os.Exit(1)
+// 		// }
+// 		// defer fImg.Close()
+
+// 		// imgInfo, err := fImg.Stat()
+// 		// if err != nil {
+// 		// 	fmt.Println(err, "stats")
+// 		// 	os.Exit(1)
+// 		// }
+
+// 		// var size int64 = imgInfo.Size()
+// 		// fmt.Println(size, "size")
+// 		// byteArr := make([]byte, size)
+
+// 		// read file into bytes
+// 		// buffer := bufio.NewReader(fImg)
+// 		// _, err = buffer.Read(byteArr)
+// 		//defer fImg.Close()
+// 		var fileBytes []byte
+// 		if err != nil {
+// 			fmt.Println(err)
+// 			os.Exit(1)
+// 			//file = fImg
+// 			//fileBytes = byteArr
+// 		}
+
+// 		var buff bytes.Buffer
+// 		fileSize, _ := buff.ReadFrom(file)
+// 		defer file.Close()
+
+// 		// fmt.Println(fileSize)
+// 		// var max int64
+// 		// max = 20000000
+
+// 		if fileSize < 20000000 {
+// 			file2, _, err := r.FormFile("uploadfile")
+// 			if err != nil {
+// 				log.Fatal(err)
+// 				//file2 = fImg
+// 				//fileBytes = byteArr
+// 			}
+// 			defer file2.Close()
+// 			fileBytes, _ = ioutil.ReadAll(file2)
+// 		} else {
+// 			fmt.Print("file more 20mb")
+// 			//messga clinet send
+// 			API.Message = "Large file, more than 20mb"
+// 			models.DisplayTemplate(w, "header", util.IsAuth(r))
+// 			models.DisplayTemplate(w, "create", &API.Message)
+// 			return
+// 		}
+
+// 		DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
+
+// 		//check empty values
+// 		checkInputTitle := false
+// 		checkInputContent := false
+
+// 		for _, v := range title {
+// 			if v >= 97 && v <= 122 || v >= 65 && v <= 90 && v >= 32 && v <= 64 || v > 128 {
+// 				checkInputTitle = true
+// 			}
+// 		}
+// 		for _, v := range content {
+// 			if v >= 97 && v <= 122 || v >= 65 && v <= 90 && v >= 32 && v <= 64 || v > 128 {
+// 				checkInputContent = true
+// 			}
+// 		}
+
+// 		if checkInputTitle && checkInputContent {
+
+// 			p := models.Posts{
+// 				Title:     title,
+// 				Content:   content,
+// 				CreatorID: s.UserID,
+// 				Image:     fileBytes,
+// 			}
+
+// 			lastPost, err := p.CreatePost()
+// 			//fmt.Println(lastPost)
+// 			//query last post -> db
+// 			if err != nil {
+// 				fmt.Println(err)
+// 				//	panic(err.Error())
+// 			}
+
+// 			//insert cat_post_bridge value
+// 			categories, _ := r.Form["input"]
+// 			if len(categories) == 1 {
+// 				pcb := models.PostCategory{
+// 					PostID:   lastPost,
+// 					Category: categories[0],
+// 				}
+// 				err = pcb.CreateBridge()
+// 			} else if len(categories) > 1 {
+// 				//loop
+// 				for _, v := range categories {
+// 					pcb := models.PostCategory{
+// 						PostID:   lastPost,
+// 						Category: v,
+// 					}
+// 					err = pcb.CreateBridge()
+// 				}
+// 			}
+// return ""
+// }
 
 //get profile by id
 func GetUserProfile(r *http.Request, w http.ResponseWriter) ([]Posts, []Posts, []Comments, Users, error) {

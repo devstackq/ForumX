@@ -2,7 +2,6 @@ package util
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -28,22 +27,13 @@ func IsAuth(r *http.Request) API {
 	return auth
 }
 
-func CheckForCookies(w http.ResponseWriter, r *http.Request) bool {
+func CheckForCookies(w http.ResponseWriter, r *http.Request) (bool, models.Session) {
 
-	flag := false
-	cookieHave := false
+	var flag, cookieHave bool
 
 	if IsAuth(r).Authenticated {
 		cookieHave = true
 	}
-	log.Println(cookieHave, "cook her")
-
-	// for _, cookie := range r.Cookies() {
-	// 	if cookie.Name == "_cookie" {
-	// 		cookieHave = true
-	// 		break
-	// 	}
-	// }
 	if !cookieHave {
 		http.Redirect(w, r, "/signin", 302)
 	} else {
@@ -67,7 +57,22 @@ func CheckForCookies(w http.ResponseWriter, r *http.Request) bool {
 		if cookie.Value == tmp {
 			flag = true
 		}
-		fmt.Println(flag, "falg")
 	}
-	return flag
+	s := models.Session{}
+	if flag {
+		c, _ := r.Cookie("_cookie")
+		s.UUID = c.Value
+		return flag, s
+	}
+
+	return flag, s
+}
+
+func CheckLetter(value string) bool {
+	for _, v := range value {
+		if v >= 97 && v <= 122 || v >= 65 && v <= 90 && v >= 32 && v <= 64 || v > 128 {
+			return true
+		}
+	}
+	return false
 }
