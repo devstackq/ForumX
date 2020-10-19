@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/devstackq/ForumX/models"
+	util "github.com/devstackq/ForumX/models/utils"
 	"github.com/devstackq/ForumX/routing"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -80,8 +81,18 @@ func CreateDB() {
 	fmt.Println("Сукцесс конект")
 	routing.DB = db
 	models.DB = db
+	util.DB = db
 }
 
+//check contreoller -> middleware -> check data from CLient todo
+// split files -> comtroller - Folder
+//split file - models Folder etc
+
+//config file todo
+//Mvc - refactor, contorller send data and call func Model
+//data controller -> quuery models
+//like, create post -slow work ?
+//redirect logout not work
 //redirect todo
 //slow operation -> improve
 // refactor Architect -> category table, bridge table, posts table -> for update, delete post -> change category
