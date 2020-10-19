@@ -8,11 +8,13 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"time"
 
 	"net/http"
 	"strconv"
 
 	"github.com/devstackq/ForumX/models"
+	util "github.com/devstackq/ForumX/models/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -30,26 +32,13 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
-	// go func() {
-	// 	for now := range time.Tick(6 * time.Second) {
-	// 		checkCookieLife(now, w, r, cookie)
-	// 	}
-	// }()
 
-	auth := models.API
-	for _, cookie := range r.Cookies() {
-		if cookie.Name == "_cookie" {
-			auth.Authenticated = true
-
-		}
-
-	}
 	posts, endpoint, err := models.GetAllPost(r)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	models.DisplayTemplate(w, "header", auth)
+	models.DisplayTemplate(w, "header", util.IsAuth(r))
 
 	// endpoint -> get post by category
 	// profile/ fix, create, get post fix
@@ -58,13 +47,6 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 	} else {
 		models.DisplayTemplate(w, "catTemp", posts)
 	}
-}
-func checkCookieLife(w http.ResponseWriter, r *http.Request) {
-	//time.Sleep(6 * time.Second)
-	//http.Redirect(w, r, "/", http.StatusFound)
-	Logout(w, r)
-	fmt.Println("logout ept")
-	return
 }
 
 //view 1 post by id
@@ -75,19 +57,12 @@ func GetPostById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//check cookie for  navbar, if not cookie - signin
-	auth := models.API
-	for _, cookie := range r.Cookies() {
-		if cookie.Name == "_cookie" {
-			auth.Authenticated = true
-			break
-		}
-	}
 
 	comments, post, err := models.GetPostById(r)
 	if err != nil {
 		panic(err)
 	}
-	models.DisplayTemplate(w, "header", auth)
+	models.DisplayTemplate(w, "header", util.IsAuth(r))
 	models.DisplayTemplate(w, "posts", post)
 	models.DisplayTemplate(w, "comment", comments)
 }
@@ -100,22 +75,15 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auth := models.API
-	for _, cookie := range r.Cookies() {
-		if cookie.Name == "_cookie" {
-			auth.Authenticated = true
-			break
-		}
-	}
-
 	API.Message = ""
 
 	switch r.Method {
 	case "GET":
-		models.DisplayTemplate(w, "header", auth)
+		models.DisplayTemplate(w, "header", util.IsAuth(r))
 		models.DisplayTemplate(w, "create", &API.Message)
 	case "POST":
 		access := CheckCookies(w, r)
+		log.Println(access, "access")
 		if !access {
 			http.Redirect(w, r, "/signin", 302)
 			return
@@ -179,7 +147,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 			fmt.Print("file more 20mb")
 			//messga clinet send
 			API.Message = "Large file, more than 20mb"
-			models.DisplayTemplate(w, "header", auth)
+			models.DisplayTemplate(w, "header", util.IsAuth(r))
 			models.DisplayTemplate(w, "create", &API.Message)
 			return
 		}
@@ -243,7 +211,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusCreated)
 		} else {
 			API.Message = "Empty title or content"
-			models.DisplayTemplate(w, "header", auth)
+			models.DisplayTemplate(w, "header", util.IsAuth(r))
 			models.DisplayTemplate(w, "create", &API.Message)
 		}
 	}
@@ -381,27 +349,39 @@ func GetProfileById(w http.ResponseWriter, r *http.Request) {
 		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
+	if r.Method == "GET" {
 
-	//	if r.Method == "GET" {
-	auth := models.API
+		//if userId now, createdPost uid equal -> show
+		likedpost, posts, comments, user, err := models.GetUserProfile(r, w)
+		if err != nil {
+			panic(err)
+		}
+
+		models.DisplayTemplate(w, "header", util.IsAuth(r))
+		models.DisplayTemplate(w, "profile", user)
+		models.DisplayTemplate(w, "likedpost", likedpost)
+		models.DisplayTemplate(w, "postuser", posts)
+		models.DisplayTemplate(w, "commentuser", comments)
+
+		cookie, _ := r.Cookie("_cookie")
+		//delete coookie db
+		go func() {
+			for now := range time.Tick(30 * time.Minute) {
+				checkCookieLife(now, cookie, w, r)
+				//next logout each 10 min
+				time.Sleep(30 * time.Minute)
+			}
+		}()
+	}
+}
+
+func checkCookieLife(t time.Time, cookie *http.Cookie, w http.ResponseWriter, r *http.Request) {
 	for _, cookie := range r.Cookies() {
 		if cookie.Name == "_cookie" {
-			auth.Authenticated = true
-			break
+			models.Logout(w, r)
+			return
 		}
 	}
-	//if userId now, createdPost uid equal -> show
-	likedpost, posts, comments, user, err := models.GetUserProfile(r, w)
-	if err != nil {
-		panic(err)
-	}
-
-	models.DisplayTemplate(w, "header", auth)
-	models.DisplayTemplate(w, "profile", user)
-	models.DisplayTemplate(w, "likedpost", likedpost)
-	models.DisplayTemplate(w, "postuser", posts)
-	models.DisplayTemplate(w, "commentuser", comments)
-	//}
 }
 
 //user page, other anyone
@@ -409,20 +389,12 @@ func GetUserById(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 
-		auth := models.API
-		for _, cookie := range r.Cookies() {
-			if cookie.Name == "_cookie" {
-				auth.Authenticated = true
-				break
-			}
-		}
-
 		posts, user, err := models.GetOtherUser(r)
 		if err != nil {
 			panic(err)
 		}
 
-		models.DisplayTemplate(w, "header", auth)
+		models.DisplayTemplate(w, "header", util.IsAuth(r))
 		models.DisplayTemplate(w, "user", user)
 		models.DisplayTemplate(w, "postuser", posts)
 	}
@@ -432,16 +404,9 @@ func GetUserById(w http.ResponseWriter, r *http.Request) {
 func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 	//check cookie for  navbar
-	auth := models.API
-	for _, cookie := range r.Cookies() {
-		if cookie.Name == "_cookie" {
-			auth.Authenticated = true
-			break
-		}
-	}
 
 	if r.Method == "GET" {
-		models.DisplayTemplate(w, "header", auth)
+		models.DisplayTemplate(w, "header", util.IsAuth(r))
 		models.DisplayTemplate(w, "updateuser", "")
 	}
 
@@ -509,21 +474,13 @@ func Search(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 
-		auth := models.API
-		for _, cookie := range r.Cookies() {
-			if cookie.Name == "_cookie" {
-				auth.Authenticated = true
-				break
-			}
-		}
-
 		findPosts, err := models.Search(w, r)
 
 		if err != nil {
 			panic(err)
 		}
 
-		models.DisplayTemplate(w, "header", auth)
+		models.DisplayTemplate(w, "header", util.IsAuth(r))
 		models.DisplayTemplate(w, "index", findPosts)
 	}
 }
@@ -641,6 +598,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 			pwd := person.Password
 
 			models.Signin(w, r, email, pwd)
+			http.Redirect(w, r, "/profile", 200)
 			//http.Redirect(w, r, "/profile", 200)
 			//http.Redirect(w, r, "/profile", 200)
 			//citiesArtist := FindCityArtist(w, r, strings.ToLower(string(body)))
@@ -674,7 +632,6 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
-
 	if r.Method == "GET" {
 		models.Logout(w, r)
 	}
@@ -695,8 +652,8 @@ func CheckCookies(w http.ResponseWriter, r *http.Request) bool {
 		http.Redirect(w, r, "/signin", 302)
 	} else {
 		//get client cookie
-		cookie, _ := r.Cookie("_cookie")
 		//set local struct -> cookie value
+		cookie, _ := r.Cookie("_cookie")
 		s := models.Session{UUID: cookie.Value}
 		var tmp string
 		// get userid by Client sessionId
@@ -710,7 +667,6 @@ func CheckCookies(w http.ResponseWriter, r *http.Request) bool {
 		}
 	}
 	return flag
-
 }
 
 //like dislike post
