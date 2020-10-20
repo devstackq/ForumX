@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/devstackq/ForumX/models"
+	"github.com/devstackq/ForumX/model"
 )
 
 var (
@@ -27,7 +27,7 @@ func IsAuth(r *http.Request) API {
 	return auth
 }
 
-func CheckForCookies(w http.ResponseWriter, r *http.Request) (bool, models.Session) {
+func CheckForCookies(w http.ResponseWriter, r *http.Request) (bool, model.Session) {
 
 	var flag, cookieHave bool
 
@@ -40,7 +40,7 @@ func CheckForCookies(w http.ResponseWriter, r *http.Request) (bool, models.Sessi
 		//get client cookie
 		//set local struct -> cookie value
 		cookie, _ := r.Cookie("_cookie")
-		s := models.Session{UUID: cookie.Value}
+		s := model.Session{UUID: cookie.Value}
 		var tmp string
 		// get userid by Client sessionId
 		err = DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).
@@ -58,7 +58,7 @@ func CheckForCookies(w http.ResponseWriter, r *http.Request) (bool, models.Sessi
 			flag = true
 		}
 	}
-	s := models.Session{}
+	s := model.Session{}
 	if flag {
 		c, _ := r.Cookie("_cookie")
 		s.UUID = c.Value
