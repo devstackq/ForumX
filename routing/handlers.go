@@ -1,20 +1,18 @@
 package routing
 
 import (
-	"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
 	"time"
 
 	"net/http"
 	"strconv"
 
 	"github.com/devstackq/ForumX/models"
-	util "github.com/devstackq/ForumX/models/utils"
+	util "github.com/devstackq/ForumX/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -74,16 +72,6 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		models.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
-	r.ParseForm()
-
-	f, _, _ := r.FormFile("uploadfile")
-	post := models.Posts{
-		Title:   r.FormValue("title"),
-		Content: r.FormValue("content"),
-		File:    f,
-	}
-
-	models.CreatePosts(w, r, post) todo nah
 
 	API.Message = ""
 
@@ -92,18 +80,31 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		models.DisplayTemplate(w, "header", util.IsAuth(r))
 		models.DisplayTemplate(w, "create", &API.Message)
 	case "POST":
+
 		access, session := util.CheckForCookies(w, r)
 		log.Println(access, "access")
 		if !access {
 			http.Redirect(w, r, "/signin", 302)
 			return
 		}
+		r.ParseForm()
 
+		f, _, _ := r.FormFile("uploadfile")
+		post := models.Posts{
+			Title:   r.FormValue("title"),
+			Content: r.FormValue("content"),
+			File:    f,
+			Session: session,
+		}
+
+		fmt.Print(post)
+		models.CreatePosts(w, r, post)
+photo norm save
 		// c, _ := r.Cookie("_cookie")
 		// s := models.Session{UUID: c.Value}
 
-		r.ParseMultipartForm(10 << 20)
-		file, _, err := r.FormFile("uploadfile")
+		// r.ParseMultipartForm(10 << 20)
+		// file, _, err := r.FormFile("uploadfile")
 
 		// fImg, err := os.Open("./1553259670.jpg")
 
@@ -127,89 +128,90 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		// buffer := bufio.NewReader(fImg)
 		// _, err = buffer.Read(byteArr)
 		//defer fImg.Close()
-		var fileBytes []byte
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-			//file = fImg
-			//fileBytes = byteArr
-		}
 
-		var buff bytes.Buffer
-		fileSize, _ := buff.ReadFrom(file)
-		defer file.Close()
+		// var fileBytes []byte
+		// if err != nil {
+		// 	fmt.Println(err)
+		// 	os.Exit(1)
+		// 	//file = fImg
+		// 	//fileBytes = byteArr
+		// }
 
-		// fmt.Println(fileSize)
-		// var max int64
-		// max = 20000000
+		// var buff bytes.Buffer
+		// fileSize, _ := buff.ReadFrom(file)
+		// defer file.Close()
 
-		if fileSize < 20000000 {
-			file2, _, err := r.FormFile("uploadfile")
-			if err != nil {
-				log.Fatal(err)
-				//file2 = fImg
-				//fileBytes = byteArr
-			}
-			defer file2.Close()
-			fileBytes, _ = ioutil.ReadAll(file2)
-		} else {
-			fmt.Print("file more 20mb")
-			//messga clinet send
-			API.Message = "Large file, more than 20mb"
-			models.DisplayTemplate(w, "header", util.IsAuth(r))
-			models.DisplayTemplate(w, "create", &API.Message)
-			return
-		}
+		// // fmt.Println(fileSize)
+		// // var max int64
+		// // max = 20000000
 
-		DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", session.UUID).Scan(&session.UserID)
+		// if fileSize < 20000000 {
+		// 	file2, _, err := r.FormFile("uploadfile")
+		// 	if err != nil {
+		// 		log.Fatal(err)
+		// 		//file2 = fImg
+		// 		//fileBytes = byteArr
+		// 	}
+		// 	defer file2.Close()
+		// 	fileBytes, _ = ioutil.ReadAll(file2)
+		// } else {
+		// 	fmt.Print("file more 20mb")
+		// 	//messga clinet send
+		// 	API.Message = "Large file, more than 20mb"
+		// 	models.DisplayTemplate(w, "header", util.IsAuth(r))
+		// 	models.DisplayTemplate(w, "create", &API.Message)
+		// 	return
+		// }
 
-		title := r.FormValue("title")
-		content := r.FormValue("content")
-		//check empty values
+		// DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", session.UUID).Scan(&session.UserID)
 
-		if util.CheckLetter(title) && util.CheckLetter(content) {
+		// title := r.FormValue("title")
+		// content := r.FormValue("content")
+		// //check empty values
 
-			p := models.Posts{
-				Title:     title,
-				Content:   content,
-				CreatorID: session.UserID,
-				Image:     fileBytes,
-			}
+		// if util.CheckLetter(title) && util.CheckLetter(content) {
 
-			lastPost, err := p.CreatePost()
-			//fmt.Println(lastPost)
-			//query last post -> db
-			if err != nil {
-				fmt.Println(err)
-				//	panic(err.Error())
-			}
+		// 	p := models.Posts{
+		// 		Title:     title,
+		// 		Content:   content,
+		// 		CreatorID: session.UserID,
+		// 		Image:     fileBytes,
+		// 	}
 
-			//insert cat_post_bridge value
-			categories, _ := r.Form["input"]
-			if len(categories) == 1 {
-				pcb := models.PostCategory{
-					PostID:   lastPost,
-					Category: categories[0],
-				}
-				err = pcb.CreateBridge()
-			} else if len(categories) > 1 {
-				//loop
-				for _, v := range categories {
-					pcb := models.PostCategory{
-						PostID:   lastPost,
-						Category: v,
-					}
-					err = pcb.CreateBridge()
-				}
-			}
+		// 	lastPost, err := p.CreatePost()
+		// 	//fmt.Println(lastPost)
+		// 	//query last post -> db
+		// 	if err != nil {
+		// 		fmt.Println(err)
+		// 		//	panic(err.Error())
+		// 	}
 
-			http.Redirect(w, r, "/", http.StatusFound)
-			w.WriteHeader(http.StatusCreated)
-		} else {
-			API.Message = "Empty title or content"
-			models.DisplayTemplate(w, "header", util.IsAuth(r))
-			models.DisplayTemplate(w, "create", &API.Message)
-		}
+		// 	//insert cat_post_bridge value
+		// 	categories, _ := r.Form["input"]
+		// 	if len(categories) == 1 {
+		// 		pcb := models.PostCategory{
+		// 			PostID:   lastPost,
+		// 			Category: categories[0],
+		// 		}
+		// 		err = pcb.CreateBridge()
+		// 	} else if len(categories) > 1 {
+		// 		//loop
+		// 		for _, v := range categories {
+		// 			pcb := models.PostCategory{
+		// 				PostID:   lastPost,
+		// 				Category: v,
+		// 			}
+		// 			err = pcb.CreateBridge()
+		// 		}
+		// 	}
+
+		// 	http.Redirect(w, r, "/", http.StatusFound)
+		// 	w.WriteHeader(http.StatusCreated)
+		// } else {
+		// 	API.Message = "Empty title or content"
+		// 	models.DisplayTemplate(w, "header", util.IsAuth(r))
+		// 	models.DisplayTemplate(w, "create", &API.Message)
+		// }
 	}
 }
 

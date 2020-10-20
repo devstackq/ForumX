@@ -7,8 +7,8 @@ import (
 	"net/http"
 
 	"github.com/devstackq/ForumX/models"
-	util "github.com/devstackq/ForumX/models/utils"
 	"github.com/devstackq/ForumX/routing"
+	util "github.com/devstackq/ForumX/utils"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -83,6 +83,8 @@ func CreateDB() {
 	models.DB = db
 	util.DB = db
 }
+
+//create models file -> чисто модели, и в паке моедли файлы,
 
 //check contreoller -> middleware -> check data from CLient todo
 // split files -> comtroller - Folder
