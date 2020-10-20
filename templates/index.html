@@ -1,6 +1,7 @@
 {{define "index"}}
 <div class="main">
-    {{template "search"}} {{template "filter" }} {{ range $key, $value := . }}
+    {{template "search"}} {{template "filter" }} 
+    {{ range $key, $value := . }}
     <div class=" wrapper-main">
         <form method="POST" action="{{ $value.EndpointPost}}/{{$value.ID}}">
             <input type="hidden" name="pstID" value="{{ $value.ID }}" />
@@ -13,7 +14,6 @@
         <br>
         <span>{{$value.CountDislike}} &#8722</span>
         <a class="links" href="/post?id={{$value.ID}}">read..</a>
-
     </div>
     {{end}}
 </div>
@@ -23,4 +23,5 @@
     }
     formatTime()
 </script>
-{{template "footer" }} {{end}}
+{{template "footer" }} 
+{{end}}

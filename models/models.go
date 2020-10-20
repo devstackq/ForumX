@@ -70,8 +70,10 @@ type Posts struct {
 	PBGPostID     int
 	PBGCategory   string
 	LastPostId    int
-	File          multipart.File
+	FileS         multipart.File
+	FileI         multipart.File
 	Session       model.Session
+	Categories    []string
 }
 
 type PostCategory struct {
@@ -123,11 +125,29 @@ func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 func GetPostById(r *http.Request) ([]Comments, Posts, error) {
 
 	r.ParseForm()
-	id := r.FormValue("id")
 	p := Posts{}
 
 	//take from all post, only post by id, then write data struct Post
-	DB.QueryRow("SELECT * FROM posts WHERE id = ?", id).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreatedTime, &p.Image, &p.CountLike, &p.CountDislike)
+	DB.QueryRow("SELECT * FROM posts WHERE id = ?", r.FormValue("id")).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreatedTime, &p.Image, &p.CountLike, &p.CountDislike)
+	var post Posts
+	//refactor category name Query
+	fmt.Print(r.Host, r.URL.RequestURI())
+	switch r.URL.Path {
+	//check what come client, cats, and filter by like, date and cats
+	case "/science":
+		post.EndpointPost = "/science"
+		fmt.Print("science")
+		DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=? and category=?", p.ID, "science").Scan(&p.CategoryName)
+	case "/love":
+		post.EndpointPost = "/love"
+		DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=? and category=?", p.ID, "love").Scan(&p.CategoryName)
+	case "/sapid":
+		post.EndpointPost = "/sapid"
+		DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=? and category=?", p.ID, "sapid").Scan(&p.CategoryName)
+	}
+	fix category show
+	DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=? and category=?", p.ID, "sapid").Scan(&p.CategoryName)
+
 	p.CreatedTime.Format(time.RFC1123)
 	//write values from tables Likes, and write data table Post fileds like, dislikes
 	//[]byte -> encode string, client render img base64
@@ -143,7 +163,7 @@ func GetPostById(r *http.Request) ([]Comments, Posts, error) {
 	//creator post
 	DB.QueryRow("SELECT full_name FROM users WHERE id = ?", p.CreatorID).Scan(&p.FullName)
 	//get category post
-	DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=?", p.ID).Scan(&p.CategoryName)
+	//DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=?", p.ID).Scan(&p.CategoryName)
 	//get all comments from post
 	stmp, err := DB.Query("SELECT * FROM comments WHERE  post_id =?", p.ID)
 	if err != nil {
@@ -184,6 +204,7 @@ func GetPostById(r *http.Request) ([]Comments, Posts, error) {
 func GetAllPost(r *http.Request) ([]Posts, string, error) {
 
 	var post Posts
+	//send from controlle, then check-> then send model
 	r.ParseForm()
 	like := r.FormValue("likes")
 	date := r.FormValue("date")
@@ -243,8 +264,6 @@ func GetAllPost(r *http.Request) ([]Posts, string, error) {
 			}
 		}
 
-		//refactor category name Query
-		DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=?", postik.ID).Scan(&postik.CategoryName)
 		arrayPosts = append(arrayPosts, postik)
 	}
 	//	fmt.Println(arrayPosts, "osts all")
@@ -421,8 +440,6 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 }
 func CreatePosts(w http.ResponseWriter, r *http.Request, data Posts) {
 
-	r.ParseMultipartForm(10 << 20)
-
 	//try default photo user or post
 	// fImg, err := os.Open("./1553259670.jpg")
 
@@ -450,34 +467,24 @@ func CreatePosts(w http.ResponseWriter, r *http.Request, data Posts) {
 	var fileBytes []byte
 
 	var buff bytes.Buffer
-	fileSize, _ := buff.ReadFrom(data.File)
-	defer data.File.Close()
-
-	// fmt.Println(fileSize)
-	// var max int64
-	// max = 20000000
+	fileSize, _ := buff.ReadFrom(data.FileS)
+	defer data.FileS.Close()
 
 	if fileSize < 20000000 {
 		//file2, _, err := r.FormFile("uploadfile")
-
 		if err != nil {
 			log.Fatal(err)
-			//file2 = fImg
-			//fileBytes = byteArr
 		}
-		fileBytes, _ = ioutil.ReadAll(data.File)
+		fileBytes, err = ioutil.ReadAll(data.FileI)
 	} else {
 		fmt.Print("file more 20mb")
-		//messga clinet send
-
+		//message  client send
 		DisplayTemplate(w, "header", util.IsAuth(r))
 		DisplayTemplate(w, "create", "Large file, more than 20mb")
 	}
 
 	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", data.Session.UUID).Scan(&data.Session.UserID)
-
 	//check empty values
-
 	if util.CheckLetter(data.Title) && util.CheckLetter(data.Content) {
 
 		db, err := DB.Exec("INSERT INTO posts (title, content, creator_id,  image) VALUES ( ?,?, ?, ?)",
@@ -491,43 +498,32 @@ func CreatePosts(w http.ResponseWriter, r *http.Request, data Posts) {
 			log.Fatal(err)
 		}
 		//return last, nil
-
-		// p := models.Posts{
-		// 	Title:     title,
-		// 	Content:   content,
-		// 	CreatorID: s.UserID,
-		// 	Image:     fileBytes,
-		// }
-
-		// lastPost, err := p.CreatePost()
-		//fmt.Println(lastPost)
-		//query last post -> db
-		if err != nil {
-			fmt.Println(err)
-			//	panic(err.Error())
-		}
-
 		//insert cat_post_bridge value
-		categories, _ := r.Form["input"]
-		if len(categories) == 1 {
+
+		if len(data.Categories) == 1 {
 			pcb := PostCategory{
 				PostID:   last,
-				Category: categories[0],
+				Category: data.Categories[0],
 			}
 			err = pcb.CreateBridge()
-		} else if len(categories) > 1 {
+			if err != nil {
+				log.Println(err)
+			}
+		} else if len(data.Categories) > 1 {
 			//loop
-			for _, v := range categories {
+			for _, v := range data.Categories {
 				pcb := PostCategory{
 					PostID:   last,
 					Category: v,
 				}
 				err = pcb.CreateBridge()
+				if err != nil {
+					log.Println(err)
+				}
 			}
 		}
-
-		http.Redirect(w, r, "/", http.StatusFound)
 		w.WriteHeader(http.StatusCreated)
+		http.Redirect(w, r, "/", http.StatusFound)
 	} else {
 		DisplayTemplate(w, "header", util.IsAuth(r))
 		DisplayTemplate(w, "create", "Empty title or content")
