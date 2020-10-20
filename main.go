@@ -20,9 +20,6 @@ func main() {
 	http.Handle("/statics/", http.StripPrefix("/statics/", http.FileServer(http.Dir("./statics/"))))
 
 	http.HandleFunc("/", routing.GetAllPosts)
-	// http.HandleFunc("/school", routing.GetAllPosts)
-	// http.HandleFunc("/people", routing.GetAllPosts)
-	// http.HandleFunc("/events", routing.GetAllPosts)
 
 	http.HandleFunc("/sapid", routing.GetAllPosts)
 	http.HandleFunc("/love", routing.GetAllPosts)
@@ -84,6 +81,7 @@ func CreateDB() {
 	util.DB = db
 }
 
+//if cookie = 0, notify message  user, logout etc
 //create models file -> чисто модели, и в паке моедли файлы,
 
 //check contreoller -> middleware -> check data from CLient todo

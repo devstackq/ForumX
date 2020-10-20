@@ -50,10 +50,10 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 //view 1 post by id
 func GetPostById(w http.ResponseWriter, r *http.Request) {
 
-	if r.URL.Path != "/post" {
-		models.DisplayTemplate(w, "404page", http.StatusNotFound)
-		return
-	}
+	// if r.URL.Path != "/post" {
+	// 	models.DisplayTemplate(w, "404page", http.StatusNotFound)
+	// 	return
+	// }
 	//check cookie for  navbar, if not cookie - signin
 
 	comments, post, err := models.GetPostById(r)
@@ -80,138 +80,27 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		models.DisplayTemplate(w, "header", util.IsAuth(r))
 		models.DisplayTemplate(w, "create", &API.Message)
 	case "POST":
-
 		access, session := util.CheckForCookies(w, r)
-		log.Println(access, "access")
+		log.Println(access, "access status")
 		if !access {
 			http.Redirect(w, r, "/signin", 302)
 			return
 		}
 		r.ParseForm()
-
+		r.ParseMultipartForm(10 << 20)
 		f, _, _ := r.FormFile("uploadfile")
+		f2, _, _ := r.FormFile("uploadfile")
+		categories, _ := r.Form["input"]
 		post := models.Posts{
-			Title:   r.FormValue("title"),
-			Content: r.FormValue("content"),
-			File:    f,
-			Session: session,
+			Title:      r.FormValue("title"),
+			Content:    r.FormValue("content"),
+			Categories: categories,
+			FileS:      f,
+			FileI:      f2,
+			Session:    session,
 		}
-
-		fmt.Print(post)
 		models.CreatePosts(w, r, post)
-photo norm save
-		// c, _ := r.Cookie("_cookie")
-		// s := models.Session{UUID: c.Value}
-
-		// r.ParseMultipartForm(10 << 20)
-		// file, _, err := r.FormFile("uploadfile")
-
-		// fImg, err := os.Open("./1553259670.jpg")
-
-		// if err != nil {
-		// 	fmt.Println(err)
-		// 	os.Exit(1)
-		// }
-		// defer fImg.Close()
-
-		// imgInfo, err := fImg.Stat()
-		// if err != nil {
-		// 	fmt.Println(err, "stats")
-		// 	os.Exit(1)
-		// }
-
-		// var size int64 = imgInfo.Size()
-		// fmt.Println(size, "size")
-		// byteArr := make([]byte, size)
-
-		// read file into bytes
-		// buffer := bufio.NewReader(fImg)
-		// _, err = buffer.Read(byteArr)
-		//defer fImg.Close()
-
-		// var fileBytes []byte
-		// if err != nil {
-		// 	fmt.Println(err)
-		// 	os.Exit(1)
-		// 	//file = fImg
-		// 	//fileBytes = byteArr
-		// }
-
-		// var buff bytes.Buffer
-		// fileSize, _ := buff.ReadFrom(file)
-		// defer file.Close()
-
-		// // fmt.Println(fileSize)
-		// // var max int64
-		// // max = 20000000
-
-		// if fileSize < 20000000 {
-		// 	file2, _, err := r.FormFile("uploadfile")
-		// 	if err != nil {
-		// 		log.Fatal(err)
-		// 		//file2 = fImg
-		// 		//fileBytes = byteArr
-		// 	}
-		// 	defer file2.Close()
-		// 	fileBytes, _ = ioutil.ReadAll(file2)
-		// } else {
-		// 	fmt.Print("file more 20mb")
-		// 	//messga clinet send
-		// 	API.Message = "Large file, more than 20mb"
-		// 	models.DisplayTemplate(w, "header", util.IsAuth(r))
-		// 	models.DisplayTemplate(w, "create", &API.Message)
-		// 	return
-		// }
-
-		// DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", session.UUID).Scan(&session.UserID)
-
-		// title := r.FormValue("title")
-		// content := r.FormValue("content")
-		// //check empty values
-
-		// if util.CheckLetter(title) && util.CheckLetter(content) {
-
-		// 	p := models.Posts{
-		// 		Title:     title,
-		// 		Content:   content,
-		// 		CreatorID: session.UserID,
-		// 		Image:     fileBytes,
-		// 	}
-
-		// 	lastPost, err := p.CreatePost()
-		// 	//fmt.Println(lastPost)
-		// 	//query last post -> db
-		// 	if err != nil {
-		// 		fmt.Println(err)
-		// 		//	panic(err.Error())
-		// 	}
-
-		// 	//insert cat_post_bridge value
-		// 	categories, _ := r.Form["input"]
-		// 	if len(categories) == 1 {
-		// 		pcb := models.PostCategory{
-		// 			PostID:   lastPost,
-		// 			Category: categories[0],
-		// 		}
-		// 		err = pcb.CreateBridge()
-		// 	} else if len(categories) > 1 {
-		// 		//loop
-		// 		for _, v := range categories {
-		// 			pcb := models.PostCategory{
-		// 				PostID:   lastPost,
-		// 				Category: v,
-		// 			}
-		// 			err = pcb.CreateBridge()
-		// 		}
-		// 	}
-
-		// 	http.Redirect(w, r, "/", http.StatusFound)
-		// 	w.WriteHeader(http.StatusCreated)
-		// } else {
-		// 	API.Message = "Empty title or content"
-		// 	models.DisplayTemplate(w, "header", util.IsAuth(r))
-		// 	models.DisplayTemplate(w, "create", &API.Message)
-		// }
+		http.Redirect(w, r, "/", http.StatusOK)
 	}
 }
 
