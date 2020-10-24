@@ -31,7 +31,7 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	posts, endpoint, err := models.GetAllPost(r)
+	posts, endpoint, category, err := models.GetAllPost(r)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,6 +43,10 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 	if endpoint == "/" {
 		models.DisplayTemplate(w, "index", posts)
 	} else {
+		//send category
+		msg := []byte(fmt.Sprintf("<h2 id='category'> `Category: %s` </h2>", category))
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(msg)
 		models.DisplayTemplate(w, "catTemp", posts)
 	}
 }
@@ -50,12 +54,11 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 //view 1 post by id
 func GetPostById(w http.ResponseWriter, r *http.Request) {
 
-	// if r.URL.Path != "/post" {
-	// 	models.DisplayTemplate(w, "404page", http.StatusNotFound)
-	// 	return
-	// }
+	if r.URL.Path != "/post" {
+		models.DisplayTemplate(w, "404page", http.StatusNotFound)
+		return
+	}
 	//check cookie for  navbar, if not cookie - signin
-
 	comments, post, err := models.GetPostById(r)
 	if err != nil {
 		panic(err)
