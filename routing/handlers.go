@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"time"
-
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/devstackq/ForumX/models"
 	util "github.com/devstackq/ForumX/utils"
@@ -22,32 +21,36 @@ var (
 	API struct{ Message string }
 )
 
-//getAllPost and Posts by cateogry
 //receive request, from client, query params, category ID, then query DB, depends catID, get Post this catID
 func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/" && r.URL.Path != "/science" && r.URL.Path != "/love" && r.URL.Path != "/sapid" {
-		models.DisplayTemplate(w, "404page", http.StatusNotFound)
+		util.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 
-	posts, endpoint, category, err := models.GetAllPost(r)
+	fv := models.Filter{
+		Like:     r.FormValue("likes"),
+		Date:     r.FormValue("date"),
+		Category: r.FormValue("cats"),
+	}
+
+	posts, endpoint, category, err := fv.GetAllPost(r)
+
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	models.DisplayTemplate(w, "header", util.IsAuth(r))
+	util.DisplayTemplate(w, "header", util.IsAuth(r))
 
-	// endpoint -> get post by category
-	// profile/ fix, create, get post fix
 	if endpoint == "/" {
-		models.DisplayTemplate(w, "index", posts)
+		util.DisplayTemplate(w, "index", posts)
 	} else {
 		//send category
 		msg := []byte(fmt.Sprintf("<h2 id='category'> `Category: %s` </h2>", category))
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(msg)
-		models.DisplayTemplate(w, "catTemp", posts)
+		util.DisplayTemplate(w, "catTemp", posts)
 	}
 }
 
@@ -55,24 +58,26 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 func GetPostById(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/post" {
-		models.DisplayTemplate(w, "404page", http.StatusNotFound)
+		util.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 	//check cookie for  navbar, if not cookie - signin
-	comments, post, err := models.GetPostById(r)
+	id, _ := strconv.Atoi(r.FormValue("id"))
+	p := models.Posts{ID: id}
+	comments, post, err := p.GetPostById(r)
 	if err != nil {
 		panic(err)
 	}
-	models.DisplayTemplate(w, "header", util.IsAuth(r))
-	models.DisplayTemplate(w, "posts", post)
-	models.DisplayTemplate(w, "comment", comments)
+	util.DisplayTemplate(w, "header", util.IsAuth(r))
+	util.DisplayTemplate(w, "posts", post)
+	util.DisplayTemplate(w, "comment", comments)
 }
 
 //create post
 func CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/create/post" {
-		models.DisplayTemplate(w, "404page", http.StatusNotFound)
+		util.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 
@@ -80,8 +85,8 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		models.DisplayTemplate(w, "header", util.IsAuth(r))
-		models.DisplayTemplate(w, "create", &API.Message)
+		util.DisplayTemplate(w, "header", util.IsAuth(r))
+		util.DisplayTemplate(w, "create", &API.Message)
 	case "POST":
 		access, session := util.CheckForCookies(w, r)
 		log.Println(access, "access status")
@@ -102,7 +107,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 			FileI:      f2,
 			Session:    session,
 		}
-		models.CreatePosts(w, r, post)
+		models.CreatePost(w, r, post)
 		http.Redirect(w, r, "/", http.StatusOK)
 	}
 }
@@ -115,7 +120,7 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 		pid, _ = strconv.Atoi(r.URL.Query().Get("id"))
 		p := models.Posts{}
 		p.PostIDEdit = pid
-		models.DisplayTemplate(w, "updatepost", p)
+		util.DisplayTemplate(w, "updatepost", p)
 
 	}
 	if r.Method == "POST" {
@@ -187,7 +192,7 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 func CreateComment(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/comment" {
-		models.DisplayTemplate(w, "404page", http.StatusNotFound)
+		util.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 
@@ -207,14 +212,8 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 		pid, _ := strconv.Atoi(r.FormValue("curr"))
 		comment := r.FormValue("comment-text")
 
-		checkLetter := false
-		for _, v := range comment {
-			if v >= 97 && v <= 122 || v >= 65 && v <= 90 && v >= 32 && v <= 64 || v > 128 {
-				checkLetter = true
-			}
-		}
+		if util.CheckLetter(comment) {
 
-		if checkLetter {
 			com := models.Comments{
 				Commentik: comment,
 				PostID:    pid,
@@ -228,15 +227,16 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 
 			}
 		}
-		http.Redirect(w, r, "post?id="+r.FormValue("curr"), 301)
 	}
+	http.Redirect(w, r, "post?id="+r.FormValue("curr"), 301)
+
 }
 
 //profile current -> user page
 func GetProfileById(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/profile" {
-		models.DisplayTemplate(w, "404page", http.StatusNotFound)
+		util.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 	if r.Method == "GET" {
@@ -247,11 +247,11 @@ func GetProfileById(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		models.DisplayTemplate(w, "header", util.IsAuth(r))
-		models.DisplayTemplate(w, "profile", user)
-		models.DisplayTemplate(w, "likedpost", likedpost)
-		models.DisplayTemplate(w, "postuser", posts)
-		models.DisplayTemplate(w, "commentuser", comments)
+		util.DisplayTemplate(w, "header", util.IsAuth(r))
+		util.DisplayTemplate(w, "profile", user)
+		util.DisplayTemplate(w, "likedpost", likedpost)
+		util.DisplayTemplate(w, "postuser", posts)
+		util.DisplayTemplate(w, "commentuser", comments)
 
 		cookie, _ := r.Cookie("_cookie")
 		//delete coookie db
@@ -284,9 +284,9 @@ func GetUserById(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		models.DisplayTemplate(w, "header", util.IsAuth(r))
-		models.DisplayTemplate(w, "user", user)
-		models.DisplayTemplate(w, "postuser", posts)
+		util.DisplayTemplate(w, "header", util.IsAuth(r))
+		util.DisplayTemplate(w, "user", user)
+		util.DisplayTemplate(w, "postuser", posts)
 	}
 }
 
@@ -296,8 +296,8 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	//check cookie for  navbar
 
 	if r.Method == "GET" {
-		models.DisplayTemplate(w, "header", util.IsAuth(r))
-		models.DisplayTemplate(w, "updateuser", "")
+		util.DisplayTemplate(w, "header", util.IsAuth(r))
+		util.DisplayTemplate(w, "updateuser", "")
 	}
 
 	if r.Method == "POST" {
@@ -354,12 +354,12 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 func Search(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/search" {
-		models.DisplayTemplate(w, "404page", http.StatusNotFound)
+		util.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 
 	if r.Method == "GET" {
-		models.DisplayTemplate(w, "search", http.StatusFound)
+		util.DisplayTemplate(w, "search", http.StatusFound)
 	}
 
 	if r.Method == "POST" {
@@ -370,8 +370,8 @@ func Search(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		models.DisplayTemplate(w, "header", util.IsAuth(r))
-		models.DisplayTemplate(w, "index", findPosts)
+		util.DisplayTemplate(w, "header", util.IsAuth(r))
+		util.DisplayTemplate(w, "index", findPosts)
 	}
 }
 
@@ -379,13 +379,14 @@ func Search(w http.ResponseWriter, r *http.Request) {
 func Signup(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/signup" {
-		models.DisplayTemplate(w, "404page", http.StatusNotFound)
+		util.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
+
 	msg := models.API
 
 	if r.Method == "GET" {
-		models.DisplayTemplate(w, "signup", &msg)
+		util.DisplayTemplate(w, "signup", &msg)
 	}
 
 	if r.Method == "POST" {
@@ -439,7 +440,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		for _, v := range all {
 			if v.Email == e {
 				API.Message = "Not unique email lel"
-				models.DisplayTemplate(w, "signup", &API.Message)
+				util.DisplayTemplate(w, "signup", &API.Message)
 				return
 			}
 		}
@@ -459,7 +460,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 func Signin(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/signin" {
-		models.DisplayTemplate(w, "404page", http.StatusNotFound)
+		util.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 	r.Header.Add("Accept", "text/html")
@@ -468,7 +469,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 	API.Message = ""
 
 	if r.Method == "GET" {
-		models.DisplayTemplate(w, "signin", &API.Message)
+		util.DisplayTemplate(w, "signin", &API.Message)
 	}
 
 	if r.Method == "POST" {
@@ -479,15 +480,12 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		fmt.Println(person)
+		fmt.Println(person, "person value")
 
 		if person.Type == "default" {
+
 			fmt.Println(" default auth")
-
-			email := person.Email
-			pwd := person.Password
-
-			models.Signin(w, r, email, pwd)
+			models.Signin(w, r, person.Email, person.Password)
 			http.Redirect(w, r, "/profile", 200)
 			//http.Redirect(w, r, "/profile", 200)
 			//http.Redirect(w, r, "/profile", 200)
@@ -511,7 +509,6 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/profile", http.StatusFound)
 		}
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-
 	}
 }
 
@@ -519,11 +516,13 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 func Logout(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/logout" {
-		models.DisplayTemplate(w, "404page", http.StatusNotFound)
+		util.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
 	if r.Method == "GET" {
 		models.Logout(w, r)
+
+		http.Redirect(w, r, "/signin", 302)
 	}
 }
 

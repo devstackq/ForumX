@@ -24,9 +24,13 @@ body {
     border: .3px solid #333;
 }
 .wrapper-main:hover {
+    color: red;
+}
+.wrapper-main:hover {
     background: #fc0;
     cursor: pointer;
     box-shadow: 3px 2px 7px sandybrown;
+ 
 }
 
 .wrapper-filter {
@@ -98,10 +102,10 @@ body {
     color: #000;
     border-radius: 2px;
 }
-.navbar a:hover {
+/* .navbar a:hover {
 background: #000;
 color: red;
-}
+} */
 
 .wrapper-user {}
 
@@ -451,7 +455,7 @@ like {
 #category  {
     position: absolute;
     top: 60px;
-    left: 40%;
+    left: 15%;
     color: #000;
 }
 
