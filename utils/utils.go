@@ -2,6 +2,8 @@ package util
 
 import (
 	"database/sql"
+	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 
@@ -9,8 +11,9 @@ import (
 )
 
 var (
-	DB  *sql.DB
-	err error
+	DB   *sql.DB
+	err  error
+	temp = template.Must(template.ParseFiles("templates/header.html", "templates/category_temp.html", "templates/likedpost.html", "templates/likes.html", "templates/404page.html", "templates/postupdate.html", "templates/postuser.html", "templates/commentuser.html", "templates/userupdate.html", "templates/search.html", "templates/user.html", "templates/commentuser.html", "templates/postuser.html", "templates/profile.html", "templates/signin.html", "templates/user.html", "templates/signup.html", "templates/filter.html", "templates/posts.html", "templates/comment.html", "templates/create.html", "templates/footer.html", "templates/index.html"))
 )
 
 type API struct {
@@ -75,4 +78,15 @@ func CheckLetter(value string) bool {
 		}
 	}
 	return false
+}
+
+//DisplayTemplate comment
+func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
+	err = temp.ExecuteTemplate(w, tmpl, data)
+	fmt.Println(err, "exec ERR")
+	if err != nil {
+		http.Error(w, err.Error(),
+			http.StatusInternalServerError)
+		fmt.Fprintf(w, err.Error())
+	}
 }

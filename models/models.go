@@ -1,21 +1,14 @@
 package models
 
 import (
-	"bytes"
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"html/template"
-	"io/ioutil"
-	"log"
-	"mime/multipart"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/devstackq/ForumX/model"
-	util "github.com/devstackq/ForumX/utils"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -24,7 +17,6 @@ var (
 	err  error
 	DB   *sql.DB
 	rows *sql.Rows
-	temp = template.Must(template.ParseFiles("templates/header.html", "templates/category_temp.html", "templates/likedpost.html", "templates/likes.html", "templates/404page.html", "templates/postupdate.html", "templates/postuser.html", "templates/commentuser.html", "templates/userupdate.html", "templates/search.html", "templates/user.html", "templates/commentuser.html", "templates/postuser.html", "templates/profile.html", "templates/signin.html", "templates/user.html", "templates/signup.html", "templates/filter.html", "templates/posts.html", "templates/comment.html", "templates/create.html", "templates/footer.html", "templates/index.html"))
 )
 
 type Users struct {
@@ -50,31 +42,10 @@ type Category struct {
 	UserID int
 }
 
-type Posts struct {
-	ID            int
-	Title         string
-	Content       string
-	CreatorID     int
-	CreatedTime   time.Time
-	EndpointPost  string
-	FullName      string
-	CategoryName  string
-	Image         []byte
-	ImageHtml     string
-	PostIDEdit    int
-	AuthorForPost int
-	CountLike     int
-	CountDislike  int
-	SVG           bool
-	PBGID         int
-	PBGPostID     int
-	PBGCategory   string
-	LastPostId    int
-	FileS         multipart.File
-	FileI         multipart.File
-	Session       model.Session
-	Categories    []string
-	Temp          string
+type Filter struct {
+	Category string
+	Like     string
+	Date     string
 }
 
 type PostCategory struct {
@@ -110,157 +81,6 @@ type Notify struct {
 	Message string
 }
 
-//cache html file
-func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
-
-	err = temp.ExecuteTemplate(w, tmpl, data)
-	//	fmt.Println("err exectute", err)
-	if err != nil {
-		http.Error(w, err.Error(),
-			http.StatusInternalServerError)
-		fmt.Fprintf(w, err.Error())
-	}
-}
-
-//link to COmments struct, then call func(r), return arr comments, post, err
-func GetPostById(r *http.Request) ([]Comments, Posts, error) {
-
-	r.ParseForm()
-	p := Posts{}
-
-	//take from all post, only post by id, then write data struct Post
-	DB.QueryRow("SELECT * FROM posts WHERE id = ?", r.FormValue("id")).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreatedTime, &p.Image, &p.CountLike, &p.CountDislike)
-
-	// err = DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=? and category='love'", p.ID).Scan(&p.Temp)
-	// if err == nil {
-	// 	p.CategoryName = "love"
-	// }
-
-	p.CreatedTime.Format(time.RFC1123)
-	//write values from tables Likes, and write data table Post fileds like, dislikes
-	//[]byte -> encode string, client render img base64
-	if len(p.Image) > 0 {
-		if p.Image[0] == 60 {
-			p.SVG = true
-		}
-	}
-
-	encodedString := base64.StdEncoding.EncodeToString(p.Image)
-	p.ImageHtml = encodedString
-
-	//creator post
-	DB.QueryRow("SELECT full_name FROM users WHERE id = ?", p.CreatorID).Scan(&p.FullName)
-	//get category post
-	//DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=?", p.ID).Scan(&p.CategoryName)
-	//get all comments from post
-	stmp, err := DB.Query("SELECT * FROM comments WHERE  post_id =?", p.ID)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer stmp.Close()
-	//write each fileds inside Comment struct -> then  append Array Comments
-	ComentsPost := []Comments{}
-
-	for stmp.Next() {
-		comment := Comments{}
-		var id, postID, userID, comLike, comDislike int
-		var content string
-		var myTime time.Time
-		err = stmp.Scan(&id, &content, &postID, &userID, &myTime, &comLike, &comDislike)
-		if err != nil {
-			panic(err.Error)
-		}
-		comment.ID = id
-		comment.Commentik = content
-		comment.PostID = postID
-		comment.UserID = userID
-		comment.CreatedTime = myTime
-		comment.CommentLike = comLike
-		comment.CommentDislike = comDislike
-
-		DB.QueryRow("SELECT full_name FROM users WHERE id = ?", userID).Scan(&comment.AuthorComment)
-		ComentsPost = append(ComentsPost, comment)
-	}
-
-	if err != nil {
-		return nil, p, err
-	}
-	return ComentsPost, p, nil
-}
-
-//get all post
-func GetAllPost(r *http.Request) ([]Posts, string, string, error) {
-
-	var post Posts
-	//send from controlle, then check-> then send model
-	r.ParseForm()
-	like := r.FormValue("likes")
-	date := r.FormValue("date")
-	category := r.FormValue("cats")
-	var leftJoin bool
-	var arrayPosts []Posts
-
-	switch r.URL.Path {
-	//check what come client, cats, and filter by like, date and cats
-	case "/":
-		leftJoin = false
-		post.EndpointPost = "/"
-		if date == "asc" {
-			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time ASC LIMIT 6")
-		} else if date == "desc" {
-			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time DESC LIMIT 6")
-		} else if like == "like" {
-			rows, err = DB.Query("SELECT * FROM posts  ORDER BY count_like DESC LIMIT 6")
-		} else if like == "dislike" {
-			rows, err = DB.Query("SELECT * FROM posts  ORDER BY count_dislike DESC LIMIT 6")
-		} else if category != "" {
-			leftJoin = true
-			rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category=? ORDER  BY created_time  DESC LIMIT 6", category)
-		} else {
-			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time DESC LIMIT 6")
-		}
-
-	case "/science":
-		leftJoin = true
-		post.EndpointPost = "/science"
-		post.PBGCategory = "Science"
-		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category=?  ORDER  BY created_time  DESC LIMIT 4", "science")
-	case "/love":
-		post.PBGCategory = "Love"
-		leftJoin = true
-		post.EndpointPost = "/love"
-		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category=?   ORDER  BY created_time  DESC LIMIT 4", "love")
-	case "/sapid":
-		post.PBGCategory = "Sapid"
-		leftJoin = true
-		post.EndpointPost = "/sapid"
-		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category=?  ORDER  BY created_time  DESC LIMIT 4", "sapid")
-	}
-
-	defer rows.Close()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	for rows.Next() {
-		postik := Posts{}
-		if leftJoin {
-			if err := rows.Scan(&postik.ID, &postik.Title, &postik.Content, &postik.CreatorID, &postik.CreatedTime, &postik.Image, &postik.CountLike, &postik.CountDislike, &postik.PBGID, &postik.PBGPostID, &postik.PBGCategory); err != nil {
-				fmt.Println(err)
-			}
-		} else {
-			if err := rows.Scan(&postik.ID, &postik.Title, &postik.Content, &postik.CreatorID, &postik.CreatedTime, &postik.Image, &postik.CountLike, &postik.CountDislike); err != nil {
-				fmt.Println(err)
-			}
-		}
-
-		arrayPosts = append(arrayPosts, postik)
-	}
-	//	fmt.Println(arrayPosts, "osts all")
-	return arrayPosts, post.EndpointPost, post.PBGCategory, nil
-}
-
 //get data from client, put data in Handler, then models -> query db
 func (c *Comments) LostComment() error {
 
@@ -272,45 +92,9 @@ func (c *Comments) LostComment() error {
 	return nil
 }
 
-//create post
-func (p *Posts) CreatePost() (int64, error) {
-	db, err := DB.Exec("INSERT INTO posts (title, content, creator_id,  image) VALUES ( ?,?, ?, ?)",
-		p.Title, p.Content, p.CreatorID, p.Image)
-	if err != nil {
-		return 0, err
-	}
-	//DB.QueryRow("SELECT id FROM posts").Scan(&p.La)
-	last, err := db.LastInsertId()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return last, nil
-}
-
 func (pcb *PostCategory) CreateBridge() error {
 	_, err := DB.Exec("INSERT INTO post_cat_bridge (post_id, category) VALUES (?, ?)",
 		pcb.PostID, pcb.Category)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-//update post
-func (p *Posts) UpdatePost() error {
-
-	_, err := DB.Exec("UPDATE  posts SET title=?, content=?, image=? WHERE id =?",
-		p.Title, p.Content, p.Image, p.PostIDEdit)
-
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-//delete post
-func (p *Posts) DeletePost() error {
-	_, err := DB.Exec("DELETE FROM  posts  WHERE id =?", p.PostIDEdit)
 	if err != nil {
 		return err
 	}
@@ -428,97 +212,6 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &cDel)
 	http.Redirect(w, r, "/", http.StatusOK)
 
-}
-func CreatePosts(w http.ResponseWriter, r *http.Request, data Posts) {
-
-	//try default photo user or post
-	// fImg, err := os.Open("./1553259670.jpg")
-
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	os.Exit(1)
-	// }
-	// defer fImg.Close()
-
-	// imgInfo, err := fImg.Stat()
-	// if err != nil {
-	// 	fmt.Println(err, "stats")
-	// 	os.Exit(1)
-	// }
-
-	// var size int64 = imgInfo.Size()
-	// fmt.Println(size, "size")
-	// byteArr := make([]byte, size)
-
-	// read file into bytes
-	// buffer := bufio.NewReader(fImg)
-	// _, err = buffer.Read(byteArr)
-	//defer fImg.Close()
-
-	var fileBytes []byte
-
-	var buff bytes.Buffer
-	fileSize, _ := buff.ReadFrom(data.FileS)
-	defer data.FileS.Close()
-
-	if fileSize < 20000000 {
-		//file2, _, err := r.FormFile("uploadfile")
-		if err != nil {
-			log.Fatal(err)
-		}
-		fileBytes, err = ioutil.ReadAll(data.FileI)
-	} else {
-		fmt.Print("file more 20mb")
-		//message  client send
-		DisplayTemplate(w, "header", util.IsAuth(r))
-		DisplayTemplate(w, "create", "Large file, more than 20mb")
-	}
-
-	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", data.Session.UUID).Scan(&data.Session.UserID)
-	//check empty values
-	if util.CheckLetter(data.Title) && util.CheckLetter(data.Content) {
-
-		db, err := DB.Exec("INSERT INTO posts (title, content, creator_id,  image) VALUES ( ?,?, ?, ?)",
-			data.Title, data.Content, data.Session.UserID, fileBytes)
-		if err != nil {
-			log.Println(err)
-		}
-		//DB.QueryRow("SELECT id FROM posts").Scan(&p.La)
-		last, err := db.LastInsertId()
-		if err != nil {
-			log.Fatal(err)
-		}
-		//return last, nil
-		//insert cat_post_bridge value
-
-		if len(data.Categories) == 1 {
-			pcb := PostCategory{
-				PostID:   last,
-				Category: data.Categories[0],
-			}
-			err = pcb.CreateBridge()
-			if err != nil {
-				log.Println(err)
-			}
-		} else if len(data.Categories) > 1 {
-			//loop
-			for _, v := range data.Categories {
-				pcb := PostCategory{
-					PostID:   last,
-					Category: v,
-				}
-				err = pcb.CreateBridge()
-				if err != nil {
-					log.Println(err)
-				}
-			}
-		}
-		w.WriteHeader(http.StatusCreated)
-		http.Redirect(w, r, "/", http.StatusFound)
-	} else {
-		DisplayTemplate(w, "header", util.IsAuth(r))
-		DisplayTemplate(w, "create", "Empty title or content")
-	}
 }
 
 //get profile by id
@@ -733,38 +426,52 @@ func Search(w http.ResponseWriter, r *http.Request) ([]Posts, error) {
 
 	keyword := r.FormValue("search")
 	psu, err := DB.Query("SELECT * FROM posts WHERE title LIKE ?", "%"+keyword+"%")
-	PostsUser := []Posts{}
-
+	found := []Posts{}
 	defer psu.Close()
 
 	for psu.Next() {
 
-		post := Posts{}
-
-		var id, creatorid, countlike, countdislike int
+		var id, creatorID, like, dislike int
 		var content, title string
-		var creationtime time.Time
+		var createdTime time.Time
 		var image []byte
 
-		err = psu.Scan(&id, &title, &content, &creatorid, &creationtime, &image, &countlike, &countdislike)
+		err = psu.Scan(&id, &title, &content, &creatorID, &createdTime, &image, &like, &dislike)
 
 		if err != nil {
 			panic(err.Error)
 		}
-		post.ID = id
-		post.Title = title
-		post.Content = content
-		post.CreatorID = creatorid
-		post.CreatedTime = creationtime
-		post.Image = image
-		post.CountLike = countlike
-		post.CountDislike = countdislike
+		found = putPost(id, title, content, creatorID, createdTime, image, like, dislike)
 
-		PostsUser = append(PostsUser, post)
+		// postX := Posts{
+		// 	ID:      id,
+		// 	Title:   title,
+		// 	Content: &content,
+		// }
+
+		//PostsUser = append(PostsUser, postX)
 	}
 
 	if err != nil {
 		return nil, err
 	}
-	return PostsUser, nil
+	return found, nil
 }
+
+func putPost(id int, title, content string, creatorID int, createdTime time.Time, image []byte, like, dislike int) []Posts {
+
+	var post Posts
+	var posts []Posts
+	post.ID = id
+	post.Title = title
+	post.Content = content
+	post.CreatorID = creatorID
+	post.CreatedTime = createdTime
+	post.Image = image
+	post.CountLike = like
+	post.CountDislike = dislike
+	posts = append(posts, post)
+	return posts
+}
+
+putPost use func

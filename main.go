@@ -19,7 +19,6 @@ func main() {
 	CreateDB()
 
 	http.Handle("/statics/", http.StripPrefix("/statics/", http.FileServer(http.Dir("./statics/"))))
-
 	http.HandleFunc("/", routing.GetAllPosts)
 	http.HandleFunc("/sapid", routing.GetAllPosts)
 	http.HandleFunc("/love", routing.GetAllPosts)
@@ -53,7 +52,7 @@ func CreateDB() {
 	db, err := sql.Open("sqlite3", "forumx2.db")
 	if err != nil {
 		log.Fatalln(err)
-		panic(err)
+		//	panic(err)
 	}
 
 	//cats, err := db.Prepare(`CREATE TABLE IF NOT EXISTS  categories( id	INTEGER PRIMARY KEY AUTOINCREMENT,	title	TEXT, user_id	INTEGER, FOREIGN KEY(user_id) REFERENCES users)`)
@@ -81,10 +80,9 @@ func CreateDB() {
 	util.DB = db
 }
 
-//active navbar button -> color bg || show category
-
+//conf file
 //if cookie = 0, notify message  user, logout etc
-//create models file -> чисто модели, и в паке моедли файлы,
+//create models file -> чисто модели, и в паке моедли файлы
 
 //check contreoller -> middleware -> check data from CLient todo
 // split files -> comtroller - Folder
