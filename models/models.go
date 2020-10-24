@@ -74,6 +74,7 @@ type Posts struct {
 	FileI         multipart.File
 	Session       model.Session
 	Categories    []string
+	Temp          string
 }
 
 type PostCategory struct {
@@ -129,24 +130,11 @@ func GetPostById(r *http.Request) ([]Comments, Posts, error) {
 
 	//take from all post, only post by id, then write data struct Post
 	DB.QueryRow("SELECT * FROM posts WHERE id = ?", r.FormValue("id")).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreatedTime, &p.Image, &p.CountLike, &p.CountDislike)
-	var post Posts
-	//refactor category name Query
-	fmt.Print(r.Host, r.URL.RequestURI())
-	switch r.URL.Path {
-	//check what come client, cats, and filter by like, date and cats
-	case "/science":
-		post.EndpointPost = "/science"
-		fmt.Print("science")
-		DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=? and category=?", p.ID, "science").Scan(&p.CategoryName)
-	case "/love":
-		post.EndpointPost = "/love"
-		DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=? and category=?", p.ID, "love").Scan(&p.CategoryName)
-	case "/sapid":
-		post.EndpointPost = "/sapid"
-		DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=? and category=?", p.ID, "sapid").Scan(&p.CategoryName)
-	}
-	fix category show
-	DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=? and category=?", p.ID, "sapid").Scan(&p.CategoryName)
+
+	// err = DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=? and category='love'", p.ID).Scan(&p.Temp)
+	// if err == nil {
+	// 	p.CategoryName = "love"
+	// }
 
 	p.CreatedTime.Format(time.RFC1123)
 	//write values from tables Likes, and write data table Post fileds like, dislikes
@@ -201,7 +189,7 @@ func GetPostById(r *http.Request) ([]Comments, Posts, error) {
 }
 
 //get all post
-func GetAllPost(r *http.Request) ([]Posts, string, error) {
+func GetAllPost(r *http.Request) ([]Posts, string, string, error) {
 
 	var post Posts
 	//send from controlle, then check-> then send model
@@ -235,12 +223,15 @@ func GetAllPost(r *http.Request) ([]Posts, string, error) {
 	case "/science":
 		leftJoin = true
 		post.EndpointPost = "/science"
+		post.PBGCategory = "Science"
 		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category=?  ORDER  BY created_time  DESC LIMIT 4", "science")
 	case "/love":
+		post.PBGCategory = "Love"
 		leftJoin = true
 		post.EndpointPost = "/love"
 		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category=?   ORDER  BY created_time  DESC LIMIT 4", "love")
 	case "/sapid":
+		post.PBGCategory = "Sapid"
 		leftJoin = true
 		post.EndpointPost = "/sapid"
 		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category=?  ORDER  BY created_time  DESC LIMIT 4", "sapid")
@@ -267,7 +258,7 @@ func GetAllPost(r *http.Request) ([]Posts, string, error) {
 		arrayPosts = append(arrayPosts, postik)
 	}
 	//	fmt.Println(arrayPosts, "osts all")
-	return arrayPosts, post.EndpointPost, nil
+	return arrayPosts, post.EndpointPost, post.PBGCategory, nil
 }
 
 //get data from client, put data in Handler, then models -> query db
