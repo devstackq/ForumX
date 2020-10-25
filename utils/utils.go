@@ -4,8 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/devstackq/ForumX/model"
 )
@@ -89,4 +91,62 @@ func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 			http.StatusInternalServerError)
 		fmt.Fprintf(w, err.Error())
 	}
+}
+
+func СheckCookieLife(t time.Time, cookie *http.Cookie, w http.ResponseWriter, r *http.Request) {
+	for _, cookie := range r.Cookies() {
+		if cookie.Name == "_cookie" {
+			//Logout(w, r)
+			s := model.Session{UUID: cookie.Value}
+			//get ssesion id, by local struct uuid
+			DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).
+				Scan(&s.ID)
+
+			_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
+
+			// then delete cookie from client
+			cDel := http.Cookie{
+				Name:     "_cookie",
+				Value:    "",
+				Path:     "/",
+				Expires:  time.Unix(0, 0),
+				HttpOnly: false,
+			}
+			http.SetCookie(w, &cDel)
+			http.Redirect(w, r, "/", http.StatusOK)
+			return
+		}
+	}
+}
+
+//find unique liked post
+func IsUnique(intSlice []int) []int {
+	keys := make(map[int]bool)
+	list := []int{}
+	for _, entry := range intSlice {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
+	}
+	return list
+}
+
+func FileByte(r *http.Request) []byte {
+
+	r.ParseMultipartForm(10 << 20)
+	file, _, err := r.FormFile("uploadfile")
+
+	if err != nil {
+		log.Println(err)
+	}
+	defer file.Close()
+
+	imgBytes, err := ioutil.ReadAll(file)
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	return imgBytes
 }

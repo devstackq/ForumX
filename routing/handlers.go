@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -108,8 +107,8 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 			Session:    session,
 		}
 		post.CreatePost(w, r)
-		http.Redirect(w, r, "/", http.StatusOK)
 	}
+	http.Redirect(w, r, "/", http.StatusOK)
 }
 
 //update post
@@ -129,29 +128,14 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/signin", 302)
 			return
 		}
-
-		r.ParseMultipartForm(10 << 20)
-		file, _, err := r.FormFile("uploadfile")
-
-		// if err != nil {
-		// 	panic(err)
-		// }
-		defer file.Close()
-
-		imgBytes, err := ioutil.ReadAll(file)
-
-		// if err != nil {
-		// 	panic(err)
-		// }
-
-		pid := r.FormValue("pid")
-		pidnum, _ := strconv.Atoi(pid)
+		imgBytes := util.FileByte(r)
+		pid, _ := strconv.Atoi(r.FormValue("pid"))
 
 		p := models.Posts{
-			Title:      r.FormValue("title"),
-			Content:    r.FormValue("content"),
-			Image:      imgBytes,
-			PostIDEdit: pidnum,
+			Title:   r.FormValue("title"),
+			Content: r.FormValue("content"),
+			Image:   imgBytes,
+			ID:      pid,
 		}
 
 		err = p.UpdatePost()
@@ -159,9 +143,6 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			defer log.Println(err, "upd post err")
 		}
-		// if err != nil {
-		// 	panic(err.Error())
-		// }
 	}
 	http.Redirect(w, r, "/", http.StatusFound)
 }
@@ -170,8 +151,7 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 func DeletePost(w http.ResponseWriter, r *http.Request) {
 
 	pid, _ := strconv.Atoi(r.URL.Query().Get("id"))
-	p := models.Posts{}
-	p.PostIDEdit = pid
+	p := models.Posts{ID: pid}
 
 	access, _ := util.CheckForCookies(w, r)
 	if !access {
@@ -187,7 +167,6 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
-here breakpoint
 //create comment
 func CreateComment(w http.ResponseWriter, r *http.Request) {
 
@@ -211,35 +190,34 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 
 		if util.CheckLetter(comment) {
 
-			com := models.Comments{
-				Commentik: comment,
-				PostID:    pid,
-				UserID:    s.UserID,
+			com := models.Comment{
+				Content: comment,
+				PostID:  pid,
+				UserID:  s.UserID,
 			}
 
-			err = com.LostComment()
+			err = com.LeaveComment()
 
 			if err != nil {
-				panic(err.Error())
-
+				log.Println(err.Error())
 			}
 		}
 	}
 	http.Redirect(w, r, "post?id="+r.FormValue("curr"), 301)
-
 }
 
 //profile current -> user page
-func GetProfileById(w http.ResponseWriter, r *http.Request) {
+func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/profile" {
 		util.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
-	if r.Method == "GET" {
 
+	if r.Method == "GET" {
+		cookie, _ := r.Cookie("_cookie")
 		//if userId now, createdPost uid equal -> show
-		likedpost, posts, comments, user, err := models.GetUserProfile(r, w)
+		likedpost, posts, comments, user, err := models.GetUserProfile(r, w, cookie)
 		if err != nil {
 			panic(err)
 		}
@@ -250,37 +228,27 @@ func GetProfileById(w http.ResponseWriter, r *http.Request) {
 		util.DisplayTemplate(w, "postuser", posts)
 		util.DisplayTemplate(w, "commentuser", comments)
 
-		cookie, _ := r.Cookie("_cookie")
 		//delete coookie db
 		go func() {
 			for now := range time.Tick(299 * time.Minute) {
-				checkCookieLife(now, cookie, w, r)
-				//next logout each 10 min
+				util.СheckCookieLife(now, cookie, w, r)
+				//next logout each 300 min
 				time.Sleep(299 * time.Minute)
 			}
 		}()
 	}
 }
 
-func checkCookieLife(t time.Time, cookie *http.Cookie, w http.ResponseWriter, r *http.Request) {
-	for _, cookie := range r.Cookies() {
-		if cookie.Name == "_cookie" {
-			models.Logout(w, r)
-			return
-		}
-	}
-}
-
 //user page, other anyone
-func GetUserById(w http.ResponseWriter, r *http.Request) {
+func GetAnotherProfile(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 
-		posts, user, err := models.GetOtherUser(r)
+		uid := models.Users{Temp: r.FormValue("uid")}
+		posts, user, err := uid.GetAnotherProfile(r)
 		if err != nil {
 			panic(err)
 		}
-
 		util.DisplayTemplate(w, "header", util.IsAuth(r))
 		util.DisplayTemplate(w, "user", user)
 		util.DisplayTemplate(w, "postuser", posts)
@@ -290,38 +258,20 @@ func GetUserById(w http.ResponseWriter, r *http.Request) {
 //update profile
 func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
-	//check cookie for  navbar
-
 	if r.Method == "GET" {
 		util.DisplayTemplate(w, "header", util.IsAuth(r))
 		util.DisplayTemplate(w, "updateuser", "")
 	}
 
 	if r.Method == "POST" {
+
 		access, s := util.CheckForCookies(w, r)
 		if !access {
 			http.Redirect(w, r, "/signin", 302)
 			return
 		}
 
-		r.ParseForm()
-		r.ParseMultipartForm(10 << 20)
-		file, _, err := r.FormFile("uploadfile")
-
-		if err != nil {
-			panic(err)
-		}
-
-		defer file.Close()
-
-		fileBytes, err := ioutil.ReadAll(file)
-
-		if err != nil {
-			panic(err)
-		}
-
-		//		c, _ := r.Cookie("_cookie")
-		//s := models.Session{UUID: c.Value}
+		imgBytes := util.FileByte(r)
 
 		DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).
 			Scan(&s.UserID)
@@ -333,7 +283,7 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 			Age:      is,
 			Sex:      r.FormValue("sex"),
 			City:     r.FormValue("city"),
-			Image:    fileBytes,
+			Image:    imgBytes,
 			ID:       s.UserID,
 		}
 
@@ -343,7 +293,6 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 			panic(err.Error())
 		}
 	}
-
 	http.Redirect(w, r, "/profile", http.StatusFound)
 }
 
@@ -361,17 +310,16 @@ func Search(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 
-		findPosts, err := models.Search(w, r)
+		foundPosts, err := models.Search(w, r)
 
 		if err != nil {
 			panic(err)
 		}
-
 		util.DisplayTemplate(w, "header", util.IsAuth(r))
-		util.DisplayTemplate(w, "index", findPosts)
+		util.DisplayTemplate(w, "index", foundPosts)
 	}
 }
-
+here pause
 //signup system
 func Signup(w http.ResponseWriter, r *http.Request) {
 
@@ -395,20 +343,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		s := r.FormValue("sex")
 		c := r.FormValue("city")
 
-		r.ParseMultipartForm(10 << 20)
-		file, _, err := r.FormFile("uploadfile")
-
-		if err != nil {
-			panic(err)
-		}
-
-		defer file.Close()
-
-		fB, err := ioutil.ReadAll(file)
-		if err != nil {
-			panic(err)
-		}
-
+		imgBytes := util.FileByte(r)
 		hash, err := bcrypt.GenerateFromPassword([]byte(p), 8)
 		if err != nil {
 			panic(err)
@@ -443,7 +378,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		}
 
 		_, err = DB.Exec("INSERT INTO users( full_name, email, password, age, sex, city, image) VALUES (?, ?, ?, ?, ?, ?, ?)",
-			fn, e, hash, a, s, c, fB)
+			fn, e, hash, a, s, c, imgBytes)
 
 		if err != nil {
 			panic(err.Error())

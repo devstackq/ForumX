@@ -18,7 +18,7 @@ type Comment struct {
 }
 
 //get data from client, put data in Handler, then models -> query db
-func (c *Comment) leaveComment() error {
+func (c *Comment) LeaveComment() error {
 	_, err := DB.Exec("INSERT INTO comments( content, post_id, user_idx) VALUES(?,?,?)",
 		c.Content, c.PostID, c.UserID)
 	if err != nil {

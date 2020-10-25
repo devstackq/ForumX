@@ -25,8 +25,8 @@ func main() {
 	http.HandleFunc("/science", routing.GetAllPosts)
 
 	http.HandleFunc("/post", routing.GetPostById)
-	http.HandleFunc("/profile", routing.GetProfileById)
-	http.HandleFunc("/user/id/", routing.GetUserById)
+	http.HandleFunc("/profile", routing.GetUserProfile)
+	http.HandleFunc("/user/id/", routing.GetAnotherProfile)
 
 	http.HandleFunc("/comment", routing.CreateComment)
 	http.HandleFunc("/create/post", routing.CreatePost)

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/devstackq/ForumX/model"
+	util "github.com/devstackq/ForumX/utils"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -43,6 +44,7 @@ type Users struct {
 	Role        string
 	SVG         bool
 	Type        string
+	Temp        string
 }
 
 type Category struct {
@@ -88,17 +90,6 @@ type Likes struct {
 }
 type Notify struct {
 	Message string
-}
-
-//get data from client, put data in Handler, then models -> query db
-func (c *Comments) LostComment() error {
-
-	_, err := DB.Exec("INSERT INTO comments( content, post_id, user_idx) VALUES(?,?,?)",
-		c.Commentik, c.PostID, c.UserID)
-	if err != nil {
-		panic(err.Error())
-	}
-	return nil
 }
 
 func (pcb *PostCategory) CreateBridge() error {
@@ -224,9 +215,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 //get profile by id
-func GetUserProfile(r *http.Request, w http.ResponseWriter) ([]Posts, []Posts, []Comment, Users, error) {
-
-	cookie, _ := r.Cookie("_cookie")
+func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie) ([]Posts, []Posts, []Comment, Users, error) {
 
 	//time.AfterFunc(10, checkCookieLife(cookie, w, r))
 	s := model.Session{UUID: cookie.Value}
@@ -264,7 +253,7 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter) ([]Posts, []Posts, [
 	}
 
 	//unique liked post by user
-	fin := isUnique(can)
+	fin := util.IsUnique(can)
 	//accum liked post
 
 	for _, v := range fin {
@@ -329,35 +318,21 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter) ([]Posts, []Posts, [
 	return postsL, postsX, comments, u, nil
 }
 
-//find unique liked post
-func isUnique(intSlice []int) []int {
-	keys := make(map[int]bool)
-	list := []int{}
-	for _, entry := range intSlice {
-		if _, value := keys[entry]; !value {
-			keys[entry] = true
-			list = append(list, entry)
-		}
-	}
-	return list
-}
-
 //get other user, posts
-func GetOtherUser(r *http.Request) ([]Posts, Users, error) {
+func (user *Users) GetAnotherProfile(r *http.Request) ([]Posts, Users, error) {
 
-	uid := r.FormValue("uid")
+	userQR := DB.QueryRow("SELECT * FROM users WHERE id = ?", user.Temp)
 
-	user := DB.QueryRow("SELECT * FROM users WHERE id = ?", uid)
 	u := Users{}
-	err = user.Scan(&u.ID, &u.FullName, &u.Email, &u.Password, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
+	postsU := []Posts{}
+
+	err = userQR.Scan(&u.ID, &u.FullName, &u.Email, &u.Password, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
 	if u.Image[0] == 60 {
 		u.SVG = true
 	}
 	encStr := base64.StdEncoding.EncodeToString(u.Image)
 	u.ImageHtml = encStr
 	psu, err := DB.Query("SELECT * FROM posts WHERE creator_id=?", u.ID)
-
-	postsU := []Posts{}
 
 	defer psu.Close()
 
@@ -381,9 +356,7 @@ func GetOtherUser(r *http.Request) ([]Posts, Users, error) {
 //search
 func Search(w http.ResponseWriter, r *http.Request) ([]Posts, error) {
 
-	keyword := r.FormValue("search")
-
-	psu, err := DB.Query("SELECT * FROM posts WHERE title LIKE ?", "%"+keyword+"%")
+	psu, err := DB.Query("SELECT * FROM posts WHERE title LIKE ?", "%"+r.FormValue("search")+"%")
 	defer psu.Close()
 	var posts []Posts
 

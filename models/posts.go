@@ -116,7 +116,7 @@ func (f *Filter) GetAllPost(r *http.Request) ([]Posts, string, string, error) {
 func (p *Posts) UpdatePost() error {
 
 	_, err := DB.Exec("UPDATE  posts SET title=?, content=?, image=? WHERE id =?",
-		p.Title, p.Content, p.Image, p.PostIDEdit)
+		p.Title, p.Content, p.Image, p.ID)
 
 	if err != nil {
 		return err
@@ -126,7 +126,7 @@ func (p *Posts) UpdatePost() error {
 
 //delete post
 func (p *Posts) DeletePost() error {
-	_, err := DB.Exec("DELETE FROM  posts  WHERE id =?", p.PostIDEdit)
+	_, err := DB.Exec("DELETE FROM  posts  WHERE id =?", p.ID)
 	if err != nil {
 		return err
 	}
