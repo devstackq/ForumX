@@ -5,10 +5,9 @@
     <div>
         {{range .}}
         <h4>{{.CreatedTime}}</h4>
-        <p>{{.Commentik}}</p>
+        <p>{{.Content}}</p>
         <a href="/post?id={{.PostID}}">see comment</a>
         {{end}}
-
     </div>
 </div>
 {{end}}

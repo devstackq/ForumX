@@ -113,19 +113,19 @@ func (f *Filter) GetAllPost(r *http.Request) ([]Posts, string, string, error) {
 }
 
 //create post
-func (p *Posts) CreatePost() (int64, error) {
-	db, err := DB.Exec("INSERT INTO posts (title, content, creator_id,  image) VALUES ( ?,?, ?, ?)",
-		p.Title, p.Content, p.CreatorID, p.Image)
-	if err != nil {
-		return 0, err
-	}
-	//DB.QueryRow("SELECT id FROM posts").Scan(&p.La)
-	last, err := db.LastInsertId()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return last, nil
-}
+// func (p *Posts) CreatePost() (int64, error) {
+// 	db, err := DB.Exec("INSERT INTO posts (title, content, creator_id,  image) VALUES ( ?,?, ?, ?)",
+// 		p.Title, p.Content, p.CreatorID, p.Image)
+// 	if err != nil {
+// 		return 0, err
+// 	}
+// 	//DB.QueryRow("SELECT id FROM posts").Scan(&p.La)
+// 	last, err := db.LastInsertId()
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	return last, nil
+// }
 
 //update post
 func (p *Posts) UpdatePost() error {
@@ -148,7 +148,7 @@ func (p *Posts) DeletePost() error {
 	return nil
 }
 
-func CreatePost(w http.ResponseWriter, r *http.Request, data Posts) {
+func (data *Posts) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	//try default photo user or post
 	// fImg, err := os.Open("./1553259670.jpg")
@@ -241,7 +241,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request, data Posts) {
 }
 
 //link to COmments struct, then call func(r), return arr comments, post, err
-func (post *Posts) GetPostById(r *http.Request) ([]Comments, Posts, error) {
+func (post *Posts) GetPostById(r *http.Request) ([]Comment, Posts, error) {
 
 	p := Posts{}
 	//take from all post, only post by id, then write data struct Post
@@ -269,10 +269,10 @@ func (post *Posts) GetPostById(r *http.Request) ([]Comments, Posts, error) {
 	}
 	defer stmp.Close()
 	//write each fileds inside Comment struct -> then  append Array Comments
-	ComentsPost := []Comments{}
+	var comments []Comment
 
 	for stmp.Next() {
-		comment := Comments{}
+		comment := Comment{}
 		var id, postID, userID, comLike, comDislike int
 		var content string
 		var myTime time.Time
@@ -280,20 +280,24 @@ func (post *Posts) GetPostById(r *http.Request) ([]Comments, Posts, error) {
 		if err != nil {
 			panic(err.Error)
 		}
-		comment.ID = id
-		comment.Commentik = content
-		comment.PostID = postID
-		comment.UserID = userID
-		comment.CreatedTime = myTime
-		comment.CommentLike = comLike
-		comment.CommentDislike = comDislike
 
-		DB.QueryRow("SELECT full_name FROM users WHERE id = ?", userID).Scan(&comment.AuthorComment)
-		ComentsPost = append(ComentsPost, comment)
+		comment = Comment{
+			ID:          id,
+			Content:     content,
+			PostID:      postID,
+			UserID:      userID,
+			CreatedTime: createdTime,
+			Like:        like,
+			Dislike:     dislike,
+		}
+		//comment = util.AppendComment(id, content, postID, userID, createdTime, like, dislike)
+		comments = append(comments, comment)
+
+		DB.QueryRow("SELECT full_name FROM users WHERE id = ?", userID).Scan(&comment.Author)
 	}
 
 	if err != nil {
 		return nil, p, err
 	}
-	return ComentsPost, p, nil
+	return comments, p, nil
 }

@@ -3,7 +3,7 @@
     {{template "search"}} {{template "filter" }}
     {{ range $key, $value := . }}
     <a class="links" href="/post?id={{$value.ID}}">
-    <div class=" wrapper-main">
+    <div class="wrapper-main">
         <form method="POST" action="{{ $value.Endpoint}}/{{$value.ID}}">
             <input type="hidden" name="pstID" value="{{ $value.ID }}" />
             <input type="hidden" name="end" value="{{ $value.Endpoint}}">
@@ -13,7 +13,6 @@
         <span id="time"> </span>
         <span>{{$value.CountLike}} &#9829</span>
         <span>{{$value.CountDislike}} &#8722</span>
-       
     </div>
 </a>
     {{end}}
