@@ -94,7 +94,6 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/signin", 302)
 			return
 		}
-		//r.ParseForm()
 		r.ParseMultipartForm(10 << 20)
 		f, _, _ := r.FormFile("uploadfile")
 		f2, _, _ := r.FormFile("uploadfile")
@@ -115,37 +114,35 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 
 //update post
 func UpdatePost(w http.ResponseWriter, r *http.Request) {
-	var pid int
-	if r.Method == "GET" {
 
-		pid, _ = strconv.Atoi(r.URL.Query().Get("id"))
+	if r.Method == "GET" {
+		pid, _ := strconv.Atoi(r.URL.Query().Get("id"))
 		p := models.Posts{}
 		p.PostIDEdit = pid
 		util.DisplayTemplate(w, "updatepost", p)
-
 	}
+
 	if r.Method == "POST" {
+
 		access, _ := util.CheckForCookies(w, r)
 		if !access {
 			http.Redirect(w, r, "/signin", 302)
 			return
 		}
 
-		r.ParseForm()
 		r.ParseMultipartForm(10 << 20)
 		file, _, err := r.FormFile("uploadfile")
 
-		if err != nil {
-			panic(err)
-
-		}
+		// if err != nil {
+		// 	panic(err)
+		// }
 		defer file.Close()
 
-		fileBytes, err := ioutil.ReadAll(file)
+		imgBytes, err := ioutil.ReadAll(file)
 
-		if err != nil {
-			panic(err)
-		}
+		// if err != nil {
+		// 	panic(err)
+		// }
 
 		pid := r.FormValue("pid")
 		pidnum, _ := strconv.Atoi(pid)
@@ -153,15 +150,18 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 		p := models.Posts{
 			Title:      r.FormValue("title"),
 			Content:    r.FormValue("content"),
-			Image:      fileBytes,
+			Image:      imgBytes,
 			PostIDEdit: pidnum,
 		}
 
 		err = p.UpdatePost()
 
 		if err != nil {
-			panic(err.Error())
+			defer log.Println(err, "upd post err")
 		}
+		// if err != nil {
+		// 	panic(err.Error())
+		// }
 	}
 	http.Redirect(w, r, "/", http.StatusFound)
 }
@@ -169,9 +169,7 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 //delete post
 func DeletePost(w http.ResponseWriter, r *http.Request) {
 
-	var pid int
-
-	pid, _ = strconv.Atoi(r.URL.Query().Get("id"))
+	pid, _ := strconv.Atoi(r.URL.Query().Get("id"))
 	p := models.Posts{}
 	p.PostIDEdit = pid
 
@@ -189,6 +187,7 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
+here breakpoint
 //create comment
 func CreateComment(w http.ResponseWriter, r *http.Request) {
 
@@ -205,9 +204,6 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		r.ParseForm()
-		//c, _ := r.Cookie("_cookie")
-		//s := models.Session{UUID: c.Value}
 		DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
 
 		pid, _ := strconv.Atoi(r.FormValue("curr"))
@@ -257,10 +253,10 @@ func GetProfileById(w http.ResponseWriter, r *http.Request) {
 		cookie, _ := r.Cookie("_cookie")
 		//delete coookie db
 		go func() {
-			for now := range time.Tick(30 * time.Minute) {
+			for now := range time.Tick(299 * time.Minute) {
 				checkCookieLife(now, cookie, w, r)
 				//next logout each 10 min
-				time.Sleep(30 * time.Minute)
+				time.Sleep(299 * time.Minute)
 			}
 		}()
 	}
@@ -488,20 +484,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(" default auth")
 			models.Signin(w, r, person.Email, person.Password)
 			http.Redirect(w, r, "/profile", 200)
-			//http.Redirect(w, r, "/profile", 200)
-			//http.Redirect(w, r, "/profile", 200)
-			//citiesArtist := FindCityArtist(w, r, strings.ToLower(string(body)))
-			//w.Header().Set("Content-Type", "application/json")
-			//json.NewEncoder(w).Encode(citiesArtist)
 
-			// json.NewEncoder(w).Encode(msg)
-			// ok := "okay"
-			// b := []byte(ok)
-
-			// msg.Msg = "okay"
-			// w.Header().Set("Content-Type", "application/json")
-			// m, _ := json.Marshal(msg)
-			// w.Write(m)
 		} else if person.Type == "google" {
 			fmt.Println("todo google auth")
 			http.Redirect(w, r, "/profile", http.StatusFound)
@@ -568,7 +551,7 @@ func LostVotes(w http.ResponseWriter, r *http.Request) {
 					panic(err)
 				}
 
-				_, err = DB.Exec("INSERT INTO likes(post_id, user_id) VALUES( ?, ?)", pid, s.UserID)
+				_, err = DB.Exec("INSERT INTO likes(post_id, user_id, state_id) VALUES( ?, ?, ?)", pid, s.UserID, 1)
 				if err != nil {
 					panic(err)
 				}
@@ -589,7 +572,7 @@ func LostVotes(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					panic(err)
 				}
-				_, err = DB.Exec("INSERT INTO likes(post_id, user_id) VALUES( ?, ?)", pid, s.UserID)
+				_, err = DB.Exec("INSERT INTO likes(post_id, user_id, state_id) VALUES( ?, ?, ?)", pid, s.UserID, 0)
 
 				if err != nil {
 					panic(err)

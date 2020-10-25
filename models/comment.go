@@ -14,6 +14,7 @@ type Comment struct {
 	Author      string
 	Like        int
 	Dislike     int
+	TitlePost   string
 }
 
 //get data from client, put data in Handler, then models -> query db

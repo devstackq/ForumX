@@ -112,21 +112,6 @@ func (f *Filter) GetAllPost(r *http.Request) ([]Posts, string, string, error) {
 	return arrPosts, post.Endpoint, post.Temp, nil
 }
 
-//create post
-// func (p *Posts) CreatePost() (int64, error) {
-// 	db, err := DB.Exec("INSERT INTO posts (title, content, creator_id,  image) VALUES ( ?,?, ?, ?)",
-// 		p.Title, p.Content, p.CreatorID, p.Image)
-// 	if err != nil {
-// 		return 0, err
-// 	}
-// 	//DB.QueryRow("SELECT id FROM posts").Scan(&p.La)
-// 	last, err := db.LastInsertId()
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	return last, nil
-// }
-
 //update post
 func (p *Posts) UpdatePost() error {
 
@@ -148,7 +133,7 @@ func (p *Posts) DeletePost() error {
 	return nil
 }
 
-func (data *Posts) CreatePost(w http.ResponseWriter, r *http.Request) {
+func (p *Posts) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	//try default photo user or post
 	// fImg, err := os.Open("./1553259670.jpg")
@@ -177,15 +162,15 @@ func (data *Posts) CreatePost(w http.ResponseWriter, r *http.Request) {
 	var fileBytes []byte
 
 	var buff bytes.Buffer
-	fileSize, _ := buff.ReadFrom(data.FileS)
-	defer data.FileS.Close()
+	fileSize, _ := buff.ReadFrom(p.FileS)
+	defer p.FileS.Close()
 
 	if fileSize < 20000000 {
 		//file2, _, err := r.FormFile("uploadfile")
 		if err != nil {
 			log.Fatal(err)
 		}
-		fileBytes, err = ioutil.ReadAll(data.FileI)
+		fileBytes, err = ioutil.ReadAll(p.FileI)
 	} else {
 		fmt.Print("file more 20mb")
 		//message  client send
@@ -193,12 +178,12 @@ func (data *Posts) CreatePost(w http.ResponseWriter, r *http.Request) {
 		util.DisplayTemplate(w, "create", "Large file, more than 20mb")
 	}
 
-	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", data.Session.UUID).Scan(&data.Session.UserID)
+	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", p.Session.UUID).Scan(&p.Session.UserID)
 	//check empty values
-	if util.CheckLetter(data.Title) && util.CheckLetter(data.Content) {
+	if util.CheckLetter(p.Title) && util.CheckLetter(p.Content) {
 
 		db, err := DB.Exec("INSERT INTO posts (title, content, creator_id,  image) VALUES ( ?,?, ?, ?)",
-			data.Title, data.Content, data.Session.UserID, fileBytes)
+			p.Title, p.Content, p.Session.UserID, fileBytes)
 		if err != nil {
 			log.Println(err)
 		}
@@ -210,18 +195,18 @@ func (data *Posts) CreatePost(w http.ResponseWriter, r *http.Request) {
 		//return last, nil
 		//insert cat_post_bridge value
 
-		if len(data.Categories) == 1 {
+		if len(p.Categories) == 1 {
 			pcb := PostCategory{
 				PostID:   last,
-				Category: data.Categories[0],
+				Category: p.Categories[0],
 			}
 			err = pcb.CreateBridge()
 			if err != nil {
 				log.Println(err)
 			}
-		} else if len(data.Categories) > 1 {
+		} else if len(p.Categories) > 1 {
 			//loop
-			for _, v := range data.Categories {
+			for _, v := range p.Categories {
 				pcb := PostCategory{
 					PostID:   last,
 					Category: v,
@@ -244,7 +229,7 @@ func (data *Posts) CreatePost(w http.ResponseWriter, r *http.Request) {
 func (post *Posts) GetPostById(r *http.Request) ([]Comment, Posts, error) {
 
 	p := Posts{}
-	//take from all post, only post by id, then write data struct Post
+	//take from all post, only post by id, then write p struct Post
 	DB.QueryRow("SELECT * FROM posts WHERE id = ?", post.ID).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreatedTime, &p.Image, &p.CountLike, &p.CountDislike)
 	p.CreatedTime.Format(time.RFC1123)
 	//write values from tables Likes, and write data table Post fileds like, dislikes
@@ -272,11 +257,10 @@ func (post *Posts) GetPostById(r *http.Request) ([]Comment, Posts, error) {
 	var comments []Comment
 
 	for stmp.Next() {
+
 		comment := Comment{}
-		var id, postID, userID, comLike, comDislike int
-		var content string
-		var myTime time.Time
-		err = stmp.Scan(&id, &content, &postID, &userID, &myTime, &comLike, &comDislike)
+
+		err = stmp.Scan(&id, &content, &postID, &userID, &createdTime, &like, &dislike)
 		if err != nil {
 			panic(err.Error)
 		}
@@ -291,9 +275,8 @@ func (post *Posts) GetPostById(r *http.Request) ([]Comment, Posts, error) {
 			Dislike:     dislike,
 		}
 		//comment = util.AppendComment(id, content, postID, userID, createdTime, like, dislike)
-		comments = append(comments, comment)
-
 		DB.QueryRow("SELECT full_name FROM users WHERE id = ?", userID).Scan(&comment.Author)
+		comments = append(comments, comment)
 	}
 
 	if err != nil {

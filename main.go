@@ -15,7 +15,7 @@ import (
 var db *sql.DB
 
 func main() {
-
+	//init call func router, and dbconfig file
 	CreateDB()
 
 	http.Handle("/statics/", http.StripPrefix("/statics/", http.FileServer(http.Dir("./statics/"))))
@@ -55,7 +55,6 @@ func CreateDB() {
 		//	panic(err)
 	}
 
-	//cats, err := db.Prepare(`CREATE TABLE IF NOT EXISTS  categories( id	INTEGER PRIMARY KEY AUTOINCREMENT,	title	TEXT, user_id	INTEGER, FOREIGN KEY(user_id) REFERENCES users)`)
 	postCategoryBridge, err := db.Prepare(`CREATE TABLE IF NOT EXISTS post_cat_bridge(id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER, category TEXT, FOREIGN KEY(post_id) REFERENCES posts(id) )`)
 	comments, err := db.Prepare(`CREATE TABLE IF NOT EXISTS comments(id	INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT, post_id	INTEGER, user_idx	INTEGER, created_time	datetime DEFAULT current_timestamp,  com_like	INTEGER DEFAULT 0, com_dislike	INTEGER DEFAULT 0, FOREIGN KEY(post_id) REFERENCES posts(id), FOREIGN KEY(user_idx) REFERENCES users(id) )`)
 	likes, err := db.Prepare(`CREATE   TABLE IF NOT EXISTS likes (id INTEGER PRIMARY KEY AUTOINCREMENT, 	state_id INTEGER, 	post_id	INTEGER, user_id	INTEGER,  	comment_id	INTEGER,	FOREIGN KEY(post_id) REFERENCES posts(id), 	FOREIGN KEY(user_id) REFERENCES users(id) )`)
@@ -80,35 +79,30 @@ func CreateDB() {
 	util.DB = db
 }
 
-//slice - controller/model/view
-
-//and 0 NOT IN (count_like) -> show only liked post
-//conf file
+//Обнаруживает ли проект неправильный адрес электронной почты или пароль? - password min 8 symbols, and lowerBig number pwd
+//active session -> show other browser || show notification
 //if cookie = 0, notify message  user, logout etc
-//create models file -> чисто модели, и в паке моедли файлы
-
-//check contreoller -> middleware -> check data from CLient todo
-// split files -> comtroller - Folder
-//split file - models Folder etc
-
-//config file todo
-//Mvc - refactor, contorller send data and call func Model
-//data controller -> quuery models
-//like, create post -slow work ?
-//redirect logout not work
-//redirect todo
-//slow operation -> improve
-// refactor Architect -> category table, bridge table, posts table -> for update, delete post -> change category
-//todo:
-//checkCookieLife(now, w, r, cookie) - del cookie client and backend - redirect main page
-//google acc signin -> -> back signin ? what??
-//photo not required
-//refactor function 1 func
-//код вынести в отдельные файлы
-//like dislike reafctor -> normal system -> || logic client side ?
-//design refactor
+//Представлен ли в проекте скрипт для создания образов и контейнеров? (используя скрипт для упрощения сборки)
+//like, dislike - refactor
 //обработать ошикбки, log
+//errors check http etc
+
+//name func, variable - norm
+//slice - controller/model/view
+//conf file
+//check contreoller -> middleware -> check data from CLient todo
+
+//like, create post -slow work ?
+//redirect logout not work,  &create post
+
+//checkCookieLife(now, w, r, cookie) - del cookie client and backend - redirect main page
+
+//photo not required || set defauklt photo
+//refactor function  -> Single responsibility, DRY
+
+//design refactor
 // pagination for posts
+//google acc signin -> -> back signin ? what??
 
 //start Auth
 //google token, client id, event signin Google, -> get data User,
