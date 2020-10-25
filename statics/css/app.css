@@ -204,6 +204,12 @@ a {
     color: gold;
 }
 
+.profile-post-like {
+    width: 100%;
+    background-color: yellow;
+    border: 1px solid green;
+    padding: 10px;
+}
 .profile-post-create {
     margin-bottom: -40px;
     margin-top: -40px;

@@ -169,7 +169,7 @@ func Signin(w http.ResponseWriter, r *http.Request, email, password string) {
 		Name:     "_cookie",
 		Value:    s.UUID,
 		Path:     "/",
-		Expires:  time.Now().Add(30 * time.Minute),
+		Expires:  time.Now().Add(300 * time.Minute),
 		HttpOnly: false,
 	}
 	http.SetCookie(w, &cookie)
@@ -233,15 +233,18 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter) ([]Posts, []Posts, [
 	u := Users{}
 	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
 	lps := []Likes{}
-	lp, err := DB.Query("select post_id from likes where user_id =?", s.UserID)
+
+	//count dislike equal 0 - add query
+	lp, err := DB.Query("select post_id from likes where user_id =? and state_id =?", s.UserID, 1)
+	defer lp.Close()
 	for lp.Next() {
 		l := Likes{}
 		var lpid int
-
 		err = lp.Scan(&lpid)
 		l.PostID = lpid
 		lps = append(lps, l)
 	}
+	fmt.Println(lps, "Like post id")
 
 	err = DB.QueryRow("SELECT * FROM users WHERE id = ?", s.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.Password, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
 	if u.Image[0] == 60 {
@@ -263,36 +266,44 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter) ([]Posts, []Posts, [
 	//unique liked post by user
 	fin := isUnique(can)
 	//accum liked post
+
 	for _, v := range fin {
 		//get each liked post by ID, then likedpost, put array post
-
-		likedpost, err = DB.Query("SELECT * FROM posts WHERE id=? ", v)
-
+		//		likedpost, err = DB.Query("SELECT * FROM posts WHERE id=? ", v)
+		fmt.Println(v, "pid")
+		//count_dislike не
+		likedpost, err = DB.Query("SELECT * FROM posts WHERE id=? and count_like > 0", v)
+		if err != nil {
+			log.Println(err)
+		}
 		for likedpost.Next() {
-
 			err = likedpost.Scan(&id, &title, &content, &creatorID, &createdTime, &image, &like, &dislike)
-
 			if err != nil {
 				panic(err.Error)
 			}
-			post = appendPost(id, title, content, creatorID, image, like, dislike)
+			post = appendPost(id, title, content, creatorID, image, like, dislike, s.UserID, createdTime)
 			postsL = append(postsL, post)
-
 		}
 	}
-
+	//create post current user
 	psu, err := DB.Query("SELECT * FROM posts WHERE creator_id=?", s.UserID)
-
+	//defer psu.Close()
+	var postCr Posts
 	postsX := []Posts{}
 
+	//todo get uniq post - created post
 	for psu.Next() {
-
+		//here
 		err = psu.Scan(&id, &title, &content, &creatorID, &createdTime, &image, &like, &dislike)
 		if err != nil {
-			panic(err.Error)
+			log.Println(err.Error())
 		}
-		post = appendPost(id, title, content, creatorID, image, like, dislike)
-		postsX = append(postsL, post)
+		//uniq create post
+		//post.AuthorForPost = s.UserID
+		fmt.Println(s.UserID, "uid count created post", id, "pid")
+
+		postCr = appendPost(id, title, content, creatorID, image, like, dislike, s.UserID, createdTime)
+		postsX = append(postsX, postCr)
 	}
 
 	csu, err := DB.Query("SELECT * FROM comments WHERE user_idx=?", s.UserID)
@@ -302,11 +313,12 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter) ([]Posts, []Posts, [
 	for csu.Next() {
 
 		err = csu.Scan(&id, &content, &postID, &userID, &createdTime, &like, &dislike)
+		err = DB.QueryRow("SELECT title FROM posts WHERE id = ?", postID).Scan(&title)
 		if err != nil {
 			panic(err.Error)
 		}
 
-		comment = appendComment(id, content, postID, userID, createdTime, like, dislike)
+		comment = appendComment(id, content, postID, userID, createdTime, like, dislike, title)
 		comments = append(comments, comment)
 	}
 
@@ -357,7 +369,7 @@ func GetOtherUser(r *http.Request) ([]Posts, Users, error) {
 		if err != nil {
 			panic(err.Error)
 		}
-		post = appendPost(id, title, content, creatorID, image, like, dislike)
+		post = appendPost(id, title, content, creatorID, image, like, dislike, 0, createdTime)
 		postsU = append(postsU, post)
 	}
 	if err != nil {
@@ -381,7 +393,7 @@ func Search(w http.ResponseWriter, r *http.Request) ([]Posts, error) {
 		if err != nil {
 			log.Println(err.Error())
 		}
-		post = appendPost(id, title, content, creatorID, image, like, dislike)
+		post = appendPost(id, title, content, creatorID, image, like, dislike, 0, createdTime)
 		posts = append(posts, post)
 	}
 
@@ -392,20 +404,22 @@ func Search(w http.ResponseWriter, r *http.Request) ([]Posts, error) {
 }
 
 //appendPost each post put value from Db
-func appendPost(id int, title, content string, creatorID int, image []byte, like, dislike int) Posts {
+func appendPost(id int, title, content string, creatorID int, image []byte, like, dislike, authorID int, createdTime time.Time) Posts {
 
 	post = Posts{
-		ID:           id,
-		Title:        title,
-		Content:      content,
-		CreatorID:    creatorID,
-		Image:        image,
-		CountLike:    like,
-		CountDislike: dislike,
+		ID:            id,
+		Title:         title,
+		Content:       content,
+		CreatorID:     creatorID,
+		Image:         image,
+		CountLike:     like,
+		CountDislike:  dislike,
+		AuthorForPost: authorID,
+		CreatedTime:   createdTime,
 	}
 	return post
 }
-func appendComment(id int, content string, postID, userID int, createdTime time.Time, like, dislike int) Comment {
+func appendComment(id int, content string, postID, userID int, createdTime time.Time, like, dislike int, titlePost string) Comment {
 
 	comment = Comment{
 		ID:          id,
@@ -415,6 +429,7 @@ func appendComment(id int, content string, postID, userID int, createdTime time.
 		CreatedTime: createdTime,
 		Like:        like,
 		Dislike:     dislike,
+		TitlePost:   titlePost,
 	}
 	return comment
 }
