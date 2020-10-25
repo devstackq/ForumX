@@ -54,19 +54,19 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//view 1 post by id
+//get 1 post by id
 func GetPostById(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/post" {
 		util.DisplayTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
-	//check cookie for  navbar, if not cookie - signin
 	id, _ := strconv.Atoi(r.FormValue("id"))
 	p := models.Posts{ID: id}
 	comments, post, err := p.GetPostById(r)
+
 	if err != nil {
-		panic(err)
+		log.Println(err)
 	}
 	util.DisplayTemplate(w, "header", util.IsAuth(r))
 	util.DisplayTemplate(w, "posts", post)
@@ -94,11 +94,12 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/signin", 302)
 			return
 		}
-		r.ParseForm()
+		//r.ParseForm()
 		r.ParseMultipartForm(10 << 20)
 		f, _, _ := r.FormFile("uploadfile")
 		f2, _, _ := r.FormFile("uploadfile")
 		categories, _ := r.Form["input"]
+
 		post := models.Posts{
 			Title:      r.FormValue("title"),
 			Content:    r.FormValue("content"),
@@ -107,7 +108,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 			FileI:      f2,
 			Session:    session,
 		}
-		models.CreatePost(w, r, post)
+		post.CreatePost(w, r)
 		http.Redirect(w, r, "/", http.StatusOK)
 	}
 }

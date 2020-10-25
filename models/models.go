@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -14,9 +15,17 @@ import (
 )
 
 var (
-	err  error
-	DB   *sql.DB
-	rows *sql.Rows
+	err                          error
+	DB                           *sql.DB
+	rows                         *sql.Rows
+	id, creatorID, like, dislike int
+	content, title               string
+	createdTime                  time.Time
+	image                        []byte
+	postID                       int
+	userID                       int
+	post                         Posts
+	comment                      Comment
 )
 
 type Users struct {
@@ -215,7 +224,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 //get profile by id
-func GetUserProfile(r *http.Request, w http.ResponseWriter) ([]Posts, []Posts, []Comments, Users, error) {
+func GetUserProfile(r *http.Request, w http.ResponseWriter) ([]Posts, []Posts, []Comment, Users, error) {
 
 	cookie, _ := r.Cookie("_cookie")
 
@@ -225,13 +234,11 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter) ([]Posts, []Posts, [
 	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
 	lps := []Likes{}
 	lp, err := DB.Query("select post_id from likes where user_id =?", s.UserID)
-	fmt.Print("her1")
 	for lp.Next() {
 		l := Likes{}
 		var lpid int
 
 		err = lp.Scan(&lpid)
-		fmt.Print("her2")
 		l.PostID = lpid
 		lps = append(lps, l)
 	}
@@ -240,124 +247,74 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter) ([]Posts, []Posts, [
 	if u.Image[0] == 60 {
 		u.SVG = true
 	}
-	fmt.Print("her3", err)
 
 	encStr := base64.StdEncoding.EncodeToString(u.Image)
 	u.ImageHtml = encStr
 
 	var likedpost *sql.Rows
-	LikedPosts := []Posts{}
+	postsL := []Posts{}
+
 	var can []int
 
 	for _, v := range lps {
 		can = append(can, v.PostID)
 	}
-	fmt.Print("her4")
 
 	//unique liked post by user
 	fin := isUnique(can)
-	fmt.Print("her5")
 	//accum liked post
 	for _, v := range fin {
-		//get each liked post by ID, then likedpost, puth array post
-		likedpost, err = DB.Query("SELECT * FROM posts WHERE id=?", v)
+		//get each liked post by ID, then likedpost, put array post
+
+		likedpost, err = DB.Query("SELECT * FROM posts WHERE id=? ", v)
 
 		for likedpost.Next() {
 
-			post := Posts{}
+			err = likedpost.Scan(&id, &title, &content, &creatorID, &createdTime, &image, &like, &dislike)
 
-			var id, creatorid, countlike, countdislike int
-			var content, title string
-			var creationtime time.Time
-			var image []byte
-
-			err = likedpost.Scan(&id, &title, &content, &creatorid, &creationtime, &image, &countlike, &countdislike)
 			if err != nil {
 				panic(err.Error)
 			}
+			post = appendPost(id, title, content, creatorID, image, like, dislike)
+			postsL = append(postsL, post)
 
-			post.ID = id
-			post.Title = title
-			post.Content = content
-			post.CreatorID = creatorid
-			post.CreatedTime = creationtime
-			post.Image = image
-			post.CountLike = countlike
-			post.CountDislike = countdislike
-
-			LikedPosts = append(LikedPosts, post)
 		}
 	}
-	fmt.Print("her6")
+
 	psu, err := DB.Query("SELECT * FROM posts WHERE creator_id=?", s.UserID)
 
-	PostsCreatedUser := []Posts{}
+	postsX := []Posts{}
 
 	for psu.Next() {
 
-		post := Posts{}
-
-		var id, creatorid, countlike, countdislike int
-		var content, title string
-		var creationtime time.Time
-		var image []byte
-
-		err = psu.Scan(&id, &title, &content, &creatorid, &creationtime, &image, &countlike, &countdislike)
+		err = psu.Scan(&id, &title, &content, &creatorID, &createdTime, &image, &like, &dislike)
 		if err != nil {
 			panic(err.Error)
 		}
-
-		post.AuthorForPost = s.UserID
-
-		post.ID = id
-		post.Title = title
-		post.Content = content
-		post.CreatorID = creatorid
-		post.CreatedTime = creationtime
-		post.Image = image
-		post.CountLike = countlike
-		post.CountDislike = countdislike
-
-		PostsCreatedUser = append(PostsCreatedUser, post)
+		post = appendPost(id, title, content, creatorID, image, like, dislike)
+		postsX = append(postsL, post)
 	}
-	fmt.Print("her7")
+
 	csu, err := DB.Query("SELECT * FROM comments WHERE user_idx=?", s.UserID)
-
-	CommentsLostUser := []Comments{}
-
+	var comments []Comment
 	defer csu.Close()
 
 	for csu.Next() {
 
-		comment := Comments{}
-
-		var id, postid, useridx, comLike, comDislike int
-		var content string
-		var createdtime time.Time
-
-		err = csu.Scan(&id, &content, &postid, &useridx, &createdtime, &comLike, &comDislike)
+		err = csu.Scan(&id, &content, &postID, &userID, &createdTime, &like, &dislike)
 		if err != nil {
 			panic(err.Error)
 		}
 
-		comment.ID = id
-		comment.PostID = postid
-		comment.UserID = useridx
-		comment.Commentik = content
-		comment.CreatedTime = createdtime
-		comment.CommentLike = comLike
-		comment.CommentDislike = comDislike
-
-		CommentsLostUser = append(CommentsLostUser, comment)
+		comment = appendComment(id, content, postID, userID, createdTime, like, dislike)
+		comments = append(comments, comment)
 	}
-	fmt.Print("her8")
+
 	if err != nil {
 		return nil, nil, nil, u, err
 	}
 
-	// /2020-10-18T17:33:35.013Z
-	fmt.Print(cookie.Value, "cook")
-	return LikedPosts, PostsCreatedUser, CommentsLostUser, u, nil
+	return postsL, postsX, comments, u, nil
 }
 
 //find unique liked post
@@ -373,10 +330,9 @@ func isUnique(intSlice []int) []int {
 	return list
 }
 
-//get other user
+//get other user, posts
 func GetOtherUser(r *http.Request) ([]Posts, Users, error) {
 
-	r.ParseForm()
 	uid := r.FormValue("uid")
 
 	user := DB.QueryRow("SELECT * FROM users WHERE id = ?", uid)
@@ -389,89 +345,76 @@ func GetOtherUser(r *http.Request) ([]Posts, Users, error) {
 	u.ImageHtml = encStr
 	psu, err := DB.Query("SELECT * FROM posts WHERE creator_id=?", u.ID)
 
-	PostsOtherUser := []Posts{}
+	postsU := []Posts{}
 
 	defer psu.Close()
 
+	var image []byte
+
 	for psu.Next() {
+		err = psu.Scan(&id, &title, &content, &creatorID, &createdTime, &image, &like, &dislike)
 
-		post := Posts{}
-		var id, creatorid, countlike, countdislike int
-		var content, title string
-		var creationtime time.Time
-		var image []byte
-
-		err = psu.Scan(&id, &title, &content, &creatorid, &creationtime, &image, &countlike, &countdislike)
 		if err != nil {
 			panic(err.Error)
 		}
-
-		post.ID = id
-		post.Title = title
-		post.Content = content
-		post.CreatorID = creatorid
-		post.CreatedTime = creationtime
-		post.CountLike = countlike
-		post.CountDislike = countdislike
-		PostsOtherUser = append(PostsOtherUser, post)
+		post = appendPost(id, title, content, creatorID, image, like, dislike)
+		postsU = append(postsU, post)
 	}
 	if err != nil {
 		return nil, u, err
 	}
-	return PostsOtherUser, u, nil
+	return postsU, u, nil
 }
 
 //search
 func Search(w http.ResponseWriter, r *http.Request) ([]Posts, error) {
 
 	keyword := r.FormValue("search")
+
 	psu, err := DB.Query("SELECT * FROM posts WHERE title LIKE ?", "%"+keyword+"%")
-	found := []Posts{}
 	defer psu.Close()
+	var posts []Posts
 
 	for psu.Next() {
 
-		var id, creatorID, like, dislike int
-		var content, title string
-		var createdTime time.Time
-		var image []byte
-
 		err = psu.Scan(&id, &title, &content, &creatorID, &createdTime, &image, &like, &dislike)
-
 		if err != nil {
-			panic(err.Error)
+			log.Println(err.Error())
 		}
-		found = putPost(id, title, content, creatorID, createdTime, image, like, dislike)
-
-		// postX := Posts{
-		// 	ID:      id,
-		// 	Title:   title,
-		// 	Content: &content,
-		// }
-
-		//PostsUser = append(PostsUser, postX)
+		post = appendPost(id, title, content, creatorID, image, like, dislike)
+		posts = append(posts, post)
 	}
 
 	if err != nil {
 		return nil, err
 	}
-	return found, nil
+	return posts, nil
 }
 
-func putPost(id int, title, content string, creatorID int, createdTime time.Time, image []byte, like, dislike int) []Posts {
+//appendPost each post put value from Db
+func appendPost(id int, title, content string, creatorID int, image []byte, like, dislike int) Posts {
 
-	var post Posts
-	var posts []Posts
-	post.ID = id
-	post.Title = title
-	post.Content = content
-	post.CreatorID = creatorID
-	post.CreatedTime = createdTime
-	post.Image = image
-	post.CountLike = like
-	post.CountDislike = dislike
-	posts = append(posts, post)
-	return posts
+	post = Posts{
+		ID:           id,
+		Title:        title,
+		Content:      content,
+		CreatorID:    creatorID,
+		Image:        image,
+		CountLike:    like,
+		CountDislike: dislike,
+	}
+	return post
 }
+func appendComment(id int, content string, postID, userID int, createdTime time.Time, like, dislike int) Comment {
 
-putPost use func
+	comment = Comment{
+		ID:          id,
+		Content:     content,
+		PostID:      postID,
+		UserID:      userID,
+		CreatedTime: createdTime,
+		Like:        like,
+		Dislike:     dislike,
+	}
+	return comment
+}

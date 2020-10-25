@@ -80,6 +80,9 @@ func CreateDB() {
 	util.DB = db
 }
 
+//slice - controller/model/view
+
+//and 0 NOT IN (count_like) -> show only liked post
 //conf file
 //if cookie = 0, notify message  user, logout etc
 //create models file -> чисто модели, и в паке моедли файлы
