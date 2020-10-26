@@ -2,6 +2,7 @@ package util
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -9,13 +10,13 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/devstackq/ForumX/model"
+	structure "github.com/devstackq/ForumX/general"
 )
 
 var (
 	DB   *sql.DB
 	err  error
-	temp = template.Must(template.ParseFiles("templates/header.html", "templates/category_temp.html", "templates/likedpost.html", "templates/404page.html", "templates/postupdate.html", "templates/postuser.html", "templates/commentuser.html", "templates/userupdate.html", "templates/search.html", "templates/user.html", "templates/commentuser.html", "templates/postuser.html", "templates/profile.html", "templates/signin.html", "templates/user.html", "templates/signup.html", "templates/filter.html", "templates/posts.html", "templates/comment.html", "templates/create.html", "templates/footer.html", "templates/index.html"))
+	temp = template.Must(template.ParseFiles("view/header.html", "view/category_temp.html", "view/likedpost.html", "view/404page.html", "view/postupdate.html", "view/postuser.html", "view/commentuser.html", "view/userupdate.html", "view/search.html", "view/user.html", "view/commentuser.html", "view/postuser.html", "view/profile.html", "view/signin.html", "view/user.html", "view/signup.html", "view/filter.html", "view/posts.html", "view/comment.html", "view/create.html", "view/footer.html", "view/index.html"))
 )
 
 type API struct {
@@ -32,7 +33,7 @@ func IsAuth(r *http.Request) API {
 	return auth
 }
 
-func CheckForCookies(w http.ResponseWriter, r *http.Request) (bool, model.Session) {
+func CheckForCookies(w http.ResponseWriter, r *http.Request) (bool, structure.Session) {
 
 	var flag, cookieHave bool
 
@@ -45,7 +46,7 @@ func CheckForCookies(w http.ResponseWriter, r *http.Request) (bool, model.Sessio
 		//get client cookie
 		//set local struct -> cookie value
 		cookie, _ := r.Cookie("_cookie")
-		s := model.Session{UUID: cookie.Value}
+		s := structure.Session{UUID: cookie.Value}
 		var tmp string
 		// get userid by Client sessionId
 		err = DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).
@@ -63,7 +64,7 @@ func CheckForCookies(w http.ResponseWriter, r *http.Request) (bool, model.Sessio
 			flag = true
 		}
 	}
-	s := model.Session{}
+	s := structure.Session{}
 	if flag {
 		c, _ := r.Cookie("_cookie")
 		s.UUID = c.Value
@@ -73,6 +74,7 @@ func CheckForCookies(w http.ResponseWriter, r *http.Request) (bool, model.Sessio
 	return flag, s
 }
 
+//check correct letter
 func CheckLetter(value string) bool {
 	for _, v := range value {
 		if v >= 97 && v <= 122 || v >= 65 && v <= 90 && v >= 32 && v <= 64 || v > 128 {
@@ -82,7 +84,6 @@ func CheckLetter(value string) bool {
 	return false
 }
 
-//DisplayTemplate comment
 func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 	err = temp.ExecuteTemplate(w, tmpl, data)
 	fmt.Println(err, "exec ERR")
@@ -97,7 +98,7 @@ func СheckCookieLife(t time.Time, cookie *http.Cookie, w http.ResponseWriter, r
 	for _, cookie := range r.Cookies() {
 		if cookie.Name == "_cookie" {
 			//Logout(w, r)
-			s := model.Session{UUID: cookie.Value}
+			s := structure.Session{UUID: cookie.Value}
 			//get ssesion id, by local struct uuid
 			DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).
 				Scan(&s.ID)
@@ -132,6 +133,7 @@ func IsUnique(intSlice []int) []int {
 	return list
 }
 
+//func for convert receive file - to fileByte
 func FileByte(r *http.Request) []byte {
 
 	r.ParseMultipartForm(10 << 20)
@@ -149,4 +151,20 @@ func FileByte(r *http.Request) []byte {
 	}
 
 	return imgBytes
+}
+
+//show auth error
+func AuthError(w http.ResponseWriter, err error, text string) {
+	fmt.Println(text, "errka")
+	w.Header().Set("Content-Type", "application/json")
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		m, _ := json.Marshal(text)
+		w.Write(m)
+		return
+	} else {
+		w.WriteHeader(200)
+		m, _ := json.Marshal(text)
+		w.Write(m)
+	}
 }

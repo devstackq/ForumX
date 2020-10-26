@@ -26,3 +26,18 @@ func (c *Comment) LeaveComment() error {
 	}
 	return nil
 }
+
+func appendComment(id int, content string, postID, userID int, createdTime time.Time, like, dislike int, titlePost string) Comment {
+
+	comment = Comment{
+		ID:          id,
+		Content:     content,
+		PostID:      postID,
+		UserID:      userID,
+		CreatedTime: createdTime,
+		Like:        like,
+		Dislike:     dislike,
+		TitlePost:   titlePost,
+	}
+	return comment
+}
