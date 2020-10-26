@@ -2,6 +2,7 @@ package models
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
@@ -11,8 +12,24 @@ import (
 	"os"
 	"time"
 
-	"github.com/devstackq/ForumX/model"
+	structure "github.com/devstackq/ForumX/general"
 	util "github.com/devstackq/ForumX/utils"
+)
+
+//global variable for package models
+var (
+	err                          error
+	DB                           *sql.DB
+	rows                         *sql.Rows
+	id, creatorID, like, dislike int
+	content, title               string
+	createdTime                  time.Time
+	image                        []byte
+	postID                       int
+	userID                       int
+	post                         Posts
+	comment                      Comment
+	msg                          = structure.API.Message
 )
 
 type Posts struct {
@@ -25,7 +42,7 @@ type Posts struct {
 	FullName      string
 	CategoryName  string
 	Image         []byte
-	ImageHtml     string
+	ImageHTML     string
 	PostIDEdit    int
 	AuthorForPost int
 	CountLike     int
@@ -34,12 +51,22 @@ type Posts struct {
 	PBGID         int
 	PBGPostID     int
 	PBGCategory   string
-	LastPostId    int
 	FileS         multipart.File
 	FileI         multipart.File
-	Session       model.Session
+	Session       structure.Session
 	Categories    []string
 	Temp          string
+}
+
+type PostCategory struct {
+	PostID   int64
+	Category string
+}
+
+type Filter struct {
+	Category string
+	Like     string
+	Date     string
 }
 
 //func GetAllPost(r *http.Request, like, date, category string) ([]Posts, string, string, error) {
@@ -241,13 +268,12 @@ func (post *Posts) GetPostById(r *http.Request) ([]Comment, Posts, error) {
 	}
 
 	encodedString := base64.StdEncoding.EncodeToString(p.Image)
-	p.ImageHtml = encodedString
+	p.ImageHTML = encodedString
 
 	//creator post
 	DB.QueryRow("SELECT full_name FROM users WHERE id = ?", p.CreatorID).Scan(&p.FullName)
-	//get category post
-	//DB.QueryRow("SELECT category FROM post_cat_bridge WHERE post_id=?", p.ID).Scan(&p.CategoryName)
-	//get all comments from post
+
+	//get all comments from post1
 	stmp, err := DB.Query("SELECT * FROM comments WHERE  post_id =?", p.ID)
 	if err != nil {
 		log.Fatal(err)
@@ -283,4 +309,53 @@ func (post *Posts) GetPostById(r *http.Request) ([]Comment, Posts, error) {
 		return nil, p, err
 	}
 	return comments, p, nil
+}
+
+func (pcb *PostCategory) CreateBridge() error {
+	_, err := DB.Exec("INSERT INTO post_cat_bridge (post_id, category) VALUES (?, ?)",
+		pcb.PostID, pcb.Category)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//search post by contain title
+func Search(w http.ResponseWriter, r *http.Request) ([]Posts, error) {
+
+	psu, err := DB.Query("SELECT * FROM posts WHERE title LIKE ?", "%"+r.FormValue("search")+"%")
+	defer psu.Close()
+	var posts []Posts
+
+	for psu.Next() {
+
+		err = psu.Scan(&id, &title, &content, &creatorID, &createdTime, &image, &like, &dislike)
+		if err != nil {
+			log.Println(err.Error())
+		}
+		post = appendPost(id, title, content, creatorID, image, like, dislike, 0, createdTime)
+		posts = append(posts, post)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	return posts, nil
+}
+
+//appendPost each post put value from Db
+func appendPost(id int, title, content string, creatorID int, image []byte, like, dislike, authorID int, createdTime time.Time) Posts {
+
+	post = Posts{
+		ID:            id,
+		Title:         title,
+		Content:       content,
+		CreatorID:     creatorID,
+		Image:         image,
+		CountLike:     like,
+		CountDislike:  dislike,
+		AuthorForPost: authorID,
+		CreatedTime:   createdTime,
+	}
+	return post
 }
