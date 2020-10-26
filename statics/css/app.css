@@ -13,6 +13,7 @@ body {
     margin: 0px auto;
     background-color: #fff;
 }
+
 .wrapper-main {
     margin: 15px 20px;
     background-color: rgb(212, 236, 175);
@@ -20,17 +21,17 @@ body {
     max-width: 1100px;
     padding: 20px;
     box-shadow: 3px 2px 7px palegoldenrod;
-    transition-duration: .8s;
     border: .3px solid #333;
 }
+
 .wrapper-main:hover {
     color: red;
 }
+
 .wrapper-main:hover {
     background: #fc0;
     cursor: pointer;
     box-shadow: 3px 2px 7px sandybrown;
- 
 }
 
 .wrapper-filter {
@@ -102,6 +103,8 @@ body {
     color: #000;
     border-radius: 2px;
 }
+
+
 /* .navbar a:hover {
 background: #000;
 color: red;
@@ -176,7 +179,6 @@ color: red;
     color: red;
 }
 
-
 .wrapper-main h3 {
     text-align: center;
 }
@@ -210,6 +212,7 @@ a {
     border: 1px solid green;
     padding: 10px;
 }
+
 .profile-post-create {
     margin-bottom: -40px;
     margin-top: -40px;
@@ -454,14 +457,15 @@ like {
     font-size: 18px;
     color: pink;
 }
+
 .active {
     background: pink;
     padding: 5px;
 }
-#category  {
+
+#category {
     position: absolute;
     top: 60px;
     left: 15%;
     color: #000;
 }
-

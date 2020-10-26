@@ -48,7 +48,7 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 		msg := []byte(fmt.Sprintf("<h2 id='category'> `Category: %s` </h2>", category))
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(msg)
-		util.DisplayTemplate(w, "catTemp", posts)
+		util.DisplayTemplate(w, "category_post_template", posts)
 	}
 }
 
@@ -66,7 +66,7 @@ func GetPostByID(w http.ResponseWriter, r *http.Request) {
 		}
 		util.DisplayTemplate(w, "header", util.IsAuth(r))
 		util.DisplayTemplate(w, "posts", post)
-		util.DisplayTemplate(w, "comment", comments)
+		util.DisplayTemplate(w, "comment_post", comments)
 	}
 }
 
@@ -78,7 +78,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
 			util.DisplayTemplate(w, "header", util.IsAuth(r))
-			util.DisplayTemplate(w, "create", &msg)
+			util.DisplayTemplate(w, "create_post", &msg)
 		case "POST":
 			access, session := util.CheckForCookies(w, r)
 			log.Println(access, "access status")
@@ -113,7 +113,7 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 			pid, _ := strconv.Atoi(r.URL.Query().Get("id"))
 			p := models.Post{PostIDEdit: pid}
-			util.DisplayTemplate(w, "updatepost", p)
+			util.DisplayTemplate(w, "update_post", p)
 		}
 		if r.Method == "POST" {
 			access, _ := util.CheckForCookies(w, r)

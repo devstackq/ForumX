@@ -16,7 +16,7 @@ import (
 var (
 	DB   *sql.DB
 	err  error
-	temp = template.Must(template.ParseFiles("view/header.html", "view/category_temp.html", "view/likedpost.html", "view/404page.html", "view/postupdate.html", "view/postuser.html", "view/commentuser.html", "view/userupdate.html", "view/search.html", "view/user.html", "view/commentuser.html", "view/postuser.html", "view/profile.html", "view/signin.html", "view/user.html", "view/signup.html", "view/filter.html", "view/posts.html", "view/comment.html", "view/create.html", "view/footer.html", "view/index.html"))
+	temp = template.Must(template.ParseFiles("view/header.html", "view/category_post.html", "view/favorites.html", "view/404page.html", "view/update_post.html", "view/created_post.html", "view/comment_user.html", "view/profile_update.html", "view/search.html", "view/another_user.html", "view/profile.html", "view/signin.html", "view/signup.html", "view/filter.html", "view/post.html", "view/comment_post.html", "view/create_post.html", "view/footer.html", "view/index.html"))
 )
 
 type API struct {
