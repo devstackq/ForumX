@@ -22,14 +22,14 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 			}
 			cookie, _ := r.Cookie("_cookie")
 			//if userId now, createdPost uid equal -> show
-			likedpost, posts, comments, user, err := models.GetUserProfile(r, w, cookie)
+			likedPost, posts, comments, user, err := models.GetUserProfile(r, w, cookie)
 			if err != nil {
 				panic(err)
 			}
 
 			util.DisplayTemplate(w, "header", util.IsAuth(r))
 			util.DisplayTemplate(w, "profile", user)
-			util.DisplayTemplate(w, "favorited_post", likedpost)
+			util.DisplayTemplate(w, "favorited_post", likedPost)
 			util.DisplayTemplate(w, "created_post", posts)
 			util.DisplayTemplate(w, "comment_user", comments)
 
@@ -48,7 +48,7 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 //GetAnotherProfile  other user page
 func GetAnotherProfile(w http.ResponseWriter, r *http.Request) {
 
-	if util.URLChecker(w, r, "/user/id") {
+	if util.URLChecker(w, r, "/user/id/") {
 
 		if r.Method == "POST" {
 
@@ -64,7 +64,7 @@ func GetAnotherProfile(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//update profile
+//UpdateProfile function
 func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 	if util.URLChecker(w, r, "/edit/user") {

@@ -10,26 +10,18 @@ func main() {
 }
 
 //sql query - optimize, вынести в global variable
-// write correct email and password - clien side
-//name func, variable - norm
-
-//Обнаруживает ли проект неправильный адрес электронной почты или пароль? - password min 8 symbols, and lowerBig number pwd
+//like, dislike - refactor
+//redirect logout not work,  &create post
 
 //if cookie = 0, notify message  user, logout etc
 //Представлен ли в проекте скрипт для создания образов и контейнеров? (используя скрипт для упрощения сборки)
 
-//like, dislike - refactor
 //обработать ошикбки, log & http errors check http etc
-
-//redirect logout not work,  &create post
-
-//checkCookieLife(now, w, r, cookie) - del cookie client and backend - redirect main page
 
 //photo not required || set defauklt photo
 //refactor function  -> Single responsibility, DRY
 
 //design style refactor
-//html structure code - refactor,
 // pagination for posts
 
 //google acc signin -> -> back signin ? what??

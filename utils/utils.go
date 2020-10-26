@@ -8,7 +8,9 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"regexp"
 	"time"
+	"unicode"
 
 	structure "github.com/devstackq/ForumX/general"
 )
@@ -176,11 +178,45 @@ func AuthError(w http.ResponseWriter, err error, text string) {
 	}
 }
 
-//UrlChecker function
+//URLChecker function
 func URLChecker(w http.ResponseWriter, r *http.Request, url string) bool {
+
 	if r.URL.Path != url {
 		DisplayTemplate(w, "404page", http.StatusNotFound)
 		return false
 	}
 	return true
+}
+
+//IsEmailValid function
+func IsEmailValid(email string) bool {
+	Re := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+	return Re.MatchString(email)
+}
+
+//IsPasswordValid function
+func IsPasswordValid(s string) bool {
+	var (
+		hasMinLen  = false
+		hasUpper   = false
+		hasLower   = false
+		hasNumber  = false
+		hasSpecial = false
+	)
+	if len(s) >= 7 {
+		hasMinLen = true
+	}
+	for _, char := range s {
+		switch {
+		case unicode.IsUpper(char):
+			hasUpper = true
+		case unicode.IsLower(char):
+			hasLower = true
+		case unicode.IsNumber(char):
+			hasNumber = true
+		case unicode.IsPunct(char) || unicode.IsSymbol(char):
+			hasSpecial = true
+		}
+	}
+	return hasMinLen && hasUpper && hasLower && hasNumber && hasSpecial
 }
