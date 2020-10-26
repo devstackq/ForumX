@@ -9,16 +9,10 @@
 
     <h4>{{.Title}}</h4>
     {{.CreatedTime}}
-    <a href="/post?id={{.ID}}">see post</a>
-    
-    {{if eq .CreatorID .AuthorForPost }}
+    <a href="/post?id={{.ID}}">see post</a> {{if eq .CreatorID .AuthorForPost }}
     <a href="/edit/post?id={{.ID}}"> edit post</a>
     <!-- <a href="/delete/post?id={{.ID}}"> delete post</a> -->
-    {{end}}
-
-    {{end}}
+    {{end}} {{end}}
 </div>
 <br />
-<br />
-
-{{end}}
+<br /> {{end}}

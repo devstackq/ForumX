@@ -9,41 +9,39 @@ import (
 	util "github.com/devstackq/ForumX/utils"
 )
 
-//create comment
-func CreateComment(w http.ResponseWriter, r *http.Request) {
+//LeaveComment function
+func LeaveComment(w http.ResponseWriter, r *http.Request) {
 
-	if r.URL.Path != "/comment" {
-		util.DisplayTemplate(w, "404page", http.StatusNotFound)
-		return
-	}
+	if util.URLChecker(w, r, "/comment") {
 
-	if r.Method == "POST" {
+		if r.Method == "POST" {
 
-		access, s := util.CheckForCookies(w, r)
-		if !access {
-			http.Redirect(w, r, "/signin", 302)
-			return
-		}
+			pid, _ := strconv.Atoi(r.FormValue("curr"))
+			commentInput := r.FormValue("comment-text")
 
-		DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
-
-		pid, _ := strconv.Atoi(r.FormValue("curr"))
-		comment := r.FormValue("comment-text")
-
-		if util.CheckLetter(comment) {
-
-			com := models.Comment{
-				Content: comment,
-				PostID:  pid,
-				UserID:  s.UserID,
+			access, s := util.CheckForCookies(w, r)
+			if !access {
+				http.Redirect(w, r, "/signin", 302)
+				return
 			}
 
-			err = com.LeaveComment()
+			DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
 
-			if err != nil {
-				log.Println(err.Error())
+			if util.CheckLetter(commentInput) {
+
+				comment := models.Comment{
+					Content: commentInput,
+					PostID:  pid,
+					UserID:  s.UserID,
+				}
+
+				err = comment.LeaveComment()
+
+				if err != nil {
+					log.Println(err.Error())
+				}
 			}
 		}
+		http.Redirect(w, r, "post?id="+r.FormValue("curr"), 301)
 	}
-	http.Redirect(w, r, "post?id="+r.FormValue("curr"), 301)
 }

@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-//comment ID -> foreign key -> postID
+//Comment ID -> foreign key -> postID
 type Comment struct {
 	ID          int
 	Content     string
@@ -17,9 +17,9 @@ type Comment struct {
 	TitlePost   string
 }
 
-//get data from client, put data in Handler, then models -> query db
+//LeaveComment for post by id
 func (c *Comment) LeaveComment() error {
-	_, err := DB.Exec("INSERT INTO comments( content, post_id, user_idx) VALUES(?,?,?)",
+	_, err := DB.Exec("INSERT INTO comments(content, post_id, user_idx) VALUES(?,?,?)",
 		c.Content, c.PostID, c.UserID)
 	if err != nil {
 		return err
@@ -27,7 +27,8 @@ func (c *Comment) LeaveComment() error {
 	return nil
 }
 
-func appendComment(id int, content string, postID, userID int, createdTime time.Time, like, dislike int, titlePost string) Comment {
+//AppendComment helper func
+func AppendComment(id int, content string, postID, userID int, createdTime time.Time, like, dislike int, titlePost string) Comment {
 
 	comment = Comment{
 		ID:          id,
