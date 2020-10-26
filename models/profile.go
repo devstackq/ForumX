@@ -11,7 +11,8 @@ import (
 	util "github.com/devstackq/ForumX/utils"
 )
 
-type Users struct {
+//Users struct
+type User struct {
 	ID          int
 	FullName    string
 	Email       string
@@ -22,76 +23,72 @@ type Users struct {
 	CreatedTime time.Time
 	City        string
 	Image       []byte
-	ImageHtml   string
+	ImageHTML   string
 	Role        string
 	SVG         bool
 	Type        string
 	Temp        string
 }
 
-//get profile by id
-func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie) ([]Posts, []Posts, []Comment, Users, error) {
+//GetUserProfile proffunction
+func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie) ([]Post, []Post, []Comment, User, error) {
 
-	//time.AfterFunc(10, checkCookieLife(cookie, w, r))
+	//time.AfterFunc(10, checkCookieLife(cookie, w, r)) try check every 30 min cookie
 	s := structure.Session{UUID: cookie.Value}
-	u := Users{}
+	u := User{}
 	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
-	lps := []Likes{}
+	likedPostArr := []Votes{}
 
 	//count dislike equal 0 - add query
-	lp, err := DB.Query("select post_id from likes where user_id =? and state_id =?", s.UserID, 1)
-	defer lp.Close()
-	for lp.Next() {
-		l := Likes{}
-		var lpid int
-		err = lp.Scan(&lpid)
-		l.PostID = lpid
-		lps = append(lps, l)
+	likedpost, err := DB.Query("select post_id from likes where user_id =? and state_id =?", s.UserID, 1)
+	defer likedpost.Close()
+
+	for likedpost.Next() {
+		post := Votes{}
+		var pid int
+		err = likedpost.Scan(&pid)
+		post.PostID = pid
+		likedPostArr = append(likedPostArr, post)
 	}
 
 	err = DB.QueryRow("SELECT * FROM users WHERE id = ?", s.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.Password, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
 	if u.Image[0] == 60 {
 		u.SVG = true
 	}
+	u.ImageHTML = base64.StdEncoding.EncodeToString(u.Image)
 
-	encStr := base64.StdEncoding.EncodeToString(u.Image)
-	u.ImageHtml = encStr
+	var smtp *sql.Rows
+	postsL := []Post{}
 
-	var likedpost *sql.Rows
-	postsL := []Posts{}
+	var arrIDLiked []int
 
-	var can []int
-
-	for _, v := range lps {
-		can = append(can, v.PostID)
+	for _, v := range likedPostArr {
+		arrIDLiked = append(arrIDLiked, v.PostID)
 	}
 
 	//unique liked post by user
-	fin := util.IsUnique(can)
-	//accum liked post
+	fin := util.IsUnique(arrIDLiked)
 
 	for _, v := range fin {
-		//get each liked post by ID, then likedpost, put array post
-
-		//count_dislike не
-		likedpost, err = DB.Query("SELECT * FROM posts WHERE id=? and count_like > 0", v)
+		//get each only  liked post by ID, then likedpost, put array post
+		smtp, err = DB.Query("SELECT * FROM posts WHERE id=? and count_like > 0", v)
 		if err != nil {
 			log.Println(err)
 		}
-		for likedpost.Next() {
-			err = likedpost.Scan(&id, &title, &content, &creatorID, &createdTime, &image, &like, &dislike)
+		for smtp.Next() {
+			err = smtp.Scan(&id, &title, &content, &creatorID, &createdTime, &image, &like, &dislike)
 			if err != nil {
 				panic(err.Error)
 			}
-			post = appendPost(id, title, content, creatorID, image, like, dislike, s.UserID, createdTime)
+			post = AppendPost(id, title, content, creatorID, image, like, dislike, s.UserID, createdTime)
 			postsL = append(postsL, post)
 		}
 	}
 	//create post current user
 	psu, err := DB.Query("SELECT * FROM posts WHERE creator_id=?", s.UserID)
 	//defer psu.Close()
-	var postCr Posts
-	postsX := []Posts{}
+	var postCr Post
+	postsCreated := []Post{}
 
 	//todo get uniq post - created post
 	for psu.Next() {
@@ -102,8 +99,8 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 		}
 		//post.AuthorForPost = s.UserID
 
-		postCr = appendPost(id, title, content, creatorID, image, like, dislike, s.UserID, createdTime)
-		postsX = append(postsX, postCr)
+		postCr = AppendPost(id, title, content, creatorID, image, like, dislike, s.UserID, createdTime)
+		postsCreated = append(postsCreated, postCr)
 	}
 
 	csu, err := DB.Query("SELECT * FROM comments WHERE user_idx=?", s.UserID)
@@ -118,7 +115,7 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 			panic(err.Error)
 		}
 
-		comment = appendComment(id, content, postID, userID, createdTime, like, dislike, title)
+		comment = AppendComment(id, content, postID, userID, createdTime, like, dislike, title)
 		comments = append(comments, comment)
 	}
 
@@ -126,28 +123,25 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 		return nil, nil, nil, u, err
 	}
 
-	return postsL, postsX, comments, u, nil
+	return postsL, postsCreated, comments, u, nil
 }
 
-//get other user, posts
-func (user *Users) GetAnotherProfile(r *http.Request) ([]Posts, Users, error) {
+//GetAnotherProfile other user data
+func (user *User) GetAnotherProfile(r *http.Request) ([]Post, User, error) {
 
 	userQR := DB.QueryRow("SELECT * FROM users WHERE id = ?", user.Temp)
 
-	u := Users{}
-	postsU := []Posts{}
+	u := User{}
+	postsU := []Post{}
 
 	err = userQR.Scan(&u.ID, &u.FullName, &u.Email, &u.Password, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
 	if u.Image[0] == 60 {
 		u.SVG = true
 	}
-	encStr := base64.StdEncoding.EncodeToString(u.Image)
-	u.ImageHtml = encStr
+	u.ImageHTML = base64.StdEncoding.EncodeToString(u.Image)
 	psu, err := DB.Query("SELECT * FROM posts WHERE creator_id=?", u.ID)
 
 	defer psu.Close()
-
-	var image []byte
 
 	for psu.Next() {
 		err = psu.Scan(&id, &title, &content, &creatorID, &createdTime, &image, &like, &dislike)
@@ -155,7 +149,7 @@ func (user *Users) GetAnotherProfile(r *http.Request) ([]Posts, Users, error) {
 		if err != nil {
 			panic(err.Error)
 		}
-		post = appendPost(id, title, content, creatorID, image, like, dislike, 0, createdTime)
+		post = AppendPost(id, title, content, creatorID, image, like, dislike, 0, createdTime)
 		postsU = append(postsU, post)
 	}
 	if err != nil {
@@ -164,8 +158,8 @@ func (user *Users) GetAnotherProfile(r *http.Request) ([]Posts, Users, error) {
 	return postsU, u, nil
 }
 
-//update profile
-func (u *Users) UpdateProfile() error {
+//UpdateProfile function
+func (u *User) UpdateProfile() error {
 
 	_, err := DB.Exec("UPDATE  users SET full_name=?, age=?, sex=?, city=?, image=? WHERE id =?",
 		u.FullName, u.Age, u.Sex, u.City, u.Image, u.ID)

@@ -6,10 +6,8 @@
         <h3>Hello {{.FullName}}</h3>
 
         {{if .SVG}}
-		<img alt=" " width="500px" src="data:image/svg+xml;base64, {{.ImageHtml}} ">
-		{{else}}
-		<img class="post-img" src="data:image/jpeg;base64, {{.ImageHtml}}" alt=" ">
-		{{end}}
+        <img alt=" " width="500px" src="data:image/svg+xml;base64, {{.ImageHTML}} "> {{else}}
+        <img class="post-img" src="data:image/jpeg;base64, {{.ImageHTML}}" alt=" "> {{end}}
         <br>
 
         <label for="">Name:</label>
@@ -27,13 +25,10 @@
         <br>
 
     </div>
-    
+
     <br>
     <a class="link-profile" href="/edit/user?uid={{.ID}}">Edit profile</a>
     <a class="link-profile" href="/create/post" class="create-btn">Create post</a>
-    
-</div>
-<br>
-{{end}}
 
-{{template "footer"}}
+</div>
+<br> {{end}} {{template "footer"}}

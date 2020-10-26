@@ -11,13 +11,13 @@
             background-color: #000;
             color: cornsilk;
         }
-
+        
         a {
             color: #fff;
             padding: 5px;
             background: orange;
         }
-
+        
         .wrapper-main {
             width: 100%;
             max-width: 960px;
@@ -37,20 +37,11 @@
 
             {{if .SVG}}
 
-            <img alt=" " width="500px" src="data:image/svg+xml;base64, {{.ImageHtml}} ">
+            <img alt=" " width="500px" src="data:image/svg+xml;base64, {{.ImageHTML}} "> {{else}}
 
-            {{else}}
-
-            <img class="post-img" src="data:image/jpeg;base64, {{.ImageHtml}}" alt=" ">
-
-            {{end}}
+            <img class="post-img" src="data:image/jpeg;base64, {{.ImageHTML}}" alt=" "> {{end}}
         </div>
 
-        Name: {{.FullName}} <br />
-        Email : {{.Email}}<br />
-        Age : {{.Age}}<br />
-        Sex : {{.Sex}}<br />
-        From : {{.City}}<br />
-        On site with : {{.CreatedTime}}<br />
+        Name: {{.FullName}} <br /> Email : {{.Email}}<br /> Age : {{.Age}}<br /> Sex : {{.Sex}}<br /> From : {{.City}}<br /> On site with : {{.CreatedTime}}<br />
     </div>
     {{end}}

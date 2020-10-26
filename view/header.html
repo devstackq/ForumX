@@ -8,8 +8,7 @@
     <title>Forum-X</title>
     <link rel="stylesheet" type="text/css" href="../statics/css/app.css">
 
-    <meta name="google-signin-client_id"
-        content="272819090705-qu6arlmkvs66hc5fuvalv6liuf2n9fj8.apps.googleusercontent.com">
+    <meta name="google-signin-client_id" content="272819090705-qu6arlmkvs66hc5fuvalv6liuf2n9fj8.apps.googleusercontent.com">
     <script src="https://apis.google.com/js/platform.js" async defer></script>
 </head>
 
@@ -20,17 +19,13 @@
                 <a class="nav-link" href="/">All</a>
                 <a class="nav-link" href="/science">Science</a>
                 <a class="nav-link" href="/love">Love</a>
-                <a class="nav-link" href="/sapid">Sapid </a>
-
-                {{if .Authenticated}}
+                <a class="nav-link" href="/sapid">Sapid </a> {{if .Authenticated}}
                 <a class="nav-link" href="/profile">Profile</a>
-                <a class="nav-link" href="/logout">Logout</a>
-                {{else}}
+                <a class="nav-link" href="/logout">Logout</a> {{else}}
 
                 <a class="nav-link" href="/signup">Signup</a>
                 <a class="nav-link" href="/signin">Signin</a>
             </div>
         </header>
     </div>
-    {{end}}
-    {{end}}
+    {{end}} {{end}}

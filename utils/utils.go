@@ -23,6 +23,7 @@ type API struct {
 	Authenticated bool
 }
 
+//IsAuth check user now authorized system ?
 func IsAuth(r *http.Request) API {
 	var auth API
 	for _, cookie := range r.Cookies() {
@@ -33,9 +34,12 @@ func IsAuth(r *http.Request) API {
 	return auth
 }
 
+//CheckForCookies check user cookie client and DB session value, if true -> give access
 func CheckForCookies(w http.ResponseWriter, r *http.Request) (bool, structure.Session) {
 
 	var flag, cookieHave bool
+	cookie, _ := r.Cookie("_cookie")
+	s := structure.Session{}
 
 	if IsAuth(r).Authenticated {
 		cookieHave = true
@@ -45,7 +49,6 @@ func CheckForCookies(w http.ResponseWriter, r *http.Request) (bool, structure.Se
 	} else {
 		//get client cookie
 		//set local struct -> cookie value
-		cookie, _ := r.Cookie("_cookie")
 		s := structure.Session{UUID: cookie.Value}
 		var tmp string
 		// get userid by Client sessionId
@@ -64,18 +67,17 @@ func CheckForCookies(w http.ResponseWriter, r *http.Request) (bool, structure.Se
 			flag = true
 		}
 	}
-	s := structure.Session{}
 	if flag {
-		c, _ := r.Cookie("_cookie")
-		s.UUID = c.Value
+		s.UUID = cookie.Value
 		return flag, s
 	}
 
 	return flag, s
 }
 
-//check correct letter
+//CheckLetter correct letter
 func CheckLetter(value string) bool {
+
 	for _, v := range value {
 		if v >= 97 && v <= 122 || v >= 65 && v <= 90 && v >= 32 && v <= 64 || v > 128 {
 			return true
@@ -84,20 +86,24 @@ func CheckLetter(value string) bool {
 	return false
 }
 
+//DisplayTemplate function
 func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
+
 	err = temp.ExecuteTemplate(w, tmpl, data)
-	fmt.Println(err, "exec ERR")
+
 	if err != nil {
+		fmt.Println(err, "exec ERR")
 		http.Error(w, err.Error(),
 			http.StatusInternalServerError)
 		fmt.Fprintf(w, err.Error())
 	}
 }
 
+//СheckCookieLife
 func СheckCookieLife(t time.Time, cookie *http.Cookie, w http.ResponseWriter, r *http.Request) {
+
 	for _, cookie := range r.Cookies() {
 		if cookie.Name == "_cookie" {
-			//Logout(w, r)
 			s := structure.Session{UUID: cookie.Value}
 			//get ssesion id, by local struct uuid
 			DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).
@@ -120,7 +126,7 @@ func СheckCookieLife(t time.Time, cookie *http.Cookie, w http.ResponseWriter, r
 	}
 }
 
-//find unique liked post
+//IsUnique find unique liked post
 func IsUnique(intSlice []int) []int {
 	keys := make(map[int]bool)
 	list := []int{}
@@ -133,7 +139,7 @@ func IsUnique(intSlice []int) []int {
 	return list
 }
 
-//func for convert receive file - to fileByte
+//FileByte func for convert receive file - to fileByte
 func FileByte(r *http.Request) []byte {
 
 	r.ParseMultipartForm(10 << 20)
@@ -153,9 +159,10 @@ func FileByte(r *http.Request) []byte {
 	return imgBytes
 }
 
-//show auth error
+//AuthError show auth error
 func AuthError(w http.ResponseWriter, err error, text string) {
-	fmt.Println(text, "errka")
+
+	fmt.Println(text, "errka auth")
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -167,4 +174,13 @@ func AuthError(w http.ResponseWriter, err error, text string) {
 		m, _ := json.Marshal(text)
 		w.Write(m)
 	}
+}
+
+//UrlChecker function
+func URLChecker(w http.ResponseWriter, r *http.Request, url string) bool {
+	if r.URL.Path != url {
+		DisplayTemplate(w, "404page", http.StatusNotFound)
+		return false
+	}
+	return true
 }

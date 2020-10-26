@@ -5,27 +5,21 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// func init() {
-// 	config.Init()
-// }
-
 func main() {
 	config.Init()
 }
 
+//sql query - optimize, вынести в global variable
 // write correct email and password - clien side
-//show error 404 page
+//name func, variable - norm
+
 //Обнаруживает ли проект неправильный адрес электронной почты или пароль? - password min 8 symbols, and lowerBig number pwd
+
 //if cookie = 0, notify message  user, logout etc
 //Представлен ли в проекте скрипт для создания образов и контейнеров? (используя скрипт для упрощения сборки)
-//like, dislike - refactor
-//обработать ошикбки, log
-//errors check http etc
 
-//name func, variable - norm
-//slice - controller/model/view
-//conf file
-//check contreoller -> middleware -> check data from CLient todo
+//like, dislike - refactor
+//обработать ошикбки, log & http errors check http etc
 
 //redirect logout not work,  &create post
 
@@ -34,10 +28,11 @@ func main() {
 //photo not required || set defauklt photo
 //refactor function  -> Single responsibility, DRY
 
-//design refactor
+//design style refactor
+//html structure code - refactor,
 // pagination for posts
-//google acc signin -> -> back signin ? what??
 
+//google acc signin -> -> back signin ? what??
 //start Auth
 //google token, client id, event signin Google, -> get data User,
 //Name. email, photo, -> then save Db. -> authorized Forum

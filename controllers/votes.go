@@ -9,147 +9,142 @@ import (
 //like dislike post
 func LostVotes(w http.ResponseWriter, r *http.Request) {
 
-	if r.URL.Path != "/votes" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
+	if util.URLChecker(w, r, "/votes") {
 
-	access, s := util.CheckForCookies(w, r)
-	if !access {
-		http.Redirect(w, r, "/signin", 302)
-		return
-	}
+		access, s := util.CheckForCookies(w, r)
+		if !access {
+			http.Redirect(w, r, "/signin", 302)
+			return
+		}
 
-	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).
-		Scan(&s.UserID)
+		DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).
+			Scan(&s.UserID)
 
-	pid := r.URL.Query().Get("id")
-	lukas := r.FormValue("lukas")
-	diskus := r.FormValue("diskus")
+		pid := r.URL.Query().Get("id")
+		lukas := r.FormValue("lukas")
+		diskus := r.FormValue("diskus")
 
-	if r.Method == "POST" {
+		if r.Method == "POST" {
 
-		if lukas == "1" {
-			//check if not have post and user lost vote this post
-			//1 like or 1 dislike 1 user lost 1 post, get previus value and +1
-			var p, u int
-			err = DB.QueryRow("SELECT post_id, user_id FROM likes WHERE post_id=? AND user_id=?", pid, s.UserID).Scan(&p, &u)
+			if lukas == "1" {
+				//check if not have post and user lost vote this post
+				//1 like or 1 dislike 1 user lost 1 post, get previus value and +1
+				var p, u int
+				err = DB.QueryRow("SELECT post_id, user_id FROM likes WHERE post_id=? AND user_id=?", pid, s.UserID).Scan(&p, &u)
 
-			if p == 0 && u == 0 {
+				if p == 0 && u == 0 {
 
-				oldlike := 0
-				err = DB.QueryRow("SELECT count_like FROM posts WHERE id=?", pid).Scan(&oldlike)
-				nv := oldlike + 1
-				_, err = DB.Exec("UPDATE  posts SET count_like = ? WHERE id= ?", nv, pid)
-				if err != nil {
-					panic(err)
+					oldlike := 0
+					err = DB.QueryRow("SELECT count_like FROM posts WHERE id=?", pid).Scan(&oldlike)
+					nv := oldlike + 1
+					_, err = DB.Exec("UPDATE  posts SET count_like = ? WHERE id= ?", nv, pid)
+					if err != nil {
+						panic(err)
+					}
+
+					_, err = DB.Exec("INSERT INTO likes(post_id, user_id, state_id) VALUES( ?, ?, ?)", pid, s.UserID, 1)
+					if err != nil {
+						panic(err)
+					}
 				}
+			}
 
-				_, err = DB.Exec("INSERT INTO likes(post_id, user_id, state_id) VALUES( ?, ?, ?)", pid, s.UserID, 1)
-				if err != nil {
-					panic(err)
+			if diskus == "1" {
+
+				var p, u int
+				err = DB.QueryRow("SELECT post_id, user_id FROM likes WHERE post_id=? AND user_id=?", pid, s.UserID).Scan(&p, &u)
+
+				if p == 0 && u == 0 {
+
+					oldlike := 0
+					err = DB.QueryRow("select count_dislike from posts where id=?", pid).Scan(&oldlike)
+					nv := oldlike + 1
+					_, err = DB.Exec("UPDATE  posts SET count_dislike = ? WHERE id= ?", nv, pid)
+					if err != nil {
+						panic(err)
+					}
+					_, err = DB.Exec("INSERT INTO likes(post_id, user_id, state_id) VALUES( ?, ?, ?)", pid, s.UserID, 0)
+
+					if err != nil {
+						panic(err)
+					}
 				}
 			}
 		}
-
-		if diskus == "1" {
-
-			var p, u int
-			err = DB.QueryRow("SELECT post_id, user_id FROM likes WHERE post_id=? AND user_id=?", pid, s.UserID).Scan(&p, &u)
-
-			if p == 0 && u == 0 {
-
-				oldlike := 0
-				err = DB.QueryRow("select count_dislike from posts where id=?", pid).Scan(&oldlike)
-				nv := oldlike + 1
-				_, err = DB.Exec("UPDATE  posts SET count_dislike = ? WHERE id= ?", nv, pid)
-				if err != nil {
-					panic(err)
-				}
-				_, err = DB.Exec("INSERT INTO likes(post_id, user_id, state_id) VALUES( ?, ?, ?)", pid, s.UserID, 0)
-
-				if err != nil {
-					panic(err)
-				}
-			}
-		}
+		http.Redirect(w, r, "post?id="+pid, 301)
 	}
-	http.Redirect(w, r, "post?id="+pid, 301)
 }
 
 func LostVotesComment(w http.ResponseWriter, r *http.Request) {
 
-	if r.URL.Path != "/votes/comment" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
+	if util.URLChecker(w, r, "/votes/comment") {
 
-	access, s := util.CheckForCookies(w, r)
-	if !access {
-		http.Redirect(w, r, "/signin", 302)
-		return
-	}
-	//c, _ := r.Cookie("_cookie")
-	//s := models.Session{UUID: c.Value}
-	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).
-		Scan(&s.UserID)
-
-	cid := r.URL.Query().Get("cid")
-	comdis := r.FormValue("comdis")
-	comlike := r.FormValue("comlike")
-
-	pidc := r.FormValue("pidc")
-
-	if r.Method == "POST" {
-
-		if comlike == "1" {
-
-			var c, u int
-			err = DB.QueryRow("SELECT comment_id, user_id FROM likes WHERE comment_id=? AND user_id=?", cid, s.UserID).Scan(&c, &u)
-
-			if c == 0 && u == 0 {
-
-				oldlike := 0
-				err = DB.QueryRow("SELECT com_like FROM comments WHERE id=?", cid).Scan(&oldlike)
-				nv := oldlike + 1
-
-				_, err = DB.Exec("UPDATE  comments SET com_like = ? WHERE id= ?", nv, cid)
-
-				if err != nil {
-					panic(err)
-				}
-
-				_, err = DB.Exec("INSERT INTO likes(comment_id, user_id) VALUES( ?, ?)", cid, s.UserID)
-				if err != nil {
-					panic(err)
-				}
-			}
+		access, s := util.CheckForCookies(w, r)
+		if !access {
+			http.Redirect(w, r, "/signin", 302)
+			return
 		}
 
-		if comdis == "1" {
+		DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).
+			Scan(&s.UserID)
 
-			var c, u int
-			err = DB.QueryRow("SELECT comment_id, user_id FROM likes WHERE comment_id=? AND user_id=?", cid, s.UserID).Scan(&c, &u)
+		cid := r.URL.Query().Get("cid")
+		comdis := r.FormValue("comdis")
+		comlike := r.FormValue("comlike")
 
-			if c == 0 && u == 0 {
+		pidc := r.FormValue("pidc")
 
-				oldlike := 0
-				err = DB.QueryRow("SELECT com_dislike FROM comments WHERE id=?", cid).Scan(&oldlike)
-				nv := oldlike + 1
+		if r.Method == "POST" {
 
-				_, err = DB.Exec("UPDATE  comments SET com_dislike = ? WHERE id= ?", nv, cid)
+			if comlike == "1" {
 
-				if err != nil {
-					panic(err)
-				}
+				var c, u int
+				err = DB.QueryRow("SELECT comment_id, user_id FROM likes WHERE comment_id=? AND user_id=?", cid, s.UserID).Scan(&c, &u)
 
-				_, err = DB.Exec("INSERT INTO likes(comment_id, user_id) VALUES( ?, ?)", cid, s.UserID)
-				if err != nil {
-					panic(err)
+				if c == 0 && u == 0 {
+
+					oldlike := 0
+					err = DB.QueryRow("SELECT com_like FROM comments WHERE id=?", cid).Scan(&oldlike)
+					nv := oldlike + 1
+
+					_, err = DB.Exec("UPDATE  comments SET com_like = ? WHERE id= ?", nv, cid)
+
+					if err != nil {
+						panic(err)
+					}
+
+					_, err = DB.Exec("INSERT INTO likes(comment_id, user_id) VALUES( ?, ?)", cid, s.UserID)
+					if err != nil {
+						panic(err)
+					}
 				}
 			}
+
+			if comdis == "1" {
+
+				var c, u int
+				err = DB.QueryRow("SELECT comment_id, user_id FROM likes WHERE comment_id=? AND user_id=?", cid, s.UserID).Scan(&c, &u)
+
+				if c == 0 && u == 0 {
+
+					oldlike := 0
+					err = DB.QueryRow("SELECT com_dislike FROM comments WHERE id=?", cid).Scan(&oldlike)
+					nv := oldlike + 1
+
+					_, err = DB.Exec("UPDATE  comments SET com_dislike = ? WHERE id= ?", nv, cid)
+
+					if err != nil {
+						panic(err)
+					}
+
+					_, err = DB.Exec("INSERT INTO likes(comment_id, user_id) VALUES( ?, ?)", cid, s.UserID)
+					if err != nil {
+						panic(err)
+					}
+				}
+			}
+			http.Redirect(w, r, "/post?id="+pidc, 301)
 		}
-		http.Redirect(w, r, "/post?id="+pidc, 301)
 	}
 }
 
