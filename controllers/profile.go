@@ -29,9 +29,9 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 
 			util.DisplayTemplate(w, "header", util.IsAuth(r))
 			util.DisplayTemplate(w, "profile", user)
-			util.DisplayTemplate(w, "likedpost", likedpost)
-			util.DisplayTemplate(w, "postuser", posts)
-			util.DisplayTemplate(w, "commentuser", comments)
+			util.DisplayTemplate(w, "favorited_post", likedpost)
+			util.DisplayTemplate(w, "created_post", posts)
+			util.DisplayTemplate(w, "comment_user", comments)
 
 			//delete coookie db
 			go func() {
@@ -58,8 +58,8 @@ func GetAnotherProfile(w http.ResponseWriter, r *http.Request) {
 				panic(err)
 			}
 			util.DisplayTemplate(w, "header", util.IsAuth(r))
-			util.DisplayTemplate(w, "user", user)
-			util.DisplayTemplate(w, "postuser", posts)
+			util.DisplayTemplate(w, "another_user", user)
+			util.DisplayTemplate(w, "created_post", posts)
 		}
 	}
 }
@@ -71,7 +71,7 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 		if r.Method == "GET" {
 			util.DisplayTemplate(w, "header", util.IsAuth(r))
-			util.DisplayTemplate(w, "updateuser", "")
+			util.DisplayTemplate(w, "profile_update", "")
 		}
 
 		if r.Method == "POST" {

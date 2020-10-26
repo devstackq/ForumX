@@ -1,4 +1,4 @@
-{{define "comment"}} {{$id :=0}} {{range .}} {{$id = .PostID}}
+{{define "comment_post"}} {{$id :=0}} {{range .}} {{$id = .PostID}}
 <div class="comment-underpost">
     {{.CreatedTime}}
     <h3> {{.Content}}</h3>
