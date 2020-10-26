@@ -22,26 +22,40 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 
 		if r.Method == "POST" {
 
-			iA, err := strconv.Atoi(r.FormValue("age"))
+			intAge, err := strconv.Atoi(r.FormValue("age"))
 			if err != nil {
 				log.Println(err)
 			}
 			iB := util.FileByte(r)
 
-			u := models.User{
-				FullName: r.FormValue("fullname"),
-				Email:    r.FormValue("email"),
-				Age:      iA,
-				Sex:      r.FormValue("sex"),
-				City:     r.FormValue("city"),
-				Image:    iB,
-				Password: r.FormValue("password"),
+			//checkerEmail & password
+			if util.IsEmailValid(r.FormValue("email")) {
+
+				if util.IsPasswordValid(r.FormValue("password")) {
+
+					u := models.User{
+						FullName: r.FormValue("fullname"),
+						Email:    r.FormValue("email"),
+						Age:      intAge,
+						Sex:      r.FormValue("sex"),
+						City:     r.FormValue("city"),
+						Image:    iB,
+						Password: r.FormValue("password"),
+					}
+
+					err = u.Signup(w, r)
+					if err != nil {
+						log.Println(err)
+					}
+					http.Redirect(w, r, "/signin", 301)
+				} else {
+					msg := "Password must be 8 symbols, 1 big, 1 special character, example: 1Password2!"
+					util.DisplayTemplate(w, "signup", &msg)
+				}
+			} else {
+				msg := "Incorrect email address, example god@mail.com"
+				util.DisplayTemplate(w, "signup", &msg)
 			}
-			err = u.Signup(w, r)
-			if err != nil {
-				log.Println(err)
-			}
-			http.Redirect(w, r, "/signin", 301)
 		}
 	}
 }
