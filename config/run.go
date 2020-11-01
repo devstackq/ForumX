@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/devstackq/ForumX/controllers"
 	"github.com/devstackq/ForumX/models"
@@ -42,34 +41,4 @@ func Init() {
 	models.DB = db
 	util.DB = db
 
-	//handlers
-	http.Handle("/statics/", http.StripPrefix("/statics/", http.FileServer(http.Dir("./statics/"))))
-
-	http.HandleFunc("/", controllers.GetAllPosts)
-	http.HandleFunc("/sapid", controllers.GetAllPosts)
-	http.HandleFunc("/love", controllers.GetAllPosts)
-	http.HandleFunc("/science", controllers.GetAllPosts)
-
-	http.HandleFunc("/post", controllers.GetPostByID)
-	http.HandleFunc("/create/post", controllers.CreatePost)
-	http.HandleFunc("/edit/post", controllers.UpdatePost)
-	http.HandleFunc("/delete/post", controllers.DeletePost)
-
-	http.HandleFunc("/comment", controllers.LeaveComment)
-
-	http.HandleFunc("/votes", controllers.LostVotes)
-	http.HandleFunc("/votes/comment", controllers.LostVotesComment)
-
-	http.HandleFunc("/search", controllers.Search)
-
-	http.HandleFunc("/profile", controllers.GetUserProfile)
-	http.HandleFunc("/user/id/", controllers.GetAnotherProfile)
-	http.HandleFunc("/edit/user", controllers.UpdateProfile)
-
-	http.HandleFunc("/signup", controllers.Signup)
-	http.HandleFunc("/signin", controllers.Signin)
-	http.HandleFunc("/logout", controllers.Logout)
-
-	// http.HandleFunc("/chat", routing.StartChat)
-	log.Fatal(http.ListenAndServe(":6969", nil))
 }

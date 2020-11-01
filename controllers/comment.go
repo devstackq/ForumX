@@ -19,7 +19,7 @@ func LeaveComment(w http.ResponseWriter, r *http.Request) {
 			pid, _ := strconv.Atoi(r.FormValue("curr"))
 			commentInput := r.FormValue("comment-text")
 
-			access, s := util.CheckForCookies(w, r)
+			access, s := util.IsCookie(w, r)
 			if !access {
 				http.Redirect(w, r, "/signin", 302)
 				return

@@ -7,7 +7,9 @@ import (
 	"html/template"
 	"io/ioutil"
 	"log"
+	"mime/multipart"
 	"net/http"
+	"os"
 	"regexp"
 	"time"
 	"unicode"
@@ -36,8 +38,8 @@ func IsAuth(r *http.Request) API {
 	return auth
 }
 
-//CheckForCookies check user cookie client and DB session value, if true -> give access
-func CheckForCookies(w http.ResponseWriter, r *http.Request) (bool, structure.Session) {
+//IsCookie check user cookie client and DB session value, if true -> give access
+func IsCookie(w http.ResponseWriter, r *http.Request) (bool, structure.Session) {
 
 	var flag, cookieHave bool
 	cookie, _ := r.Cookie("_cookie")
@@ -101,8 +103,8 @@ func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 	}
 }
 
-//СheckCookieLife
-func СheckCookieLife(t time.Time, cookie *http.Cookie, w http.ResponseWriter, r *http.Request) {
+//СheckCookieLife if cookie time = 0, delete session and cookie client
+func IsCookieExpiration(t time.Time, cookie *http.Cookie, w http.ResponseWriter, r *http.Request) {
 
 	for _, cookie := range r.Cookies() {
 		if cookie.Name == "_cookie" {
@@ -142,13 +144,20 @@ func IsUnique(intSlice []int) []int {
 }
 
 //FileByte func for convert receive file - to fileByte
-func FileByte(r *http.Request) []byte {
-
+func FileByte(r *http.Request, typePhoto string) []byte {
+	//check user photo || post photo
 	r.ParseMultipartForm(10 << 20)
 	file, _, err := r.FormFile("uploadfile")
 
+	var defImg *os.File
 	if err != nil {
 		log.Println(err)
+		if typePhoto == "user" {
+			defImg, _ = os.Open("./utils/default-user.jpg")
+		} else {
+			defImg, _ = os.Open("./utils/1.jpg")
+		}
+		file = defImg
 	}
 	defer file.Close()
 
@@ -159,6 +168,39 @@ func FileByte(r *http.Request) []byte {
 	}
 
 	return imgBytes
+}
+
+func setDefaultImage() multipart.File {
+
+	// if name == "auth" {
+	// 	fImg, err := os.Open("./user.jpg")
+	// }else {
+	// 	fImg, err := os.Open("./post.jpg")
+	// }
+	//set empty img || no image
+	fImg, err := os.Open("../1.jpg")
+	//img, _, _ := image.Decode(fImg)
+	defer fImg.Close()
+	if err != nil {
+		log.Println(err)
+	}
+	return fImg
+
+	// imgInfo, err := fImg.Stat()
+	// if err != nil {
+	// 	fmt.Println(err, "stats")
+	// 	//os.Exit(1)
+	// }
+
+	// var size int64 = imgInfo.Size()
+	// fmt.Println(size, "size")
+	// byteArr := make([]byte, size)
+
+	// //read file into bytes
+	// buffer := bufio.NewReader(fImg)
+	// _, err = buffer.Read(byteArr)
+	// defer fImg.Close()
+	// return nil
 }
 
 //AuthError show auth error

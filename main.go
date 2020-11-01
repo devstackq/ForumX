@@ -2,13 +2,20 @@ package main
 
 import (
 	"github.com/devstackq/ForumX/config"
+	"github.com/devstackq/ForumX/controllers"
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
 	config.Init()
+	controllers.Init()
 }
 
+//if not photo -> show without photo - client - Post
+//redierect - user profile -> comment - fix
+//domen check - org, kz ru, etc
+// save photo, like - source DB refactor
+//config, router refactor
 //sql query - optimize, вынести в global variable
 //like, dislike - refactor
 //redirect logout not work,  &create post
@@ -22,7 +29,7 @@ func main() {
 //refactor function  -> Single responsibility, DRY
 
 //design style refactor
-// pagination for posts
+//pagination for posts
 
 //google acc signin -> -> back signin ? what??
 //start Auth

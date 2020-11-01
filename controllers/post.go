@@ -80,7 +80,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 			util.DisplayTemplate(w, "header", util.IsAuth(r))
 			util.DisplayTemplate(w, "create_post", &msg)
 		case "POST":
-			access, session := util.CheckForCookies(w, r)
+			access, session := util.IsCookie(w, r)
 			log.Println(access, "access status")
 			if !access {
 				http.Redirect(w, r, "/signin", 302)
@@ -89,6 +89,12 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 			r.ParseMultipartForm(10 << 20)
 			f, _, _ := r.FormFile("uploadfile")
 			f2, _, _ := r.FormFile("uploadfile")
+
+			//if file == nil, no set photo -> client delete img tag
+
+			// if f != nil && f2 != nil {
+			// 	IsPhoto = true
+			// }
 			categories, _ := r.Form["input"]
 
 			post := models.Post{
@@ -98,6 +104,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 				FileS:      f,
 				FileI:      f2,
 				Session:    session,
+				IsPhoto:    true,
 			}
 			post.CreatePost(w, r)
 			http.Redirect(w, r, "/", 200)
@@ -116,12 +123,12 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 			util.DisplayTemplate(w, "update_post", p)
 		}
 		if r.Method == "POST" {
-			access, _ := util.CheckForCookies(w, r)
+			access, _ := util.IsCookie(w, r)
 			if !access {
 				http.Redirect(w, r, "/signin", 302)
 				return
 			}
-			imgBytes := util.FileByte(r)
+			imgBytes := util.FileByte(r, "post")
 			pid, _ := strconv.Atoi(r.FormValue("pid"))
 
 			p := models.Post{
@@ -147,7 +154,7 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 
 	if util.URLChecker(w, r, "/delete/post") {
 
-		access, _ := util.CheckForCookies(w, r)
+		access, _ := util.IsCookie(w, r)
 		if !access {
 			http.Redirect(w, r, "/signin", 302)
 			return
