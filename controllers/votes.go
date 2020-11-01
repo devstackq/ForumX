@@ -9,9 +9,18 @@ import (
 //like dislike post
 func LostVotes(w http.ResponseWriter, r *http.Request) {
 
+	//flag if like, get llike count + 1, click like still -> get count like, and minus 1,  - toggler,
+	//flag dislike, click1 - get count dislike, +1, click2 count dislike, minus 1,
+
+	//flag 3 click like, then click dislike, likeFlag === dislikeFlag, (true), 5 2, 6 2, 5 , 3/ 6 ,2
+
+	//likeToggle, 1,0, true, false
+	// L, gL - cV + 1, if likeToggle == true -> +1, else -> get currLike - 1
+	// DislikeToggle, true , -> +1, else -> get currDislike - 1
+
 	if util.URLChecker(w, r, "/votes") {
 
-		access, s := util.CheckForCookies(w, r)
+		access, s := util.IsCookie(w, r)
 		if !access {
 			http.Redirect(w, r, "/signin", 302)
 			return
@@ -79,7 +88,7 @@ func LostVotesComment(w http.ResponseWriter, r *http.Request) {
 
 	if util.URLChecker(w, r, "/votes/comment") {
 
-		access, s := util.CheckForCookies(w, r)
+		access, s := util.IsCookie(w, r)
 		if !access {
 			http.Redirect(w, r, "/signin", 302)
 			return

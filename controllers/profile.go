@@ -15,7 +15,7 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 	if util.URLChecker(w, r, "/profile") {
 
 		if r.Method == "GET" {
-			access, _ := util.CheckForCookies(w, r)
+			access, _ := util.IsCookie(w, r)
 			if !access {
 				http.Redirect(w, r, "/signin", 302)
 				return
@@ -36,7 +36,7 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 			//delete coookie db
 			go func() {
 				for now := range time.Tick(299 * time.Minute) {
-					util.СheckCookieLife(now, cookie, w, r)
+					util.IsCookieExpiration(now, cookie, w, r)
 					//next logout each 300 min
 					time.Sleep(299 * time.Minute)
 				}
@@ -76,7 +76,7 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 		if r.Method == "POST" {
 
-			access, s := util.CheckForCookies(w, r)
+			access, s := util.IsCookie(w, r)
 			if !access {
 				http.Redirect(w, r, "/signin", 302)
 				return
@@ -92,7 +92,7 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 				Age:      is,
 				Sex:      r.FormValue("sex"),
 				City:     r.FormValue("city"),
-				Image:    util.FileByte(r),
+				Image:    util.FileByte(r, "user"),
 				ID:       s.UserID,
 			}
 

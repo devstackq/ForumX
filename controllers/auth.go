@@ -26,8 +26,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Println(err)
 			}
-			iB := util.FileByte(r)
-
+			iB := util.FileByte(r, "user")
 			//checkerEmail & password
 			if util.IsEmailValid(r.FormValue("email")) {
 
@@ -49,7 +48,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 					}
 					http.Redirect(w, r, "/signin", 301)
 				} else {
-					msg := "Password must be 8 symbols, 1 big, 1 special character, example: 1Password2!"
+					msg := "Password must be 8 symbols, 1 big, 1 special character, example: 9Password!"
 					util.DisplayTemplate(w, "signup", &msg)
 				}
 			} else {

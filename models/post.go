@@ -41,7 +41,6 @@ type Post struct {
 	CreatedTime   time.Time
 	Endpoint      string
 	FullName      string
-	CategoryName  string
 	Image         []byte
 	ImageHTML     string
 	PostIDEdit    int
@@ -57,6 +56,7 @@ type Post struct {
 	Session       structure.Session
 	Categories    []string
 	Temp          string
+	IsPhoto       bool
 }
 
 //PostCategory struct
@@ -160,30 +160,6 @@ func (p *Post) DeletePost() error {
 
 //CreatePost function
 func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
-
-	//try default photo user or post
-	// fImg, err := os.Open("./1553259670.jpg")
-
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	os.Exit(1)
-	// }
-	// defer fImg.Close()
-
-	// imgInfo, err := fImg.Stat()
-	// if err != nil {
-	// 	fmt.Println(err, "stats")
-	// 	os.Exit(1)
-	// }
-
-	// var size int64 = imgInfo.Size()
-	// fmt.Println(size, "size")
-	// byteArr := make([]byte, size)
-
-	// read file into bytes
-	// buffer := bufio.NewReader(fImg)
-	// _, err = buffer.Read(byteArr)
-	//defer fImg.Close()
 
 	var fileBytes []byte
 	var buff bytes.Buffer
