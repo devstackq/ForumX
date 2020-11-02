@@ -10,6 +10,16 @@ import (
 	util "github.com/devstackq/ForumX/utils"
 )
 
+type Config struct {
+	BindAddr string
+}
+
+func New() *Config {
+	return &Config{
+		BindAddr: ":8080",
+	}
+}
+
 func Init() {
 	// create DB and columns
 	db, err := sql.Open("sqlite3", "forumx2.db")

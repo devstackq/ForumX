@@ -6,15 +6,17 @@ import (
 )
 
 // type Server struct {
-// 	hadler  http.Handler,
+// 	config *config.Config
 // }
 
-// func newServer() {
-// 	serverMux
+// func New(conf *config.Config) *Server {
+// 	return &Server{
+// 		config: conf,
+// 	}
 // }
 
-// func (s *Server) Run() {
-
+// func (s *Server) Run() error {
+// 	return nil
 // }
 
 //handlers

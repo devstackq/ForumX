@@ -11,6 +11,8 @@ func main() {
 	controllers.Init()
 }
 
+// another browser - signin ->  logout  current browser delete session -> and signin new browser
+
 //if not photo -> show without photo - client - Post
 //redierect - user profile -> comment - fix
 //domen check - org, kz ru, etc
