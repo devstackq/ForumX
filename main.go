@@ -12,9 +12,12 @@ func main() {
 }
 
 //age from 14 to 99
-//add numbers checkLetter
+//add numbers check1Letter
 //fix notification -> msg - title, contetn - createPost
-// another browser - signin ->  logout  current browser delete session -> and signin new browser
+
+//---
+//  logout Fix
+//another browser - signin ->  logout  current browser delete session -> and signin new browser
 
 //if not photo -> show without photo - client - Post
 //domen check - org, kz ru, etc

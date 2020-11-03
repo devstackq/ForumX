@@ -17,7 +17,7 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 			access, _ := util.IsCookie(w, r)
 			if !access {
-				http.Redirect(w, r, "/signin", 302)
+				http.Redirect(w, r, "/signin", 301)
 				return
 			}
 			cookie, _ := r.Cookie("_cookie")
@@ -78,7 +78,7 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 			access, s := util.IsCookie(w, r)
 			if !access {
-				http.Redirect(w, r, "/signin", 302)
+				http.Redirect(w, r, "/signin", 301)
 				return
 			}
 

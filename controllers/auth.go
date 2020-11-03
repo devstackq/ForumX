@@ -108,6 +108,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 
 		if r.Method == "GET" {
 			models.Logout(w, r)
+			http.Redirect(w, r, "/", 301)
 		}
 	}
 }
