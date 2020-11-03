@@ -87,14 +87,14 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 				}
 
 				u.Signin(w, r)
-				http.Redirect(w, r, "/profile", 200)
+				http.Redirect(w, r, "/profile", 301)
 
 			} else if person.Type == "google" {
 				fmt.Println("todo google auth")
-				http.Redirect(w, r, "/profile", http.StatusFound)
+				http.Redirect(w, r, "/profile", 301)
 			} else if person.Type == "github" {
 				fmt.Println("todo github auth")
-				http.Redirect(w, r, "/profile", http.StatusFound)
+				http.Redirect(w, r, "/profile", 301)
 			}
 			//w.Header().Set("Access-Control-Allow-Origin", "*")
 		}
@@ -108,7 +108,6 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 
 		if r.Method == "GET" {
 			models.Logout(w, r)
-			http.Redirect(w, r, "/", 200)
 		}
 	}
 }

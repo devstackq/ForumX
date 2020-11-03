@@ -10,6 +10,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	structure "github.com/devstackq/ForumX/general"
@@ -197,10 +198,8 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 				PostID:   last,
 				Category: p.Categories[0],
 			}
-			err = pcb.CreateBridge()
-			if err != nil {
-				log.Println(err)
-			}
+			pcb.CreateBridge()
+
 		} else if len(p.Categories) > 1 {
 			//loop add > 1 category post
 			for _, v := range p.Categories {
@@ -208,18 +207,17 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 					PostID:   last,
 					Category: v,
 				}
-				err = pcb.CreateBridge()
-				if err != nil {
-					log.Println(err)
-				}
+				pcb.CreateBridge()
+
 			}
 		}
-		w.WriteHeader(http.StatusCreated)
-		http.Redirect(w, r, "/", http.StatusOK)
-		util.DisplayTemplate(w, "index", "")
+		s := strconv.Itoa(int(last))
+		http.Redirect(w, r, "/post?id="+s, 301)
+
 	} else {
+		msg = "Empty title or content"
 		util.DisplayTemplate(w, "header", util.IsAuth(r))
-		util.DisplayTemplate(w, "create", "Empty title or content")
+		util.DisplayTemplate(w, "create_post", &msg)
 	}
 }
 
@@ -269,14 +267,15 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 }
 
 // /CreateBridge create post  -> post_id + category
-func (pcb *PostCategory) CreateBridge() error {
+func (pcb *PostCategory) CreateBridge() {
 
 	_, err := DB.Exec("INSERT INTO post_cat_bridge (post_id, category) VALUES (?, ?)",
 		pcb.PostID, pcb.Category)
+
 	if err != nil {
-		return err
+		log.Println(err)
+		return
 	}
-	return nil
 }
 
 //Search post by contain title

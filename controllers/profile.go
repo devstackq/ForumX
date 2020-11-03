@@ -53,13 +53,13 @@ func GetAnotherProfile(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "POST" {
 
 			uid := models.User{Temp: r.FormValue("uid")}
-			posts, user, err := uid.GetAnotherProfile(r)
+			_, user, err := uid.GetAnotherProfile(r)
 			if err != nil {
 				panic(err)
 			}
 			util.DisplayTemplate(w, "header", util.IsAuth(r))
 			util.DisplayTemplate(w, "another_user", user)
-			util.DisplayTemplate(w, "created_post", posts)
+			//	util.DisplayTemplate(w, "created_post", posts)
 		}
 	}
 }
