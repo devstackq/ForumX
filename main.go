@@ -11,16 +11,17 @@ func main() {
 	controllers.Init()
 }
 
+//age from 14 to 99
+//add numbers checkLetter
+//fix notification -> msg - title, contetn - createPost
 // another browser - signin ->  logout  current browser delete session -> and signin new browser
 
 //if not photo -> show without photo - client - Post
-//redierect - user profile -> comment - fix
 //domen check - org, kz ru, etc
 // save photo, like - source DB refactor
 //config, router refactor
 //sql query - optimize, вынести в global variable
 //like, dislike - refactor
-//redirect logout not work,  &create post
 
 //if cookie = 0, notify message  user, logout etc
 //Представлен ли в проекте скрипт для создания образов и контейнеров? (используя скрипт для упрощения сборки)

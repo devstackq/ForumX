@@ -100,7 +100,9 @@ func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 		http.Error(w, err.Error(),
 			http.StatusInternalServerError)
 		fmt.Fprintf(w, err.Error())
+		return
 	}
+
 }
 
 //СheckCookieLife if cookie time = 0, delete session and cookie client
@@ -124,7 +126,7 @@ func IsCookieExpiration(t time.Time, cookie *http.Cookie, w http.ResponseWriter,
 				HttpOnly: false,
 			}
 			http.SetCookie(w, &cDel)
-			http.Redirect(w, r, "/", http.StatusOK)
+			http.Redirect(w, r, "/", 301)
 			return
 		}
 	}

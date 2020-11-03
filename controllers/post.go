@@ -75,11 +75,13 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	if util.URLChecker(w, r, "/create/post") {
 
-		switch r.Method {
-		case "GET":
+		//switch r.Method {
+		if r.Method == "GET" {
 			util.DisplayTemplate(w, "header", util.IsAuth(r))
 			util.DisplayTemplate(w, "create_post", &msg)
-		case "POST":
+		}
+
+		if r.Method == "POST" {
 			access, session := util.IsCookie(w, r)
 			log.Println(access, "access status")
 			if !access {
@@ -107,9 +109,9 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 				IsPhoto:    true,
 			}
 			post.CreatePost(w, r)
-			http.Redirect(w, r, "/", 200)
 		}
 	}
+
 }
 
 //UpdatePost function
@@ -145,7 +147,7 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 				defer log.Println(err, "upd post err")
 			}
 		}
-		http.Redirect(w, r, "/", http.StatusFound)
+		http.Redirect(w, r, "/", 301)
 	}
 }
 
@@ -167,7 +169,7 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err.Error())
 		}
-		http.Redirect(w, r, "/", 200)
+		http.Redirect(w, r, "/", 301)
 	}
 }
 

@@ -42,6 +42,6 @@ func LeaveComment(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		http.Redirect(w, r, "post?id="+r.FormValue("curr"), 301)
+		http.Redirect(w, r, "/post?id="+r.FormValue("curr"), 301)
 	}
 }
