@@ -108,7 +108,6 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 
 //Logout function
 func Logout(w http.ResponseWriter, r *http.Request) {
-
 	cookie, err := r.Cookie("_cookie")
 	if err != nil {
 		fmt.Println(err, "cookie err")
@@ -136,3 +135,5 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &cookieDelete)
 
 }
+
+//Ya, Amir, Ais,Oleg, ty?

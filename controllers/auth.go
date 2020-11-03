@@ -87,7 +87,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 				}
 
 				u.Signin(w, r)
-				http.Redirect(w, r, "/profile", 301)
+				http.Redirect(w, r, "/profile", 200)
 
 			} else if person.Type == "google" {
 				fmt.Println("todo google auth")
@@ -103,9 +103,8 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 
 // Logout system function
 func Logout(w http.ResponseWriter, r *http.Request) {
-
+	fmt.Println("Logout")
 	if util.URLChecker(w, r, "/logout") {
-
 		if r.Method == "GET" {
 			models.Logout(w, r)
 			http.Redirect(w, r, "/", 301)
