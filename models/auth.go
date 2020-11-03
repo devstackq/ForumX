@@ -134,5 +134,5 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: false,
 	}
 	http.SetCookie(w, &cookieDelete)
-	http.Redirect(w, r, "/", 301)
+
 }

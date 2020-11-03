@@ -22,7 +22,7 @@ func LostVotes(w http.ResponseWriter, r *http.Request) {
 
 		access, s := util.IsCookie(w, r)
 		if !access {
-			http.Redirect(w, r, "/signin", 302)
+			http.Redirect(w, r, "/signin", 301)
 			return
 		}
 
@@ -90,7 +90,7 @@ func LostVotesComment(w http.ResponseWriter, r *http.Request) {
 
 		access, s := util.IsCookie(w, r)
 		if !access {
-			http.Redirect(w, r, "/signin", 302)
+			http.Redirect(w, r, "/signin", 301)
 			return
 		}
 

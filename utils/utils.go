@@ -7,7 +7,6 @@ import (
 	"html/template"
 	"io/ioutil"
 	"log"
-	"mime/multipart"
 	"net/http"
 	"os"
 	"regexp"
@@ -49,7 +48,7 @@ func IsCookie(w http.ResponseWriter, r *http.Request) (bool, structure.Session) 
 		cookieHave = true
 	}
 	if !cookieHave {
-		http.Redirect(w, r, "/signin", 302)
+		http.Redirect(w, r, "/signin", 301)
 	} else {
 		//get client cookie
 		//set local struct -> cookie value
@@ -83,7 +82,7 @@ func IsCookie(w http.ResponseWriter, r *http.Request) (bool, structure.Session) 
 func CheckLetter(value string) bool {
 
 	for _, v := range value {
-		if v >= 97 && v <= 122 || v >= 65 && v <= 90 && v >= 32 && v <= 64 || v > 128 {
+		if v >= 97 && v <= 122 || v >= 65 && v <= 90 || v >= 32 && v <= 64 || v > 128 {
 			return true
 		}
 	}
@@ -170,39 +169,6 @@ func FileByte(r *http.Request, typePhoto string) []byte {
 	}
 
 	return imgBytes
-}
-
-func setDefaultImage() multipart.File {
-
-	// if name == "auth" {
-	// 	fImg, err := os.Open("./user.jpg")
-	// }else {
-	// 	fImg, err := os.Open("./post.jpg")
-	// }
-	//set empty img || no image
-	fImg, err := os.Open("../1.jpg")
-	//img, _, _ := image.Decode(fImg)
-	defer fImg.Close()
-	if err != nil {
-		log.Println(err)
-	}
-	return fImg
-
-	// imgInfo, err := fImg.Stat()
-	// if err != nil {
-	// 	fmt.Println(err, "stats")
-	// 	//os.Exit(1)
-	// }
-
-	// var size int64 = imgInfo.Size()
-	// fmt.Println(size, "size")
-	// byteArr := make([]byte, size)
-
-	// //read file into bytes
-	// buffer := bufio.NewReader(fImg)
-	// _, err = buffer.Read(byteArr)
-	// defer fImg.Close()
-	// return nil
 }
 
 //AuthError show auth error

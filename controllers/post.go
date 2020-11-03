@@ -85,7 +85,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 			access, session := util.IsCookie(w, r)
 			log.Println(access, "access status")
 			if !access {
-				http.Redirect(w, r, "/signin", 302)
+				http.Redirect(w, r, "/signin", 301)
 				return
 			}
 			r.ParseMultipartForm(10 << 20)
@@ -127,7 +127,7 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "POST" {
 			access, _ := util.IsCookie(w, r)
 			if !access {
-				http.Redirect(w, r, "/signin", 302)
+				http.Redirect(w, r, "/signin", 301)
 				return
 			}
 			imgBytes := util.FileByte(r, "post")
@@ -158,7 +158,7 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 
 		access, _ := util.IsCookie(w, r)
 		if !access {
-			http.Redirect(w, r, "/signin", 302)
+			http.Redirect(w, r, "/signin", 301)
 			return
 		}
 		pid, _ := strconv.Atoi(r.URL.Query().Get("id"))
