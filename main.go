@@ -14,9 +14,8 @@ func main() {
 //age from 14 to 99
 //add numbers check1Letter
 //fix notification -> msg - title, contetn - createPost
-
+fixx logout
 //---
-//  logout Fix
 //another browser - signin ->  logout  current browser delete session -> and signin new browser
 
 //if not photo -> show without photo - client - Post

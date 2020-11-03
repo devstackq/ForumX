@@ -4,7 +4,7 @@
     <h3>Signup Forum-X</h3>
     <form action="/signup" method="POST" enctype="multipart/form-data" autocomplete="off">
         <input type="text" name="fullname" placeholder="fuul name"> <br />
-        <input type="email" name="email" placeholder="email"><br />
+        <input id="email" type="email" name="email" placeholder="email"><br />
         <input type="number" name="age" placeholder="age" min="16" max="80"> <br />
 
         <select name="sex" id="">
@@ -37,6 +37,13 @@
 
     <br> {{.}}
     <br>
-    <span>If you are logged in, then log in to me <a style="color: chartreuse;" href="/signin">signin</a> </span>
+    <span>If you are logged in, then log in to me <a style="color: chartreuse;" href="/signin" onclick="checkEmail(document.getElementById('email'))">signin</a> </span>
 </div>
+<script>
+    const checkEmail = (e) => {
+        if (e.indexOf('@mail.kz') > -1) {
+            console.log('norm')
+        }
+    }
+</script>
 {{end}}
