@@ -41,6 +41,7 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 
 	//count dislike equal 0 - add query
 	likedpost, err := DB.Query("select post_id from likes where user_id =? and state_id =?", s.UserID, 1)
+	//likedpost, err := DB.Query("select post_id from voteState where user_id =? and like_state =?", s.UserID, 1)
 	defer likedpost.Close()
 
 	for likedpost.Next() {
