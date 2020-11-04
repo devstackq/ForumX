@@ -180,9 +180,8 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 			util.DisplayTemplate(w, "create", "Large file, more than 20mb")
 		}
 	} else {
-		//set empty photo
+		//set empty photo post
 		fileBytes = []byte{0, 0}
-		//fileBytes = util.FileByte(r, "post")
 	}
 
 	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", p.Session.UUID).Scan(&p.Session.UserID)
