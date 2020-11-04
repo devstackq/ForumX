@@ -45,10 +45,9 @@ func Init() {
 	like.Exec()
 	user.Exec()
 
-	fmt.Println("Сукцесс коннект")
 	//add connection - controllers/models & utils
 	controllers.DB = db
 	models.DB = db
 	util.DB = db
-
+	fmt.Println("Сукцесс коннект")
 }

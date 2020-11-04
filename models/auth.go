@@ -86,8 +86,22 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 	//create uuid and set uid DB table session by userid,
 	_, err = DB.Exec("INSERT INTO session(uuid, user_id) VALUES (?, ?)", uuid, s.UserID)
 	if err != nil {
-		util.AuthError(w, err, "the user is already in the system")
-		return
+		//util.AuthError(w, err, "the user is already in the system")
+		// delete session - db, client -> log in, system - new session - save cookie and Db
+
+		//add cookie -> fields uuid
+		//s := structure.Session{}
+		//get ssesion id, by local struct uuid
+		DB.QueryRow("SELECT id FROM session WHERE user_id = ?", s.UserID).
+			Scan(&s.ID)
+
+		//delete session by id session
+		_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
+		//create new session
+		_, err = DB.Exec("INSERT INTO session(uuid, user_id) VALUES (?, ?)", uuid, s.UserID)
+		fmt.Println("signout current user", s.ID)
+		//return
+
 	}
 	// get user in info by session Id
 	err = DB.QueryRow("SELECT id, uuid FROM session WHERE user_id = ?", s.UserID).Scan(&s.ID, &s.UUID)

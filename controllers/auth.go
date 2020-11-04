@@ -55,6 +55,8 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//signin -> logout another browser
+
 //Signin system function
 func Signin(w http.ResponseWriter, r *http.Request) {
 
