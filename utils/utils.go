@@ -31,16 +31,7 @@ func IsAuth(r *http.Request) API {
 	var auth API
 	for _, cookie := range r.Cookies() {
 		if cookie.Name == "_cookie" {
-			s := structure.Session{}
-			//cookie delete browser siede
-
-			DB.QueryRow("SELECT uuid FROM session WHERE user_id = ?", s.UserID).
-				Scan(&s.UUID)
-
-			fmt.Println(cookie.Value, "Id cookkie", s.UUID, "user id ", s.UserID)
-			if cookie.Value == s.UUID {
-				auth.Authenticated = true
-			}
+			auth.Authenticated = true
 		}
 	}
 	return auth
