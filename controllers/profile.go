@@ -27,6 +27,7 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 				panic(err)
 			}
 
+			//check if current cookie equal - cookie
 			util.DisplayTemplate(w, "header", util.IsAuth(r))
 			util.DisplayTemplate(w, "profile", user)
 			util.DisplayTemplate(w, "favorited_post", likedPost)
