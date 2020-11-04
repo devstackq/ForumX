@@ -21,7 +21,7 @@ func LeaveComment(w http.ResponseWriter, r *http.Request) {
 
 			access, s := util.IsCookie(w, r)
 			if !access {
-				http.Redirect(w, r, "/signin", 301)
+				http.Redirect(w, r, "/signin", 200)
 				return
 			}
 
@@ -42,6 +42,6 @@ func LeaveComment(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		http.Redirect(w, r, "/post?id="+r.FormValue("curr"), 301)
+		http.Redirect(w, r, "/post?id="+r.FormValue("curr"), 200)
 	}
 }

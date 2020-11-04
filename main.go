@@ -11,14 +11,8 @@ func main() {
 	controllers.Init()
 }
 
-//age from 14 to 99
-//add numbers check1Letter
-//fix notification -> msg - title, contetn - createPost
-fixx logout
-//---
 //another browser - signin ->  logout  current browser delete session -> and signin new browser
 
-//if not photo -> show without photo - client - Post
 //domen check - org, kz ru, etc
 // save photo, like - source DB refactor
 //config, router refactor

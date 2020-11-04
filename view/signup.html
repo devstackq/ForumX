@@ -31,19 +31,14 @@
 
         <input type="password" name="password" placeholder="password"><br />
 
-        <input type="file" name="uploadfile" />
+        <input type="file" name="uploadfile" accept="image/*" />
         <input type="submit" value="send">
+
     </form>
 
     <br> {{.}}
     <br>
-    <span>If you are logged in, then log in to me <a style="color: chartreuse;" href="/signin" onclick="checkEmail(document.getElementById('email'))">signin</a> </span>
+    <span>If you are logged in, then log in to me <a style="color: chartreuse;" href="/signin" >signin</a> </span>
 </div>
-<script>
-    const checkEmail = (e) => {
-        if (e.indexOf('@mail.kz') > -1) {
-            console.log('norm')
-        }
-    }
-</script>
+
 {{end}}
