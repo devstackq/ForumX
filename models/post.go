@@ -165,17 +165,24 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 	var fileBytes []byte
 	var buff bytes.Buffer
 
-	fileSize, _ := buff.ReadFrom(p.FileS)
-	defer p.FileS.Close()
+	if p.IsPhoto {
 
-	if fileSize < 20000000 {
-		if err != nil {
-			log.Fatal(err)
+		fileSize, _ := buff.ReadFrom(p.FileS)
+		defer p.FileS.Close()
+
+		if fileSize < 20000000 {
+			if err != nil {
+				log.Fatal(err)
+			}
+			fileBytes, err = ioutil.ReadAll(p.FileI)
+		} else {
+			util.DisplayTemplate(w, "header", util.IsAuth(r))
+			util.DisplayTemplate(w, "create", "Large file, more than 20mb")
 		}
-		fileBytes, err = ioutil.ReadAll(p.FileI)
 	} else {
-		util.DisplayTemplate(w, "header", util.IsAuth(r))
-		util.DisplayTemplate(w, "create", "Large file, more than 20mb")
+		//set empty photo
+		fileBytes = []byte{0, 0}
+		//fileBytes = util.FileByte(r, "post")
 	}
 
 	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", p.Session.UUID).Scan(&p.Session.UserID)
@@ -208,11 +215,10 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 					Category: v,
 				}
 				pcb.CreateBridge()
-
 			}
 		}
 		s := strconv.Itoa(int(last))
-		http.Redirect(w, r, "/post?id="+s, 301)
+		http.Redirect(w, r, "/post?id="+s, 302)
 
 	} else {
 		msg = "Empty title or content"

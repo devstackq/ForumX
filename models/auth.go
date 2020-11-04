@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (u *User) Signup(w http.ResponseWriter, r *http.Request) error {
+func (u *User) Signup(w http.ResponseWriter, r *http.Request) {
 
 	users := []User{}
 
@@ -41,7 +42,7 @@ func (u *User) Signup(w http.ResponseWriter, r *http.Request) error {
 		if v.Email == u.Email {
 			msg = "Not unique email lel"
 			util.DisplayTemplate(w, "signup", &msg)
-			return err
+			log.Println(err)
 		}
 	}
 
@@ -49,9 +50,9 @@ func (u *User) Signup(w http.ResponseWriter, r *http.Request) error {
 		u.FullName, u.Email, hashPwd, u.Age, u.Sex, u.City, u.Image)
 
 	if err != nil {
-		return err
+		log.Println(err)
 	}
-	return nil
+
 }
 
 //Signin function
@@ -133,7 +134,5 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: false,
 	}
 	http.SetCookie(w, &cookieDelete)
-
+	//http.Redirect(w, r, "/", 302)
 }
-
-//Ya, Amir, Ais,Oleg, ty?

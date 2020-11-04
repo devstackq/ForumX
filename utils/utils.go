@@ -48,7 +48,7 @@ func IsCookie(w http.ResponseWriter, r *http.Request) (bool, structure.Session) 
 		cookieHave = true
 	}
 	if !cookieHave {
-		http.Redirect(w, r, "/signin", 301)
+		http.Redirect(w, r, "/signin", 200)
 	} else {
 		//get client cookie
 		//set local struct -> cookie value
@@ -125,7 +125,7 @@ func IsCookieExpiration(t time.Time, cookie *http.Cookie, w http.ResponseWriter,
 				HttpOnly: false,
 			}
 			http.SetCookie(w, &cDel)
-			http.Redirect(w, r, "/", 301)
+			http.Redirect(w, r, "/", 200)
 			return
 		}
 	}
@@ -153,10 +153,9 @@ func FileByte(r *http.Request, typePhoto string) []byte {
 	var defImg *os.File
 	if err != nil {
 		log.Println(err)
+		//set default photo user
 		if typePhoto == "user" {
 			defImg, _ = os.Open("./utils/default-user.jpg")
-		} else {
-			defImg, _ = os.Open("./utils/1.jpg")
 		}
 		file = defImg
 	}

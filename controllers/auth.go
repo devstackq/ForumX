@@ -41,12 +41,8 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 						Image:    iB,
 						Password: r.FormValue("password"),
 					}
-
-					err = u.Signup(w, r)
-					if err != nil {
-						log.Println(err)
-					}
-					http.Redirect(w, r, "/signin", 301)
+					u.Signup(w, r)
+					http.Redirect(w, r, "/signin", 302)
 				} else {
 					msg := "Password must be 8 symbols, 1 big, 1 special character, example: 9Password!"
 					util.DisplayTemplate(w, "signup", &msg)
@@ -85,16 +81,14 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 					Email:    person.Email,
 					Password: person.Password,
 				}
-
 				u.Signin(w, r)
 				http.Redirect(w, r, "/profile", 200)
-
 			} else if person.Type == "google" {
 				fmt.Println("todo google auth")
-				http.Redirect(w, r, "/profile", 301)
+				http.Redirect(w, r, "/profile", 200)
 			} else if person.Type == "github" {
 				fmt.Println("todo github auth")
-				http.Redirect(w, r, "/profile", 301)
+				http.Redirect(w, r, "/profile", 200)
 			}
 			//w.Header().Set("Access-Control-Allow-Origin", "*")
 		}
@@ -103,11 +97,11 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 
 // Logout system function
 func Logout(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Logout")
+
 	if util.URLChecker(w, r, "/logout") {
 		if r.Method == "GET" {
 			models.Logout(w, r)
-			http.Redirect(w, r, "/", 301)
+			http.Redirect(w, r, "/", 302)
 		}
 	}
 }
