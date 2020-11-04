@@ -21,6 +21,7 @@ import (
 
 //handlers
 //mux own server,  route init  - google, config FileServer
+//handlers
 func Init() {
 	http.Handle("/statics/", http.StripPrefix("/statics/", http.FileServer(http.Dir("./statics/"))))
 
@@ -48,7 +49,6 @@ func Init() {
 	http.HandleFunc("/signup", Signup)
 	http.HandleFunc("/signin", Signin)
 	http.HandleFunc("/logout", Logout)
-
 	// http.HandleFunc("/chat", routing.StartChat)
 	log.Fatal(http.ListenAndServe(":6969", nil))
 }

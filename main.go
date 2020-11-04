@@ -11,12 +11,9 @@ func main() {
 	controllers.Init()
 }
 
-//another browser - signin ->  logout  current browser delete session -> and signin new browser
-
 //domen check - org, kz ru, etc
 // save photo, like - source DB refactor
 //config, router refactor
-//sql query - optimize, вынести в global variable
 //like, dislike - refactor
 
 //if cookie = 0, notify message  user, logout etc

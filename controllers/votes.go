@@ -22,7 +22,7 @@ func LostVotes(w http.ResponseWriter, r *http.Request) {
 
 		access, s := util.IsCookie(w, r)
 		if !access {
-			http.Redirect(w, r, "/signin", 301)
+			http.Redirect(w, r, "/signin", 200)
 			return
 		}
 
@@ -80,7 +80,7 @@ func LostVotes(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		http.Redirect(w, r, "post?id="+pid, 301)
+		http.Redirect(w, r, "post?id="+pid, 200)
 	}
 }
 
@@ -90,7 +90,7 @@ func LostVotesComment(w http.ResponseWriter, r *http.Request) {
 
 		access, s := util.IsCookie(w, r)
 		if !access {
-			http.Redirect(w, r, "/signin", 301)
+			http.Redirect(w, r, "/signin", 200)
 			return
 		}
 
@@ -152,7 +152,7 @@ func LostVotesComment(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
-			http.Redirect(w, r, "/post?id="+pidc, 301)
+			http.Redirect(w, r, "/post?id="+pidc, 200)
 		}
 	}
 }
