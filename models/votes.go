@@ -2,15 +2,15 @@ package models
 
 //Votes struct
 type Votes struct {
-	ID         int
-	Like       int
-	Dislike    int
-	PostID     int
-	UserID     int
-	Voted      bool
-	CommentID  int
-	OldLike    int
-	OldDislike int
+	ID           int
+	LikeState    int
+	DislikeState int
+	PostID       int
+	UserID       int
+	Voted        bool
+	CommentID    int
+	OldLike      int
+	OldDislike   int
 }
 
 //check if not have post and user lost vote this post
