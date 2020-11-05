@@ -15,7 +15,6 @@ func main() {
 //domen check - org, kz ru, etc
 // save photo, like - source DB refactor
 //config, router refactor
-//like, dislike - refactor
 
 //if cookie = 0, notify message  user, logout etc
 //Представлен ли в проекте скрипт для создания образов и контейнеров? (используя скрипт для упрощения сборки)

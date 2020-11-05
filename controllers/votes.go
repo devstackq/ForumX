@@ -11,14 +11,6 @@ import (
 //LostVotes func Post
 func LostVotes(w http.ResponseWriter, r *http.Request) {
 
-	// table user - like, dislike -> default - 0, 1,-1,
-	//к 4 посту - 13 юзер, Like -> update likeColumnt = 1,
-	// к 4 посту 13 юзер поставил dislike -> update Disl1ikeColumn = -1
-	//check Logic backend Like -> if disCol == 0 && likeCol ==0, { update LikeCount +1} else if { disCol == -1 && likeCol ==0,} -> disCOl = 0, likeCol = 1, update LikeCount + 1,
-	// else if {disCol == 0 && likeCol ==1} -> likeCol = 0, update LikeCount - 1,
-
-	// likeBrdige - postid, like_state, dislike_state
-
 	if util.URLChecker(w, r, "/votes") {
 
 		access, s := util.IsCookie(w, r)
@@ -39,14 +31,14 @@ func LostVotes(w http.ResponseWriter, r *http.Request) {
 
 			if lukas == "1" {
 				//if not row
-				DB.QueryRow("SELECT id FROM voteState where post_id=?", pid).Scan(&vote.ID)
-
+				//2 case - uniq row - inuq user - 1 post
+				DB.QueryRow("SELECT id FROM voteState where post_id=? and user_id=?", pid).Scan(&vote.ID, s.UserID)
+				fmt.Println(vote.ID, s.UserID, "her")
 				if vote.ID == 0 {
-					fmt.Print("init")
-					_, err = DB.Exec("INSERT INTO voteState(post_id, user_id, like_state) VALUES( ?, ?, ?)", pid, s.UserID, 1)
+					fmt.Println("init like")
 
+					_, err = DB.Exec("INSERT INTO voteState(post_id, user_id, like_state, dislike_state) VALUES( ?, ?, ?,?)", pid, s.UserID, 1, 0)
 					_, err = DB.Exec("UPDATE posts SET count_like=? WHERE id=?", 1, pid)
-					_, err = DB.Exec("UPDATE voteState SET like_state = ? WHERE post_id=? and user_id", 1, pid, s.UserID)
 
 					if err != nil {
 						panic(err)
@@ -79,11 +71,11 @@ func LostVotes(w http.ResponseWriter, r *http.Request) {
 					}
 
 					if vote.LikeState == 0 && vote.DislikeState == 0 {
-						fmt.Println("case 4 like 0, dis 0")
+						fmt.Println("case 4 like 0, dis 0, Ls 1, DS 0")
 
 						vote.OldLike++
 						_, err = DB.Exec("UPDATE posts SET count_like=? WHERE id=?", vote.OldLike, pid)
-						_, err = DB.Exec("UPDATE voteState SET like_state = ? WHERE post_id=? and user_id", 1, pid, s.UserID)
+						_, err = DB.Exec("UPDATE voteState SET like_state = ?, dislike_state=? WHERE post_id=? and user_id", 1, 0, pid, s.UserID)
 					}
 
 					if err != nil {
@@ -94,25 +86,28 @@ func LostVotes(w http.ResponseWriter, r *http.Request) {
 
 			if diskus == "1" {
 
-				DB.QueryRow("SELECT id FROM voteState where post_id=?", pid).Scan(&vote.ID)
-
+				DB.QueryRow("SELECT id FROM voteState WHERE post_id=? AND user_id=?", pid).Scan(&vote.ID, s.UserID)
+				fmt.Println(vote.ID, s.UserID, "her1")
 				if vote.ID == 0 {
-					fmt.Print("init dislike")
-					_, err = DB.Exec("INSERT INTO voteState(post_id, user_id, dislike_state) VALUES( ?, ?, ?)", pid, s.UserID, 1)
+					fmt.Println("init dislike")
+					_, err = DB.Exec("INSERT INTO voteState(post_id, user_id, dislike_state, like_state) VALUES( ?, ?, ?,?)", pid, s.UserID, 1, 0)
 					_, err = DB.Exec("UPDATE posts SET count_dislike=? WHERE id=?", 1, pid)
-					_, err = DB.Exec("UPDATE voteState SET dislike_state = ? WHERE post_id=? and user_id", 1, pid, s.UserID)
+
+					//_, err = DB.Exec("UPDATE voteState SET dislike_state = ? WHERE post_id=? and user_id", 1, pid, s.UserID)
 					if err != nil {
 						panic(err)
 					}
+
 				} else {
 					err = DB.QueryRow("SELECT count_like FROM posts WHERE id=?", pid).Scan(&vote.OldLike)
 					err = DB.QueryRow("SELECT count_dislike FROM posts WHERE id=?", pid).Scan(&vote.OldDislike)
+
 					DB.QueryRow("SELECT like_state, dislike_state FROM voteState where post_id=? and user_id=?", pid, s.UserID).Scan(&vote.LikeState, &vote.DislikeState)
 
 					//set dislike
 					if vote.LikeState == 0 && vote.DislikeState == 1 {
 
-						vote.OldLike--
+						vote.OldDislike--
 						_, err = DB.Exec("UPDATE posts SET count_dislike = ? WHERE id=?", vote.OldDislike, pid)
 						_, err = DB.Exec("UPDATE voteState SET  dislike_state=? WHERE post_id=? and user_id", 0, pid, s.UserID)
 
@@ -131,11 +126,10 @@ func LostVotes(w http.ResponseWriter, r *http.Request) {
 					}
 
 					if vote.LikeState == 0 && vote.DislikeState == 0 {
-						fmt.Println("case 4 like 0, dis 0")
-
+						fmt.Println("case 4 like 0, dis 0 LS 0, DS 1")
 						vote.OldDislike++
 						_, err = DB.Exec("UPDATE posts SET count_dislike=? WHERE id=?", vote.OldDislike, pid)
-						_, err = DB.Exec("UPDATE voteState SET dislike_state = ? WHERE post_id=? and user_id", 1, pid, s.UserID)
+						_, err = DB.Exec("UPDATE voteState SET dislike_state = ?, like_state=? WHERE post_id=? and user_id", 1, 0, pid, s.UserID)
 					}
 
 					if err != nil {
