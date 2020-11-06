@@ -27,18 +27,30 @@ func LostVotes(w http.ResponseWriter, r *http.Request) {
 
 		vote := models.Votes{}
 
+		// countLike % 2 ==0, ->
+		//countLike post_id(75) -> set state
+		//fix -> second time Like -> get Post by id, get Value, get voteState by post_id,
+
 		if r.Method == "POST" {
 
 			if lukas == "1" {
 				//if not row
 				//2 case - uniq row - inuq user - 1 post
-				DB.QueryRow("SELECT id FROM voteState where post_id=? and user_id=?", pid).Scan(&vote.ID, s.UserID)
-				fmt.Println(vote.ID, s.UserID, "her")
+				// err = DB.QueryRow("SELECT count_like, count_dislike FROM posts WHERE id=?", pid).Scan(&vote.OldLike, &vote.OldDislike)
+				// if vote.OldLike == 0 && vote.OldDislike == 0 {
+				// 	//create init Like
+				// }
+
+				DB.QueryRow("SELECT id FROM voteState where post_id=? and user_id=?", pid, s.UserID).Scan(&vote.ID)
+				fmt.Println(vote.ID, s.UserID, "her", pid)
 				if vote.ID == 0 {
 					fmt.Println("init like")
 
 					_, err = DB.Exec("INSERT INTO voteState(post_id, user_id, like_state, dislike_state) VALUES( ?, ?, ?,?)", pid, s.UserID, 1, 0)
-					_, err = DB.Exec("UPDATE posts SET count_like=? WHERE id=?", 1, pid)
+
+					err = DB.QueryRow("SELECT count_like FROM posts WHERE id=?", pid).Scan(&vote.OldLike)
+
+					_, err = DB.Exec("UPDATE posts SET count_like=? WHERE id=?", vote.OldLike+1, pid)
 
 					if err != nil {
 						panic(err)
@@ -86,12 +98,15 @@ func LostVotes(w http.ResponseWriter, r *http.Request) {
 
 			if diskus == "1" {
 
-				DB.QueryRow("SELECT id FROM voteState WHERE post_id=? AND user_id=?", pid).Scan(&vote.ID, s.UserID)
+				DB.QueryRow("SELECT id FROM voteState WHERE post_id=? AND user_id=?", pid, s.UserID).Scan(&vote.ID)
 				fmt.Println(vote.ID, s.UserID, "her1")
 				if vote.ID == 0 {
 					fmt.Println("init dislike")
+
 					_, err = DB.Exec("INSERT INTO voteState(post_id, user_id, dislike_state, like_state) VALUES( ?, ?, ?,?)", pid, s.UserID, 1, 0)
-					_, err = DB.Exec("UPDATE posts SET count_dislike=? WHERE id=?", 1, pid)
+					err = DB.QueryRow("SELECT count_dislike FROM posts WHERE id=?", pid).Scan(&vote.OldDislike)
+
+					_, err = DB.Exec("UPDATE posts SET count_dislike=? WHERE id=?", vote.OldDislike+1, pid)
 
 					//_, err = DB.Exec("UPDATE voteState SET dislike_state = ? WHERE post_id=? and user_id", 1, pid, s.UserID)
 					if err != nil {
