@@ -5,8 +5,8 @@
     <h2> {{.Title}}</h2>
     <div class="post-img-wrapper">
         {{if .SVG}}
-        <img width="300px" height="360px" alt="gg" src="data:image/svg+xml;base64, {{.ImageHTML}} "> {{else}}
-        <img width="300px" height="360px" class="post-img" src="data:image/jpeg;base64, {{.ImageHTML}}" alt=" "> {{end}}
+        <img width="300px" height="320px" alt="gg" src="data:image/svg+xml;base64, {{.ImageHTML}} "> {{else}}
+        <img width="300px" height="320px" class="post-img" src="data:image/jpeg;base64, {{.ImageHTML}}" alt=" "> {{end}}
     </div>
 
     <p> {{.Content}} </p>
@@ -15,7 +15,7 @@
 
     <br />
     <div class="author-wrapper">
-        <label for=""> Author post</label>
+        <label for=""> Author post:</label>
         <form action="/user/id/?{{.CreatorID}}" method="post" class="author-post">
             <input type="hidden" name="uid" value="{{.CreatorID}}">
             <input type="submit" value="{{.FullName}}">
@@ -40,7 +40,7 @@
 </div>
 <div class="comment-wrapper">
     <form action="/comment" method="POST">
-        <textarea name="comment-text" id="" cols="130" rows="5" required></textarea>
+        <textarea placeholder="lost your comment.." name="comment-text" id="" cols="128" rows="5" required></textarea>
         <br />
         <input type="hidden" name="curr" value="{{.ID}}">
         <input type="submit" value="add">

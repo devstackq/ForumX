@@ -11,6 +11,10 @@ func main() {
 	controllers.Init()
 }
 
+//fix on delete cascade -> when delete post
+//fix correct time show
+
+//try - event -> add sound
 //update post -> send data for - client fields update_post page
 //delete account - add func
 
