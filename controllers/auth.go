@@ -90,8 +90,6 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 				fmt.Println("todo github auth")
 			}
 			http.Redirect(w, r, "/profile", 200)
-
-			//w.Header().Set("Access-Control-Allow-Origin", "*")
 		}
 	}
 }

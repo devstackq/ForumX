@@ -10,6 +10,8 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    margin:0 auto;
+
 margin-top: 20px;
   background-color: #fff;
     padding: 18px;
@@ -75,7 +77,7 @@ margin-top: 20px;
     padding: 10px;
     background: transparent;
     border: 1px solid red;
-    width: 800px;
+    width: 1066px;
     outline: none;
     color: blue;
 }
@@ -119,33 +121,38 @@ margin-top: 20px;
     align-items: center;
     flex-direction: column;
     background: #fff;
+    padding: 10px;
 }
 
 .create-post-wrapper {
+    border: 1px solid #ccc;
     width: 100%;
     margin: 0 auto;
-    margin: 12px 20px;
-    background-color: rgb(238, 237, 236);
+    margin: 20px 0;
+    background-color: #fff;
     color: #000;
-    max-width: 960px;
-    padding: 10px;
+    min-width: 960px;
+    max-width: 1200px;
+    padding: 20px;
+    display: flex;
 }
 
 .wrapper-main-edit {
     width: 100%;
     min-width: 960px;
+    max-width: 1200px;
     margin: 0 auto;
-    margin: 12px 20px;
+    margin: 12px auto;
     background-color: rgb(238, 237, 236);
     color: #000;
-    max-width: 960px;
+    line-height: 40px;
     padding: 10px;
 }
 
 .wrapper-create input {
     padding: 10px;
-    width: 325px;
-    margin-bottom: 3px;
+    width: 100%;
+    margin-bottom: 10px;
 }
 
 .wrapper-create input[type="submit"] {
@@ -258,7 +265,7 @@ a.links {
     position: relative;
     background: #fff;
     color: #000;
-    margin: 12px auto;
+    margin: 20px auto 0;
     padding: 10px;
 }
 
@@ -272,6 +279,8 @@ a.links {
     color: #000;
     display: flex;
     margin-bottom: 10px;
+    align-items: center;
+    font-size: 20px;
 }
 
 .author-wrapper label {
@@ -289,9 +298,11 @@ a.links {
     max-width: 960px;
     margin: 0 auto;
     color: #fff;
-    padding: 10px;
+    margin-top: 10px;
 }
-
+.comment-wrapper  textarea{
+padding: 10px;
+}
 .comment-underpost {
     margin-top: -50px;
     background-color: deepskyblue;
@@ -300,6 +311,7 @@ a.links {
     margin: 0 auto;
     color: #fff;
     padding: 10px;
+    z-index: 3;
 }
 
 .likess {
@@ -340,11 +352,13 @@ a.links {
 
 .footer {
     color: #000;
-    z-index: 2;
     background: #fff;
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
+    padding: 18px;
+    min-width: 960px;
+
 }
 .footer p{
     padding-left: 38px;
@@ -385,10 +399,11 @@ a.links {
 }
 
 .signup-wrapper {
-    margin: 50px 0 0 380px;
+    margin: 20px auto 0;
     background-color: rgb(226, 225, 156);
     color: #000;
-    max-width: 400px;
+    min-width: 960px;
+    max-width: 1200px;
     padding: 10px;
 }
 
@@ -420,7 +435,7 @@ a.dislike {
 .like-wrapper {
     display: flex;
     background-color: transparent;
-    border: none;
+     border: none;
 }
 
 .lukas {
@@ -460,7 +475,7 @@ a.dislike {
 #category {
     position: absolute;
     top: 45px;
-    left: 10%;
+    left: 22%;
     color: #000;
     margin: 0;
 }
@@ -477,4 +492,7 @@ left:35%;
 }
 .profile-link-container {
     margin-top: 10px;
+}
+.categories-checkbox {
+    display: flex;
 }
