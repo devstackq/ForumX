@@ -11,6 +11,7 @@ func main() {
 	controllers.Init()
 }
 
+//votes - вынести в модели
 //add on delete cascade -sql
 //domen check - org, kz ru, etc
 // save photo, like - source DB refactor
