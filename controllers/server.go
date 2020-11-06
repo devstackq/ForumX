@@ -37,8 +37,8 @@ func Init() {
 
 	http.HandleFunc("/comment", LeaveComment)
 
-	http.HandleFunc("/votes", LostVotes)
-	http.HandleFunc("/votes/comment", LostVotesComment)
+	http.HandleFunc("/votes", VotesPost)
+	http.HandleFunc("/votes/comment", VotesComment)
 
 	http.HandleFunc("/search", Search)
 
