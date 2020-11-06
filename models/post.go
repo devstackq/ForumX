@@ -85,35 +85,35 @@ func (f *Filter) GetAllPost(r *http.Request) ([]Post, string, string, error) {
 		leftJoin = false
 		post.Endpoint = "/"
 		if f.Date == "asc" {
-			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time ASC LIMIT 6")
+			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time ASC LIMIT 8")
 		} else if f.Date == "desc" {
-			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time DESC LIMIT 6")
+			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time DESC LIMIT 8")
 		} else if f.Like == "like" {
-			rows, err = DB.Query("SELECT * FROM posts  ORDER BY count_like DESC LIMIT 6")
+			rows, err = DB.Query("SELECT * FROM posts  ORDER BY count_like DESC LIMIT 8")
 		} else if f.Like == "dislike" {
-			rows, err = DB.Query("SELECT * FROM posts  ORDER BY count_dislike DESC LIMIT 6")
+			rows, err = DB.Query("SELECT * FROM posts  ORDER BY count_dislike DESC LIMIT 8")
 		} else if f.Category != "" {
 			leftJoin = true
-			rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category=? ORDER  BY created_time  DESC LIMIT 6", f.Category)
+			rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category=? ORDER  BY created_time  DESC LIMIT 8", f.Category)
 		} else {
-			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time DESC LIMIT 6")
+			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time DESC LIMIT 8")
 		}
 
 	case "/science":
 		leftJoin = true
 		post.Temp = "Science"
 		post.Endpoint = "/science"
-		rows, err = DB.Query("SELECT * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category=?  ORDER  BY created_time  DESC LIMIT 4", "science")
+		rows, err = DB.Query("SELECT * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category=?  ORDER  BY created_time  DESC LIMIT 5", "science")
 	case "/love":
 		leftJoin = true
 		post.Temp = "Love"
 		post.Endpoint = "/love"
-		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category=?   ORDER  BY created_time  DESC LIMIT 4", "love")
+		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category=?   ORDER  BY created_time  DESC LIMIT 5", "love")
 	case "/sapid":
 		leftJoin = true
 		post.Temp = "Sapid"
 		post.Endpoint = "/sapid"
-		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category=?  ORDER  BY created_time  DESC LIMIT 4", "sapid")
+		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category=?  ORDER  BY created_time  DESC LIMIT 5", "sapid")
 	}
 
 	defer rows.Close()
@@ -257,7 +257,7 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 		comment := Comment{}
 		err = stmp.Scan(&id, &content, &postID, &userID, &createdTime, &like, &dislike)
 		if err != nil {
-			panic(err.Error)
+			log.Println(err.Error)
 		}
 
 		comment = AppendComment(id, content, postID, userID, createdTime, like, dislike, "")
@@ -271,7 +271,7 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 	return comments, p, nil
 }
 
-// /CreateBridge create post  -> post_id + category
+//CreateBridge create post  -> post_id + category
 func (pcb *PostCategory) CreateBridge() {
 
 	_, err := DB.Exec("INSERT INTO post_cat_bridge (post_id, category) VALUES (?, ?)",

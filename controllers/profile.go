@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -24,7 +25,7 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 			//if userId now, createdPost uid equal -> show
 			likedPost, posts, comments, user, err := models.GetUserProfile(r, w, cookie)
 			if err != nil {
-				panic(err)
+				log.Println(err)
 			}
 
 			//check if current cookie equal - cookie
@@ -54,13 +55,13 @@ func GetAnotherProfile(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "POST" {
 
 			uid := models.User{Temp: r.FormValue("uid")}
-			_, user, err := uid.GetAnotherProfile(r)
+			posts, user, err := uid.GetAnotherProfile(r)
 			if err != nil {
-				panic(err)
+				log.Println(err)
 			}
 			util.DisplayTemplate(w, "header", util.IsAuth(r))
 			util.DisplayTemplate(w, "another_user", user)
-			//	util.DisplayTemplate(w, "created_post", posts)
+			util.DisplayTemplate(w, "created_post", posts)
 		}
 	}
 }
@@ -79,7 +80,6 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 			access, s := util.IsCookie(w, r)
 			if !access {
-				http.Redirect(w, r, "/signin", 200)
 				return
 			}
 
@@ -100,7 +100,7 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 			err = p.UpdateProfile()
 
 			if err != nil {
-				panic(err.Error())
+				log.Println(err.Error())
 			}
 		}
 		http.Redirect(w, r, "/profile", http.StatusFound)

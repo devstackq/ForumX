@@ -48,7 +48,8 @@ func IsCookie(w http.ResponseWriter, r *http.Request) (bool, structure.Session) 
 		cookieHave = true
 	}
 	if !cookieHave {
-		http.Redirect(w, r, "/signin", 200)
+		http.Redirect(w, r, "/signin", 302)
+
 	} else {
 		//get client cookie
 		//set local struct -> cookie value

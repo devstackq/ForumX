@@ -1,9 +1,14 @@
-{{define "comment_post"}} {{$id :=0}} {{range .}} {{$id = .PostID}}
+{{define "comment_post"}} 
+
+{{$id :=0}} 
+
+{{range .}} 
+{{$id = .PostID}}
 <div class="comment-underpost">
     {{.CreatedTime}}
     <h3> {{.Content}}</h3>
 
-    <form action="/user/id/{{.UserID}}" method="post" autocomplete="off">
+    <form action="/user/id/?{{.UserID}}" method="post" autocomplete="off">
         <input type="hidden" name="uid" value="{{.UserID}}">
         <input type="submit" value="{{.Author}}">
     </form>
@@ -27,5 +32,6 @@
     </div>
 
 </div>
-
-{{end}} {{end}}
+{{end}}
+{{template "footer"}}
+ {{end}}

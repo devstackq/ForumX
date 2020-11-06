@@ -18,12 +18,12 @@ func (u *User) Signup(w http.ResponseWriter, r *http.Request) {
 
 	hashPwd, err := bcrypt.GenerateFromPassword([]byte(u.Password), 8)
 	if err != nil {
-		panic(err)
+		log.Println(err)
 	}
 	//check email by unique, if have same email
 	checkEmail, err := DB.Query("SELECT email FROM users")
 	if err != nil {
-		panic(err)
+		log.Println(err)
 	}
 
 	for checkEmail.Next() {
@@ -31,7 +31,7 @@ func (u *User) Signup(w http.ResponseWriter, r *http.Request) {
 		var email string
 		err = checkEmail.Scan(&email)
 		if err != nil {
-			panic(err.Error)
+			log.Println(err.Error)
 		}
 
 		user.Email = email
@@ -91,7 +91,6 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 		//get ssesion id, by local struct uuid
 		return
 	}
-
 	// get user in info by session Id
 	err = DB.QueryRow("SELECT id, uuid FROM session WHERE user_id = ?", s.UserID).Scan(&s.ID, &s.UUID)
 	if err != nil {
@@ -127,7 +126,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
 
 	if err != nil {
-		panic(err)
+		log.Println(err)
 	}
 	// then delete cookie from client
 	cookieDelete := http.Cookie{
