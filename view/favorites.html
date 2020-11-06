@@ -1,15 +1,12 @@
 {{define "favorited_post"}}
 
-<br />
 <div class="profile-post-like">
     <h3>Liked posts</h3>
-
     {{range .}} {{.CreatedTime}}
     <h4>{{.Title}}</h4>
     <a href="/post?id={{.ID}}">see post</a> {{end}}
 </div>
-<br />
-<br /> {{end}}
+{{end}}
 </body>
 
 </html>

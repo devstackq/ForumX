@@ -11,20 +11,17 @@ func main() {
 	controllers.Init()
 }
 
-//votes - вынести в модели
+//update post -> send data for - client fields update_post page
+//delete account - add func
+
+//Представлен ли в проекте скрипт для создания образов и контейнеров? (используя скрипт для упрощения сборки)
 //add on delete cascade -sql
 //domen check - org, kz ru, etc
 // save photo, like - source DB refactor
 //config, router refactor
 
 //if cookie = 0, notify message  user, logout etc
-//Представлен ли в проекте скрипт для создания образов и контейнеров? (используя скрипт для упрощения сборки)
-
 //обработать ошикбки, log & http errors check http etc
-
-//photo not required || set defauklt photo
-//refactor function  -> Single responsibility, DRY
-
 //design style refactor
 //pagination for posts
 
@@ -34,3 +31,6 @@ func main() {
 //Name. email, photo, -> then save Db. -> authorized Forum
 // Logout event, logout system, delete cookie, logout Google
 //272819090705-qu6arlmkvs66hc5fuvalv6liuf2n9fj8.apps.googleusercontent.com   || W42c6sfYqhPc4O5wXMobY3av
+
+//pid 54, title 12312
+// /1 dis, 1 com

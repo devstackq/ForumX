@@ -21,7 +21,6 @@ func LeaveComment(w http.ResponseWriter, r *http.Request) {
 
 			access, s := util.IsCookie(w, r)
 			if !access {
-				http.Redirect(w, r, "/signin", 200)
 				return
 			}
 

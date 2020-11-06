@@ -119,6 +119,7 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 			pid, _ := strconv.Atoi(r.URL.Query().Get("id"))
 			p := models.Post{PostIDEdit: pid}
+			//get db data by pid -> send client
 			util.DisplayTemplate(w, "update_post", p)
 		}
 		if r.Method == "POST" {
@@ -164,13 +165,13 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 		err = p.DeletePost()
 
 		if err != nil {
-			panic(err.Error())
+			log.Println(err.Error())
 		}
-		http.Redirect(w, r, "/", 200)
+		http.Redirect(w, r, "/", 302)
 	}
 }
 
-//search
+//Search
 func Search(w http.ResponseWriter, r *http.Request) {
 
 	if util.URLChecker(w, r, "/search") {
@@ -184,7 +185,7 @@ func Search(w http.ResponseWriter, r *http.Request) {
 			foundPosts, err := models.Search(w, r)
 
 			if err != nil {
-				panic(err)
+				log.Println(err)
 			}
 			util.DisplayTemplate(w, "header", util.IsAuth(r))
 			util.DisplayTemplate(w, "index", foundPosts)

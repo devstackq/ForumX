@@ -2,6 +2,8 @@
 
 <div class="wrapp">
     <h2>Edit post </h2>
+{{.}}
+
     <form method="POST" action="/edit/post" class="wrapper-create" enctype="multipart/form-data" autocomplete="off">
         <input type="hidden" name="pid" value="{{ .PostIDEdit }}" />
         <input type="text" name="title" placeholder="title">
@@ -19,7 +21,7 @@
             <input id="sapidId" type="checkbox" value="sapid" name="input"/>
         </label>
 
-        <input type="file" name="uploadfile" required />
+        <input type="file" name="uploadfile" />
         <input type="submit" value="edit" />
     </form>
 </div>

@@ -1,13 +1,13 @@
 {{define "profile"}}
 <div class="profile-wrapper">
     <div class="profile-info">
-        <h3>Hello {{.FullName}}</h3>
+        <h3>Welcome {{.FullName}}</h3>
 
         {{if .SVG}}
-        <img alt=" " width="500px" src="data:image/svg+xml;base64, {{.ImageHTML}} "> {{else}}
-        <img class="post-img" src="data:image/jpeg;base64, {{.ImageHTML}}" alt=" "> {{end}}
+        <img alt=" " width="220px" src="data:image/svg+xml;base64, {{.ImageHTML}} "> {{else}}
+        <img  width="220px" src="data:image/jpeg;base64, {{.ImageHTML}}" alt=" "> {{end}}
         <br>
-
+<div class="user-info">  
         <label for="">Name:</label>
         <td> {{.FullName}}</td> <br>
         <label for="">Email:</label>
@@ -20,13 +20,12 @@
         <td> {{.CreatedTime}} </td> <br>
         <label for="">From:</label>
         <td> {{.City}}</td>
-        <br>
-
+ </div>
     </div>
-
-    <br>
-    <a class="link-profile" href="/edit/user?uid={{.ID}}">Edit profile</a>
-    <a class="link-profile" href="/create/post" class="create-btn">Create post</a>
-
+<div class="profile-link-container">
+    <a class="link-profile edit-btn" href="/edit/user?uid={{.ID}}">Edit profile</a>
+    <a class="link-profile create-btn" href="/create/post" >Create post</a>
+    </div>
 </div>
-<br> {{end}} {{template "footer"}}
+
+ {{end}} 

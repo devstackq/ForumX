@@ -40,8 +40,8 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 	likedPostArr := []Votes{}
 
 	//count dislike equal 0 - add query
-	likedpost, err := DB.Query("select post_id from likes where user_id =? and state_id =?", s.UserID, 1)
-	//likedpost, err := DB.Query("select post_id from voteState where user_id =? and like_state =?", s.UserID, 1)
+	likedpost, err := DB.Query("select post_id from voteState where user_id =? and like_state =?", s.UserID, 1)
+	//	_, err = DB.Exec("UPDATE voteState SET  dislike_state=? WHERE "+field+"=? and user_id=?", 0, id, s.UserID)
 	defer likedpost.Close()
 
 	for likedpost.Next() {
@@ -79,41 +79,39 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 		for smtp.Next() {
 			err = smtp.Scan(&id, &title, &content, &creatorID, &createdTime, &image, &like, &dislike)
 			if err != nil {
-				panic(err.Error)
+				log.Println(err.Error)
 			}
 			post = AppendPost(id, title, content, creatorID, image, like, dislike, s.UserID, createdTime)
 			postsL = append(postsL, post)
 		}
 	}
 	//create post current user
-	psu, err := DB.Query("SELECT * FROM posts WHERE creator_id=?", s.UserID)
+	pStmp, err := DB.Query("SELECT * FROM posts WHERE creator_id=?", s.UserID)
 	//defer psu.Close()
 	var postCr Post
 	postsCreated := []Post{}
 
 	//todo get uniq post - created post
-	for psu.Next() {
-		//here
-		err = psu.Scan(&id, &title, &content, &creatorID, &createdTime, &image, &like, &dislike)
+	for pStmp.Next() {
+		err = pStmp.Scan(&id, &title, &content, &creatorID, &createdTime, &image, &like, &dislike)
 		if err != nil {
 			log.Println(err.Error())
 		}
 		//post.AuthorForPost = s.UserID
-
 		postCr = AppendPost(id, title, content, creatorID, image, like, dislike, s.UserID, createdTime)
 		postsCreated = append(postsCreated, postCr)
 	}
 
-	csu, err := DB.Query("SELECT * FROM comments WHERE user_idx=?", s.UserID)
+	cSmtp, err := DB.Query("SELECT * FROM comments WHERE user_idx=?", s.UserID)
 	var comments []Comment
-	defer csu.Close()
+	defer cSmtp.Close()
 
-	for csu.Next() {
+	for cSmtp.Next() {
 
-		err = csu.Scan(&id, &content, &postID, &userID, &createdTime, &like, &dislike)
+		err = cSmtp.Scan(&id, &content, &postID, &userID, &createdTime, &like, &dislike)
 		err = DB.QueryRow("SELECT title FROM posts WHERE id = ?", postID).Scan(&title)
 		if err != nil {
-			panic(err.Error)
+			log.Println(err.Error())
 		}
 
 		comment = AppendComment(id, content, postID, userID, createdTime, like, dislike, title)
@@ -148,7 +146,7 @@ func (user *User) GetAnotherProfile(r *http.Request) ([]Post, User, error) {
 		err = psu.Scan(&id, &title, &content, &creatorID, &createdTime, &image, &like, &dislike)
 
 		if err != nil {
-			panic(err.Error)
+			log.Println(err.Error)
 		}
 		post = AppendPost(id, title, content, creatorID, image, like, dislike, 0, createdTime)
 		postsU = append(postsU, post)

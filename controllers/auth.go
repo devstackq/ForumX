@@ -84,14 +84,13 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 					Password: person.Password,
 				}
 				u.Signin(w, r)
-				http.Redirect(w, r, "/profile", 200)
 			} else if person.Type == "google" {
 				fmt.Println("todo google auth")
-				http.Redirect(w, r, "/profile", 200)
 			} else if person.Type == "github" {
 				fmt.Println("todo github auth")
-				http.Redirect(w, r, "/profile", 200)
 			}
+			http.Redirect(w, r, "/profile", 200)
+
 			//w.Header().Set("Access-Control-Allow-Origin", "*")
 		}
 	}
