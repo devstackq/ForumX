@@ -59,6 +59,7 @@ type Post struct {
 	Temp          string
 	IsPhoto       bool
 	Time          string
+	PageNum       int
 }
 
 //PostCategory struct
@@ -74,19 +75,36 @@ type Filter struct {
 	Date     string
 }
 
+var (
+	pageNum int
+)
+
 //GetAllPost function
-func (f *Filter) GetAllPost(r *http.Request) ([]Post, string, string, error) {
+func (f *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string, string, error) {
 
 	var post Post
 	var leftJoin bool
 	var arrPosts []Post
-	//check what come client, cats, and filter by like, date and cats
+
+	//ecah call +1
+	if next == "next" {
+		pageNum++
+	}
+	if prev == "prev" {
+		pageNum--
+	}
+
+	fmt.Println(pageNum, "PN", next, prev)
+	send current Position page c.leint 
+
+	limit := 5
+	offset := limit * (pageNum - 1)
 	switch r.URL.Path {
 	case "/":
 		leftJoin = false
 		post.Endpoint = "/"
 		if f.Date == "asc" {
-			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time ASC LIMIT 8")
+			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time ASC LIMIT 8 ")
 		} else if f.Date == "desc" {
 			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time DESC LIMIT 8")
 		} else if f.Like == "like" {
@@ -97,7 +115,8 @@ func (f *Filter) GetAllPost(r *http.Request) ([]Post, string, string, error) {
 			leftJoin = true
 			rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category=? ORDER  BY created_time  DESC LIMIT 8", f.Category)
 		} else {
-			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time DESC LIMIT 8")
+			//rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time DESC)
+			rows, err = DB.Query("SELECT * FROM posts LIMIT ? OFFSET ?", limit, offset)
 		}
 
 	case "/science":
@@ -133,6 +152,7 @@ func (f *Filter) GetAllPost(r *http.Request) ([]Post, string, string, error) {
 			if err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreatedTime, &post.Image, &post.Like, &post.Dislike); err != nil {
 				fmt.Println(err)
 			}
+			fmt.Println(post.ID)
 		}
 		post.Time = post.CreatedTime.Format("2006 Jan _2 15:04:05")
 		arrPosts = append(arrPosts, post)
