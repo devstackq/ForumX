@@ -33,9 +33,12 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 		Date:     r.FormValue("date"),
 		Category: r.FormValue("cats"),
 	}
+	next := r.FormValue("next")
+	prev := r.FormValue("prev")
 
-	posts, endpoint, category, err := filterValue.GetAllPost(r)
-
+	posts, endpoint, category, err := filterValue.GetAllPost(r, next, prev)
+	// render posts -> new Page || get Post ,
+	//try 2 form -> Post -> submit -> next value +1, backend -
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -46,7 +49,7 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 		util.DisplayTemplate(w, "index", posts)
 	} else {
 		//send category value
-		msg := []byte(fmt.Sprintf("<h2 id='category'> `Category: %s` </h2>", category))
+		msg := []byte(fmt.Sprintf("<h2 id='category'> Category: %s </h2>", category))
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(msg)
 		util.DisplayTemplate(w, "category_post_template", posts)

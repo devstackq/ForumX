@@ -17,4 +17,40 @@
     {{end}}
 </div>
 
-{{template "footer" }} {{end}}
+  <form class="" action="/" method="POST">
+            <input type="hidden" name="next" value="next">
+            <input class="" type="submit" value="next">
+        </form>
+        <br/>
+  <form class="" action="/" method="POST">
+            <input type="hidden" name="prev" value="prev">
+            <input class="" type="submit" value="prev">
+        </form>
+
+{{template "footer" }}
+
+<script>
+
+let start = 1;
+
+const  pagination = (type) => {
+//event.stopPropagation()
+
+if (type === "n") {
+start++
+fetch('http://localhost:6969/', {
+method: 'post',
+body :  JSON.stringify(start),
+})
+}else if(type === "p"){
+start--
+fetch('http://localhost:6969/', {
+method: 'post',
+body : JSON.stringify(start)
+})
+}
+console.log(start, "S")
+}
+
+</script>
+ {{end}}

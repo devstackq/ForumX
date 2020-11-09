@@ -4,7 +4,6 @@
     {{template "search"}} {{ range $key, $value := . }}
  <a class="links" href="/post?id={{$value.ID}}">
     <div class="wrapper-main">
-
         <form method="POST" action="{{ $value.Endpoint}}/{{$value.ID}}">
             <input type="hidden" name="pstID" value="{{ $value.ID }}" />
             <input type="hidden" name="end" value="{{ $value.Endpoint}}" />

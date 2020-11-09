@@ -11,9 +11,9 @@ func main() {
 	controllers.Init()
 }
 
+//design style refactor
 // style fix
 // pagination
-//update post -> send data for - client fields update_post page
 //statrt - Auth
 
 //try - event -> add sound
@@ -27,8 +27,6 @@ func main() {
 
 //if cookie = 0, notify message  user, logout etc
 //обработать ошикбки, log & http errors check http etc
-//design style refactor
-//pagination for posts
 
 //google acc signin -> -> back signin ? what??
 //start Auth
