@@ -17,7 +17,7 @@
         <label for="">Sex:</label>
         <td> {{.Sex}}</td> <br>
         <label for=""> On site with:</label>
-        <td> {{.CreatedTime}} </td> <br>
+        <td> {{.Temp}} </td> <br>
         <label for="">From:</label>
         <td> {{.City}}</td>
  </div>
@@ -25,7 +25,33 @@
 <div class="profile-link-container">
     <a class="link-profile edit-btn" href="/edit/user?uid={{.ID}}">Edit profile</a>
     <a class="link-profile create-btn" href="/create/post" >Create post</a>
+
+    <a class="link-profile delete-btn" onclick="areYouSure({{.ID}} )" >Delete account</a>
+    
     </div>
 </div>
+
+<script>
+function areYouSure(id) {
+
+  if (confirm("Are u sure epta?")) {
+
+           fetch('http://localhost:6969/delete/account', {
+                mode: 'cors',
+                method: 'post',
+                body: id,
+            })
+            .then((response) => {
+            if(response.ok) {
+            window.location.replace("http://localhost:6969/")
+            }
+            })
+
+  } else {
+    console.log( "You pressed Cancel!");
+  }
+}
+</script>
+
 
  {{end}} 

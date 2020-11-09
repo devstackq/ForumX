@@ -49,6 +49,7 @@ func Init() {
 	http.HandleFunc("/signup", Signup)
 	http.HandleFunc("/signin", Signin)
 	http.HandleFunc("/logout", Logout)
+	http.HandleFunc("/delete/account", DeleteAccount)
 	// http.HandleFunc("/chat", routing.StartChat)
 	log.Fatal(http.ListenAndServe(":6969", nil))
 }
