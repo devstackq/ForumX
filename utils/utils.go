@@ -105,7 +105,7 @@ func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 
 }
 
-//СheckCookieLife if cookie time = 0, delete session and cookie client
+//IsCookieExpiration if cookie time = 0, delete session and cookie client
 func IsCookieExpiration(t time.Time, cookie *http.Cookie, w http.ResponseWriter, r *http.Request) {
 
 	for _, cookie := range r.Cookies() {
@@ -118,14 +118,7 @@ func IsCookieExpiration(t time.Time, cookie *http.Cookie, w http.ResponseWriter,
 			_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
 
 			// then delete cookie from client
-			cDel := http.Cookie{
-				Name:     "_cookie",
-				Value:    "",
-				Path:     "/",
-				Expires:  time.Unix(0, 0),
-				HttpOnly: false,
-			}
-			http.SetCookie(w, &cDel)
+			DeleteCookie(w)
 			http.Redirect(w, r, "/", 200)
 			return
 		}
@@ -229,4 +222,36 @@ func IsPasswordValid(s string) bool {
 		}
 	}
 	return hasMinLen && hasUpper && hasLower && hasNumber && hasSpecial
+}
+
+//DeleteCookie func
+func DeleteCookie(w http.ResponseWriter) {
+
+	cookieDelete := http.Cookie{
+		Name:     "_cookie",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		HttpOnly: false,
+	}
+	http.SetCookie(w, &cookieDelete)
+}
+
+//IsImage func
+func IsImage(r *http.Request) []byte {
+
+	f, _, _ := r.FormFile("uploadfile")
+	photoFlag := false
+
+	if f != nil {
+		photoFlag = true
+	}
+	var imgBytes []byte
+
+	if !photoFlag {
+		imgBytes = []byte{0, 0}
+	} else {
+		imgBytes = FileByte(r, "post")
+	}
+	return imgBytes
 }

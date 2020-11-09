@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -104,5 +106,29 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		http.Redirect(w, r, "/profile", http.StatusFound)
+	}
+}
+
+func DeleteAccount(w http.ResponseWriter, r *http.Request) {
+
+	if util.URLChecker(w, r, "/delete/account") {
+
+		if r.Method == "POST" {
+
+			access, _ := util.IsCookie(w, r)
+			if !access {
+				return
+			}
+			var p models.User
+
+			err := json.NewDecoder(r.Body).Decode(&p.ID)
+			if err != nil {
+				log.Println(err)
+			}
+
+			p.DeleteAccount(w, r)
+			fmt.Println("delete account by ID", p.ID)
+		}
+		http.Redirect(w, r, "/", 302)
 	}
 }

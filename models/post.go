@@ -58,6 +58,7 @@ type Post struct {
 	Categories    []string
 	Temp          string
 	IsPhoto       bool
+	Time          string
 }
 
 //PostCategory struct
@@ -133,6 +134,7 @@ func (f *Filter) GetAllPost(r *http.Request) ([]Post, string, string, error) {
 				fmt.Println(err)
 			}
 		}
+		post.Time = post.CreatedTime.Format("2006 Jan _2 15:04:05")
 		arrPosts = append(arrPosts, post)
 	}
 	return arrPosts, post.Endpoint, post.Temp, nil
@@ -189,8 +191,8 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 	//check empty values
 	if util.CheckLetter(p.Title) && util.CheckLetter(p.Content) {
 
-		db, err := DB.Exec("INSERT INTO posts (title, content, creator_id,  image) VALUES ( ?,?, ?, ?)",
-			p.Title, p.Content, p.Session.UserID, fileBytes)
+		db, err := DB.Exec("INSERT INTO posts (title, content, creator_id, created_time, image) VALUES ( ?,?, ?, ?, ?)",
+			p.Title, p.Content, p.Session.UserID, time.Now(), fileBytes)
 		if err != nil {
 			log.Println(err)
 		}
@@ -231,7 +233,7 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 
 	p := Post{}
 	DB.QueryRow("SELECT * FROM posts WHERE id = ?", post.ID).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreatedTime, &p.Image, &p.Like, &p.Dislike)
-	p.CreatedTime.Format(time.RFC1123)
+
 	//[]byte -> encode string, client render img base64
 	//check svg || jpg,png
 	if len(p.Image) > 0 {
@@ -239,6 +241,7 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 			p.SVG = true
 		}
 	}
+	p.Time = p.CreatedTime.Format("2006 Jan _2 15:04:05")
 
 	p.ImageHTML = base64.StdEncoding.EncodeToString(p.Image)
 
@@ -257,9 +260,8 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 		comment := Comment{}
 		err = stmp.Scan(&id, &content, &postID, &userID, &createdTime, &like, &dislike)
 		if err != nil {
-			log.Println(err.Error)
+			log.Println(err.Error())
 		}
-
 		comment = AppendComment(id, content, postID, userID, createdTime, like, dislike, "")
 		DB.QueryRow("SELECT full_name FROM users WHERE id = ?", userID).Scan(&comment.Author)
 		comments = append(comments, comment)
@@ -318,7 +320,7 @@ func AppendPost(id int, title, content string, creatorID int, image []byte, like
 		Like:          like,
 		Dislike:       dislike,
 		AuthorForPost: authorID,
-		CreatedTime:   createdTime,
+		Time:          createdTime.Format("2006 Jan _2 15:04:05"),
 	}
 	return post
 }

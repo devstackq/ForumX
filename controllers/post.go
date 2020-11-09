@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"database/sql"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"net/http"
@@ -116,25 +117,31 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 
 	if util.URLChecker(w, r, "/edit/post") {
 
+		pid, _ := strconv.Atoi(r.FormValue("id"))
+
 		if r.Method == "GET" {
-			pid, _ := strconv.Atoi(r.URL.Query().Get("id"))
-			p := models.Post{PostIDEdit: pid}
-			//get db data by pid -> send client
+
+			var p models.Post
+			DB.QueryRow("SELECT * FROM posts WHERE id = ?", pid).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreatedTime, &p.Image, &p.Like, &p.Dislike)
+			p.ImageHTML = base64.StdEncoding.EncodeToString(p.Image)
+
+			util.DisplayTemplate(w, "header", util.IsAuth(r))
 			util.DisplayTemplate(w, "update_post", p)
+
 		}
+
 		if r.Method == "POST" {
+
 			access, _ := util.IsCookie(w, r)
 			if !access {
 				http.Redirect(w, r, "/signin", 200)
 				return
 			}
-			imgBytes := util.FileByte(r, "post")
-			pid, _ := strconv.Atoi(r.FormValue("pid"))
 
 			p := models.Post{
 				Title:   r.FormValue("title"),
 				Content: r.FormValue("content"),
-				Image:   imgBytes,
+				Image:   util.IsImage(r),
 				ID:      pid,
 			}
 
@@ -145,7 +152,8 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 				defer log.Println(err, "upd post err")
 			}
 		}
-		http.Redirect(w, r, "/", 200)
+		http.Redirect(w, r, "/post?id="+strconv.Itoa(int(pid)), 302)
+
 	}
 }
 

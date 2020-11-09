@@ -46,8 +46,8 @@ func (u *User) Signup(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	_, err = DB.Exec("INSERT INTO users( full_name, email, password, age, sex, city, image) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		u.FullName, u.Email, hashPwd, u.Age, u.Sex, u.City, u.Image)
+	_, err = DB.Exec("INSERT INTO users( full_name, email, password, age, sex, created_time, city, image) VALUES (?,?, ?, ?, ?, ?, ?, ?)",
+		u.FullName, u.Email, hashPwd, u.Age, u.Sex, time.Now(), u.City, u.Image)
 
 	if err != nil {
 		log.Println(err)
@@ -129,12 +129,5 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 	// then delete cookie from client
-	cookieDelete := http.Cookie{
-		Name:     "_cookie",
-		Value:    "",
-		Path:     "/",
-		Expires:  time.Unix(0, 0),
-		HttpOnly: false,
-	}
-	http.SetCookie(w, &cookieDelete)
+	util.DeleteCookie(w)
 }

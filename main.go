@@ -11,11 +11,12 @@ func main() {
 	controllers.Init()
 }
 
-//fix on delete cascade -> when delete post
-//fix correct time show
+// style fix
+// pagination
+//update post -> send data for - client fields update_post page
+//statrt - Auth
 
 //try - event -> add sound
-//update post -> send data for - client fields update_post page
 //delete account - add func
 
 //Представлен ли в проекте скрипт для создания образов и контейнеров? (используя скрипт для упрощения сборки)

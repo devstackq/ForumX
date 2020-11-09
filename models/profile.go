@@ -56,6 +56,7 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 	if u.Image[0] == 60 {
 		u.SVG = true
 	}
+	u.Temp = u.CreatedTime.Format("2006 Jan _2 15:04:05")
 	u.ImageHTML = base64.StdEncoding.EncodeToString(u.Image)
 
 	var smtp *sql.Rows
@@ -79,7 +80,7 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 		for smtp.Next() {
 			err = smtp.Scan(&id, &title, &content, &creatorID, &createdTime, &image, &like, &dislike)
 			if err != nil {
-				log.Println(err.Error)
+				log.Println(err.Error())
 			}
 			post = AppendPost(id, title, content, creatorID, image, like, dislike, s.UserID, createdTime)
 			postsL = append(postsL, post)
@@ -146,7 +147,7 @@ func (user *User) GetAnotherProfile(r *http.Request) ([]Post, User, error) {
 		err = psu.Scan(&id, &title, &content, &creatorID, &createdTime, &image, &like, &dislike)
 
 		if err != nil {
-			log.Println(err.Error)
+			log.Println(err.Error())
 		}
 		post = AppendPost(id, title, content, creatorID, image, like, dislike, 0, createdTime)
 		postsU = append(postsU, post)
@@ -166,4 +167,20 @@ func (u *User) UpdateProfile() error {
 		return err
 	}
 	return nil
+}
+
+//DeleteAccount then dlogut - delete cookie, delete lsot comment, session Db, voteState
+func (u *User) DeleteAccount(w http.ResponseWriter, r *http.Request) {
+
+	_, err = DB.Exec("DELETE FROM  session  WHERE user_id=?", u.ID)
+	_, err = DB.Exec("DELETE FROM  voteState  WHERE user_id=?", u.ID)
+	_, err = DB.Exec("DELETE FROM  comments  WHERE user_idx=?", u.ID)
+	_, err = DB.Exec("DELETE FROM  users  WHERE id=?", u.ID)
+
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	util.DeleteCookie(w)
 }
