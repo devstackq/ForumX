@@ -39,17 +39,16 @@ func Init() {
 
 	http.HandleFunc("/votes", VotesPost)
 	http.HandleFunc("/votes/comment", VotesComment)
-
 	http.HandleFunc("/search", Search)
 
 	http.HandleFunc("/profile", GetUserProfile)
 	http.HandleFunc("/user/id/", GetAnotherProfile)
 	http.HandleFunc("/edit/user", UpdateProfile)
+	http.HandleFunc("/delete/account", DeleteAccount)
 
 	http.HandleFunc("/signup", Signup)
 	http.HandleFunc("/signin", Signin)
 	http.HandleFunc("/logout", Logout)
-	http.HandleFunc("/delete/account", DeleteAccount)
 	// http.HandleFunc("/chat", routing.StartChat)
 	log.Fatal(http.ListenAndServe(":6969", nil))
 }
