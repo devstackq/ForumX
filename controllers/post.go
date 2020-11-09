@@ -37,8 +37,7 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 	prev := r.FormValue("prev")
 
 	posts, endpoint, category, err := filterValue.GetAllPost(r, next, prev)
-	// render posts -> new Page || get Post ,
-	//try 2 form -> Post -> submit -> next value +1, backend -
+
 	if err != nil {
 		log.Fatal(err)
 	}

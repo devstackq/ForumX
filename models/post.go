@@ -59,7 +59,7 @@ type Post struct {
 	Temp          string
 	IsPhoto       bool
 	Time          string
-	PageNum       int
+	CountPost     int
 }
 
 //PostCategory struct
@@ -81,12 +81,12 @@ var (
 
 //GetAllPost function
 func (f *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string, string, error) {
-
+	pageNum = 1
 	var post Post
 	var leftJoin bool
 	var arrPosts []Post
 
-	//ecah call +1
+	//each call +1
 	if next == "next" {
 		pageNum++
 	}
@@ -95,10 +95,12 @@ func (f *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string,
 	}
 
 	fmt.Println(pageNum, "PN", next, prev)
-	send current Position page c.leint 
+
+	//send current Position page cleint / show 1/13, disable button if < 1 && > 13
 
 	limit := 5
 	offset := limit * (pageNum - 1)
+
 	switch r.URL.Path {
 	case "/":
 		leftJoin = false
@@ -117,6 +119,7 @@ func (f *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string,
 		} else {
 			//rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time DESC)
 			rows, err = DB.Query("SELECT * FROM posts LIMIT ? OFFSET ?", limit, offset)
+
 		}
 
 	case "/science":
@@ -141,9 +144,7 @@ func (f *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string,
 		log.Println(err.Error())
 		os.Exit(1)
 	}
-
 	for rows.Next() {
-		post := Post{}
 		if leftJoin {
 			if err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreatedTime, &post.Image, &post.Like, &post.Dislike, &post.PBGID, &post.PBGPostID, &post.PBGCategory); err != nil {
 				fmt.Println(err)
@@ -152,8 +153,15 @@ func (f *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string,
 			if err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreatedTime, &post.Image, &post.Like, &post.Dislike); err != nil {
 				fmt.Println(err)
 			}
+
 			fmt.Println(post.ID)
 		}
+		err = DB.QueryRow("SELECT COUNT(id) FROM posts").Scan(&post.CountPost)
+		if err != nil {
+			log.Println(err)
+		}
+		//send countr +1
+		fmt.Println(post.CountPost, "count")
 		post.Time = post.CreatedTime.Format("2006 Jan _2 15:04:05")
 		arrPosts = append(arrPosts, post)
 	}
