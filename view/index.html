@@ -1,6 +1,8 @@
 {{define "index"}}
+
 <div class="main">
     {{template "search"}} {{template "filter_post" }} {{ range $key, $value := . }}
+
     <a class="links" href="/post?id={{$value.ID}}">
         <div class="wrapper-main">
             <form method="POST" action="{{ $value.Endpoint}}/{{$value.ID}}">
@@ -16,41 +18,19 @@
     </a>
     {{end}}
 </div>
-{{.CountPost}}
-  <form class="" action="/" method="POST">
-            <input type="hidden" name="next" value="next">
-            <input class="" type="submit" value="next">
-        </form>
-        <br/>
-  <form class="" action="/" method="POST">
-            <input type="hidden" name="prev" value="prev">
-            <input class="" type="submit" value="prev">
-        </form>
-        
+
+<div class="container-pagination">
+    <form class="" action="/" method="POST">
+        <input type="hidden" name="prev" value="prev">
+        <input class="" type="submit" value="prev">
+    </form>
+
+    <form class="" action="/" method="POST">
+        <input type="hidden" name="next" value="next">
+        <input class="" type="submit" value="next">
+    </form>
+
+</div>
 {{template "footer" }}
 
-<script>
-
-let start = 1;
-
-const  pagination = (type) => {
-//event.stopPropagation()
-
-if (type === "n") {
-start++
-fetch('http://localhost:6969/', {
-method: 'post',
-body :  JSON.stringify(start),
-})
-}else if(type === "p"){
-start--
-fetch('http://localhost:6969/', {
-method: 'post',
-body : JSON.stringify(start)
-})
-}
-console.log(start, "S")
-}
-
-</script>
- {{end}}
+{{end}}

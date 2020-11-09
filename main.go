@@ -12,7 +12,6 @@ func main() {
 }
 
 //design style refactor
-// style fix
 // pagination
 //statrt - Auth
 

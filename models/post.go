@@ -93,12 +93,10 @@ func (f *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string,
 	if prev == "prev" {
 		pageNum--
 	}
+count pageNum, fix
+	fmt.Println(pageNum)
 
-	fmt.Println(pageNum, "PN", next, prev)
-
-	//send current Position page cleint / show 1/13, disable button if < 1 && > 13
-
-	limit := 5
+	limit := 4
 	offset := limit * (pageNum - 1)
 
 	switch r.URL.Path {
@@ -117,9 +115,7 @@ func (f *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string,
 			leftJoin = true
 			rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category=? ORDER  BY created_time  DESC LIMIT 8", f.Category)
 		} else {
-			//rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time DESC)
 			rows, err = DB.Query("SELECT * FROM posts LIMIT ? OFFSET ?", limit, offset)
-
 		}
 
 	case "/science":
@@ -153,18 +149,18 @@ func (f *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string,
 			if err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreatedTime, &post.Image, &post.Like, &post.Dislike); err != nil {
 				fmt.Println(err)
 			}
-
-			fmt.Println(post.ID)
+			//fmt.Print(post.ID)
 		}
-		err = DB.QueryRow("SELECT COUNT(id) FROM posts").Scan(&post.CountPost)
+
 		if err != nil {
 			log.Println(err)
 		}
 		//send countr +1
-		fmt.Println(post.CountPost, "count")
+		err = DB.QueryRow("SELECT COUNT(id) FROM posts").Scan(&post.CountPost)
 		post.Time = post.CreatedTime.Format("2006 Jan _2 15:04:05")
 		arrPosts = append(arrPosts, post)
 	}
+	//err = DB.QueryRow("SELECT COUNT(id) FROM posts").Scan(&post.CountPost)
 	return arrPosts, post.Endpoint, post.Temp, nil
 }
 

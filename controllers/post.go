@@ -33,6 +33,7 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 		Date:     r.FormValue("date"),
 		Category: r.FormValue("cats"),
 	}
+
 	next := r.FormValue("next")
 	prev := r.FormValue("prev")
 
