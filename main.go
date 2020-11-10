@@ -11,6 +11,8 @@ func main() {
 	controllers.Init()
 }
 
+//fix dislike -1 comment ?
+
 //statrt - Auth
 //style ref
 //try - event -> add sound & confetti -Logiin
