@@ -198,8 +198,16 @@ func Search(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Println(err)
 			}
-			util.DisplayTemplate(w, "header", util.IsAuth(r))
-			util.DisplayTemplate(w, "index", foundPosts)
+			if foundPosts == nil {
+				util.DisplayTemplate(w, "header", util.IsAuth(r))
+				msg := []byte(fmt.Sprintf("<h2 id='notFound'> Nihuya ne naideno </h2>"))
+				w.Header().Set("Content-Type", "application/json")
+				w.Write(msg)
+				util.DisplayTemplate(w, "index", nil)
+			} else {
+				util.DisplayTemplate(w, "header", util.IsAuth(r))
+				util.DisplayTemplate(w, "index", foundPosts)
+			}
 		}
 	}
 }

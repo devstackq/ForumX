@@ -31,6 +31,7 @@ var (
 	post                         Post
 	comment                      Comment
 	msg                          = structure.API.Message
+	pageNum                      = 1
 )
 
 //Posts struct
@@ -75,13 +76,9 @@ type Filter struct {
 	Date     string
 }
 
-var (
-	pageNum int
-)
-
 //GetAllPost function
 func (f *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string, string, error) {
-	pageNum = 1
+	//pageNum = 1
 	var post Post
 	var leftJoin bool
 	var arrPosts []Post
@@ -93,8 +90,8 @@ func (f *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string,
 	if prev == "prev" {
 		pageNum--
 	}
-count pageNum, fix
-	fmt.Println(pageNum)
+	//count pageNum, fix
+	//fmt.Print(pageNum)
 
 	limit := 4
 	offset := limit * (pageNum - 1)

@@ -11,15 +11,10 @@ func main() {
 	controllers.Init()
 }
 
-//design style refactor
-// pagination
 //statrt - Auth
+//style ref
+//try - event -> add sound & confetti -Logiin
 
-//try - event -> add sound
-//delete account - add func
-
-//Представлен ли в проекте скрипт для создания образов и контейнеров? (используя скрипт для упрощения сборки)
-//add on delete cascade -sql
 //domen check - org, kz ru, etc
 // save photo, like - source DB refactor
 //config, router refactor
@@ -34,5 +29,6 @@ func main() {
 // Logout event, logout system, delete cookie, logout Google
 //272819090705-qu6arlmkvs66hc5fuvalv6liuf2n9fj8.apps.googleusercontent.com   || W42c6sfYqhPc4O5wXMobY3av
 
-//pid 54, title 12312
-// /1 dis, 1 com
+// 1 request, 910 additional, 0904 - 101202 ->
+// 2 request -7575
+// 3 request 910 additional, 090410 - 101202 ->Otegen batyr etc

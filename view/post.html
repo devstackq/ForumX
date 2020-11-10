@@ -2,42 +2,44 @@
 
 <div class="post-wrapper">
 
-    <h2> {{.Title}}</h2>
+    <h1> {{.Title}}</h1>
     <div class="post-img-wrapper">
         {{if .SVG}}
-        <img width="300px" height="320px" alt="gg" src="data:image/svg+xml;base64, {{.ImageHTML}} "> {{else}}
-        <img width="300px" height="320px" class="post-img" src="data:image/jpeg;base64, {{.ImageHTML}}" alt=" "> {{end}}
+        <img width="220px" height="180px" alt=" " src="data:image/svg+xml;base64, {{.ImageHTML}} "> {{else}}
+        <img width="220px" height="180px" class="post-img" src="data:image/jpeg;base64, {{.ImageHTML}}" alt=" "> {{end}}
     </div>
 
     <p> {{.Content}} </p>
 
     <span id="time" class="time-post"> {{.Time}} </span>
+  
+  
+    <div class="like-wrapper">
 
-    <br />
-    <div class="author-wrapper">
-        <label for=""> Author post:</label>
+<div class="like-wrap">
+        <form  action="/votes?id={{.ID}}" method="POST">
+            <input type="hidden" name="like" value="1">
+            <input class="" type="submit" value="&hearts;">
+        </form>
+        <span class="like"> {{.Like}}</span>
+</div>
+        <div class="dislike-wrap">
+        <form  action="/votes?id={{.ID}}" method="POST">
+            <input type="hidden" name="dislike" value="1">
+            <input class="" type="submit" value="-">
+        </form>
+        <span class="like"> {{.Dislike}}</span>
+        </div>
+
+          <div class="author-wrapper">
         <form action="/user/id/?{{.CreatorID}}" method="post" class="author-post">
             <input type="hidden" name="uid" value="{{.CreatorID}}">
             <input type="submit" value="{{.FullName}}">
         </form>
     </div>
-    <br />
-    <div class="lukas">
-        <span class="like"> {{.Like}}</span>
-        <span class="like"> {{.Dislike}}</span>
-    </div>
 
-    <div class="like-wrapper">
-        <form class="like-wrap" action="/votes?id={{.ID}}" method="POST">
-            <input type="hidden" name="like" value="1">
-            <input class="" type="submit" value="&hearts;">
-        </form>
-        <form class="dislike-wrap" action="/votes?id={{.ID}}" method="POST">
-            <input type="hidden" name="dislike" value="1">
-            <input class="" type="submit" value="-">
-        </form>
-    </div>
 </div>
+
 <div class="comment-wrapper">
     <form action="/comment" method="POST">
         <textarea placeholder="lost your comment.." name="comment-text" id="" cols="128" rows="5" required></textarea>
