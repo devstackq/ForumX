@@ -21,12 +21,14 @@ type Votes struct {
 	OldDislike   int
 }
 
-//voteDislike func
+//VoteDislike func
 func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s structure.Session) {
 
 	vote := Votes{}
 	field := any + "_id"
 	table := any + "s"
+
+	fmt.Println(field, table)
 
 	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
 

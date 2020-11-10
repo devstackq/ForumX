@@ -44,11 +44,9 @@ func VotesComment(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		commentID := r.URL.Query().Get("cid")
-		commentDis := r.FormValue("comdis")
-		commentLike := r.FormValue("comlike")
-
-		pidc := r.FormValue("pidc")
+		commentID := r.URL.Query().Get("commentID")
+		commentDis := r.FormValue("commentDislike")
+		commentLike := r.FormValue("commentLike")
 
 		if r.Method == "POST" {
 			if commentLike == "1" {
@@ -57,7 +55,7 @@ func VotesComment(w http.ResponseWriter, r *http.Request) {
 			if commentDis == "1" {
 				models.VoteDislike(w, r, commentID, "comment", s)
 			}
-			http.Redirect(w, r, "/post?id="+pidc, 302)
+			http.Redirect(w, r, "/post?id="+r.FormValue("pidc"), 302)
 		}
 	}
 }

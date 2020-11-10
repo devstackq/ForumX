@@ -288,6 +288,14 @@ a.links {
     margin-right: 20px;
 }
 
+.like-wrapper input[type="submit"] {
+    background: transparent;
+    outline: none;
+    border: none;
+    font-size: 18px;
+    color: #fff !important;
+}
+
 .comment-underpost input[type="submit"] {
     background: transparent;
     color: #000;
@@ -550,9 +558,26 @@ a.dislike {
     padding: 5px;
 }
 
-.time-comment {}
-
 .like-comment-wrapper {
     display: flex;
     flex-direction: row;
+}
+
+.comment-btn-like {
+    background-image: url('images/like.png') !important;
+}
+
+.vote-up {
+    margin-right: -28px;
+    cursor: pointer;
+}
+
+.tests:hover {}
+
+.dislike-comment-wrap {
+    margin-left: 10px;
+}
+
+.vote-down {
+    margin-right: -25px;
 }
