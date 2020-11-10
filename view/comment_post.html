@@ -5,30 +5,38 @@
 {{range .}} 
 {{$id = .PostID}}
 <div class="comment-underpost">
-    {{.CreatedTime}}
-    <h3> {{.Content}}</h3>
+
+<div class="comment-wrapper-1"> 
+
 
     <form action="/user/id/?{{.UserID}}" method="post" autocomplete="off">
         <input type="hidden" name="uid" value="{{.UserID}}">
         <input type="submit" value="{{.Author}}">
     </form>
-    <p class="" style="color:red; font-size: 20px;">
-        {{.Like}} {{.Dislike}}
-    </p>
-    <div class="like-wrapper">
+       <span class="time-comment"> {{.CreatedTime}} </span>
+    </div>
+    
+    <p class="comment-wrapper-p"> {{.Content}}</p>
+
+    <div class="like-comment-wrapper">
+
         <form class="like-wrap" action="/votes/comment?cid={{.ID}}" method="POST">
             <input type="hidden" name="comlike" value="1">
             <input class="" type="submit" value="&hearts;">
             <input type="hidden" name="pidc" value="{{.PostID}}">
 
         </form>
-
-        <br>
-        <form class="dislike-wrap" action="/votes/comment?cid={{.ID}}" method="POST">
+     <span class="" style="color:red; font-size: 15px;">
+        {{.Like}}
+    </span>
+        <form class="dislike-comment-wrap" action="/votes/comment?cid={{.ID}}" method="POST">
             <input type="hidden" name="comdis" value="1">
             <input class="" type="submit" value="-">
             <input type="hidden" name="pidc" value="{{.PostID}}">
         </form>
+    <span class="" style="color:black; font-size: 15px;">
+        {{.Dislike}}
+    </span>
     </div>
 
 </div>

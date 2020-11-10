@@ -2,6 +2,7 @@ body {
     background-color: #000;
     height: 100%;
     max-height: 100vh;
+    margin: 0;
 }
 
 .main {
@@ -68,14 +69,15 @@ body {
 
 .search-wrapper {
     padding: 8px 12px;
-    margin: 10px auto;
+    margin: 32px auto 0;
 }
 
 .search-wrapper input[type="text"] {
     padding: 10px;
     background: transparent;
     border: 1px solid red;
-    width: 1066px;
+    min-width: 840px;
+    max-width: 878px;
     outline: none;
     color: blue;
 }
@@ -96,6 +98,7 @@ body {
 
 .nav {
     display: inline-block;
+    margin-top: 15px;
 }
 
 .navbar a {
@@ -106,6 +109,12 @@ body {
     color: #000;
     border-radius: 2px;
 }
+
+
+/* .navbar a:hover {
+    background: #000;
+    color: gold;
+} */
 
 .wrapper-main p {
     padding: 2px 5px;
@@ -266,28 +275,40 @@ a.links {
     padding: 10px;
 }
 
-.post-wrapper p {
-    padding: 0 70px;
-    line-height: 1.4;
-}
-
 .author-wrapper {
-    margin-left: 600px;
     color: #000;
     display: flex;
-    margin-bottom: 10px;
     align-items: center;
-    font-size: 20px;
+    position: absolute;
+    right: 10px;
+    bottom: 490px;
 }
 
 .author-wrapper label {
     margin-right: 20px;
 }
 
+.comment-underpost input[type="submit"] {
+    background: transparent;
+    color: #000;
+    outline: none;
+    border: none;
+    color: #fff;
+    font-style: italic;
+}
+
 .author-wrapper input[type="submit"] {
     padding: 10px;
-    background: #000;
-    color: #fff;
+    background: transparent;
+    color: #000;
+    outline: none;
+    border: none;
+    color: dodgerblue;
+    font-size: 16px;
+}
+
+.author-wrapper input[type="submit"]:hover {
+    cursor: pointer;
 }
 
 .comment-wrapper {
@@ -295,7 +316,7 @@ a.links {
     max-width: 960px;
     margin: 0 auto;
     color: #fff;
-    margin-top: 10px;
+    margin-top: 30px;
 }
 
 .comment-wrapper textarea {
@@ -303,13 +324,14 @@ a.links {
 }
 
 .comment-underpost {
-    margin-top: -50px;
-    background-color: deepskyblue;
+    position: relative;
+    background-color: gray;
+    border: 1px solid #000;
     width: 100%;
-    max-width: 960px;
-    margin: 0 auto;
+    max-width: 940px;
+    margin: 3px auto;
     color: #fff;
-    padding: 10px;
+    padding: 8px 10px;
     z-index: 3;
 }
 
@@ -339,14 +361,12 @@ a.links {
 }
 
 .time-post {
-    background-color: dodgerblue;
-    color: #fff;
+    color: #000;
     padding: 10px;
     position: absolute;
-    right: 0;
-    margin-left: 50%;
-    font-size: 18px;
+    left: 10px;
     font-weight: bold;
+    padding: 0;
 }
 
 .footer {
@@ -355,7 +375,6 @@ a.links {
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 18px;
     min-width: 960px;
 }
 
@@ -434,6 +453,7 @@ a.dislike {
     display: flex;
     background-color: transparent;
     border: none;
+    position: relative;
 }
 
 .lukas {
@@ -472,8 +492,8 @@ a.dislike {
 
 #category {
     position: absolute;
-    top: 45px;
-    left: 22%;
+    top: 60px;
+    left: 23%;
     color: #000;
     margin: 0;
 }
@@ -481,7 +501,7 @@ a.dislike {
 .user-info {
     position: absolute;
     left: 35%;
-    top: 10%;
+    top: 11%;
     line-height: 24px;
 }
 
@@ -504,7 +524,35 @@ a.dislike {
 .categories-checkbox {
     display: flex;
 }
+
 .container-pagination {
+    display: flex;
+    flex-direction: row;
+}
+
+.wrapper {
+    position: relative;
+    min-height: 100vh;
+}
+
+#notFound {
+    color: red;
+}
+
+.comment-wrapper-1 {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.comment-wrapper-p {
+    margin: 2px;
+    padding: 5px;
+}
+
+.time-comment {}
+
+.like-comment-wrapper {
     display: flex;
     flex-direction: row;
 }
