@@ -41,7 +41,6 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 
 	//count dislike equal 0 - add query
 	likedpost, err := DB.Query("select post_id from voteState where user_id =? and like_state =?", s.UserID, 1)
-	//	_, err = DB.Exec("UPDATE voteState SET  dislike_state=? WHERE "+field+"=? and user_id=?", 0, id, s.UserID)
 	defer likedpost.Close()
 
 	for likedpost.Next() {
@@ -82,6 +81,7 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 			if err != nil {
 				log.Println(err.Error())
 			}
+
 			post = AppendPost(id, title, content, creatorID, image, like, dislike, s.UserID, createdTime)
 			postsL = append(postsL, post)
 		}

@@ -49,7 +49,7 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 		util.DisplayTemplate(w, "index", posts)
 	} else {
 		//send category value
-		msg := []byte(fmt.Sprintf("<h2 id='category'> Category: %s </h2>", category))
+		msg := []byte(fmt.Sprintf("<h3 id='category'> %s </h3>", category))
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(msg)
 		util.DisplayTemplate(w, "category_post_template", posts)

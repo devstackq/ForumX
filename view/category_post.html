@@ -10,10 +10,11 @@
         </form>
         <h3>{{ $value.Title }}</h3>
         <p class="content-main"> {{ $value.Content}}...</p>
-        Created: {{ $value.Time}} <br />
-        <span>{{$value.Like}} &#9829</span>
-        <br>
-        <span>{{$value.Dislike}} &#8722</span>
+        Created: {{ $value.Time}} 
+        <div class="likes-card"> 
+        <span class = "fa fa-thumbs-up" > {{$value.Like}} </span>
+        <span class = "fa fa-thumbs-down">{{$value.Dislike}} </span>
+    </div>
     </div>
 </a>
     {{end}}

@@ -112,7 +112,7 @@ func (f *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string,
 			leftJoin = true
 			rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category=? ORDER  BY created_time  DESC LIMIT 8", f.Category)
 		} else {
-			rows, err = DB.Query("SELECT * FROM posts LIMIT ? OFFSET ?", limit, offset)
+			rows, err = DB.Query("SELECT * FROM posts ORDER BY created_time DESC LIMIT ? OFFSET ?", limit, offset)
 		}
 
 	case "/science":
