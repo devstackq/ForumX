@@ -2,7 +2,7 @@
 
 <div class="profile-post-like">
     <h3>Liked posts</h3>
-    {{range .}} {{.CreatedTime}}
+    {{range .}} {{.Time}}
     <h4>{{.Title}}</h4>
     <a href="/post?id={{.ID}}">see post</a> {{end}}
 </div>

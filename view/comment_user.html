@@ -4,8 +4,8 @@
     <h3>Comments lost</h3>
     <div>
         {{range .}}
-        <h2> {{.TitlePost}}</h2>
-        <h4>{{.CreatedTime}}</h4>
+        <h3> {{.TitlePost}}</h3>
+        <h5>{{.CreatedTime}}</h5>
         <p>{{.Content}}</p>
         <a href="/post?id={{.PostID}}">see comment</a> {{end}}
     </div>

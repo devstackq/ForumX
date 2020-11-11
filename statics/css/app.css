@@ -1,47 +1,57 @@
 body {
     background-color: #000;
-    height: 100%;
-    max-height: 100vh;
+    height: 100vh;
     margin: 0;
+    padding: 0;
+    overflow: hidden;
 }
 
 .main {
-    width: 100%;
-    max-width: 1200px;
     display: flex;
     flex-direction: column;
     align-items: center;
     margin: 0 auto;
-    margin-top: 20px;
     background-color: #fff;
     padding: 18px;
+    max-width: 1200px;
+    position: relative;
 }
 
 .wrapper-main {
-    margin: 6px 20px;
-    background-color: rgb(212, 236, 175);
-    color: #000;
-    max-width: 1100px;
-    padding: 20px;
-    box-shadow: 3px 2px 7px palegoldenrod;
-    border: .3px solid #333;
+    margin: 8px auto 0;
+    border-radius: 6px;
+    background-color: slategray;
+    color: #fff;
+    min-width: 960px;
+    max-width: 960px;
+    padding: 0px 20px 12px 20px;
+    border: .3px solid transparent;
+    position: relative;
+}
+
+.category_post_template {
+    position: relative;
+}
+
+.wrapper-main a {
+    text-decoration: none;
 }
 
 .wrapper-main:hover {
-    color: red;
-}
-
-.wrapper-main:hover {
-    background: #fc0;
+    transition: .3s;
+    border: .3px solid #777;
+    background: aliceblue;
+    color: steelblue;
     cursor: pointer;
-    box-shadow: 3px 2px 7px sandybrown;
+    box-shadow: 3px 2px 7px aliceblue;
 }
 
 .wrapper-filter {
-    margin: 0 auto;
+    margin: 20px auto 20px;
     color: #000;
     width: 100%;
-    padding-left: 18px;
+    max-width: 1040px;
+    position: relative;
 }
 
 .wrapper-filter h4 {
@@ -50,50 +60,61 @@ body {
 }
 
 .wrapper-filter label {
-    color: blue;
+    color: royalblue;
     font-size: 16px;
     font-weight: bold;
     margin-left: 20px;
 }
 
 .wrapper-filter input {
-    width: 100px;
-    background: rgb(199, 191, 76);
-    padding: 8px 10px;
+    background: #000;
+    color: #fff;
+    padding: 8px 28px;
 }
 
 .wrapper-filter input[type="submit"] {
-    margin-left: 255px;
+    position: absolute;
+    right: 20px;
     border: none;
 }
 
 .search-wrapper {
     padding: 8px 12px;
-    margin: 32px auto 0;
+    margin: 0 auto 0;
 }
 
 .search-wrapper input[type="text"] {
     padding: 10px;
     background: transparent;
-    border: 1px solid red;
-    min-width: 840px;
-    max-width: 878px;
+    border: 1px solid black;
+    min-width: 900px;
+    max-width: 1200px;
     outline: none;
-    color: blue;
+    color: steelblue;
+}
+
+.search-wrapper input[type="submit"]:hover,
+.wrapper-filter input[type="submit"]:hover {
+    cursor: pointer;
 }
 
 .search-wrapper input[type="submit"] {
     color: #fff;
-    padding: 6px 10px;
+    padding: 10px 14px;
     background: #000;
     border: 1px solid #fff;
 }
 
 .navbar {
-    width: 100%;
-    max-width: 960px;
+    margin-left: 96px;
+}
+
+.navbar-wrapper {
+    background: #fff;
+    max-width: 1200px;
     margin: 0 auto;
-    /* border: 1px solid #fff; */
+    padding: 10px 18px 20px;
+    border-bottom: 2px solid slategray;
 }
 
 .nav {
@@ -101,20 +122,22 @@ body {
     margin-top: 15px;
 }
 
-.navbar a {
+.nav-link {
+    text-decoration: none;
     margin-bottom: 20px;
     margin-left: 3px;
     padding: 5px;
     width: 120px;
     color: #000;
     border-radius: 2px;
+    border: .3px solid transparent;
 }
 
-
-/* .navbar a:hover {
+.nav-link:hover {
     background: #000;
-    color: gold;
-} */
+    color: #fff;
+    border: .3px solid #fff;
+}
 
 .wrapper-main p {
     padding: 2px 5px;
@@ -208,8 +231,7 @@ body {
 }
 
 a.links {
-    color: #fff;
-    width: 100%;
+    text-decoration: none;
 }
 
 .profile-post-like {
@@ -263,7 +285,7 @@ a.links {
 }
 
 .post-wrapper {
-    max-width: 960px;
+    max-width: 1200px;
     color: #fff;
     display: flex;
     flex-direction: column;
@@ -271,21 +293,30 @@ a.links {
     position: relative;
     background: #fff;
     color: #000;
-    margin: 20px auto 0;
-    padding: 10px;
+    margin: 0px auto 0;
+    padding: 36px 18px 18px;
+}
+
+.post-wrapper h2 {
+    margin-top: 50px;
 }
 
 .author-wrapper {
-    color: #000;
+    color: red;
     display: flex;
     align-items: center;
     position: absolute;
     right: 10px;
-    bottom: 490px;
+    bottom: 0;
+    z-index: 10;
 }
 
 .author-wrapper label {
     margin-right: 20px;
+}
+
+.like-wrapper input[type="submit"]:hover {
+    cursor: pointer;
 }
 
 .like-wrapper input[type="submit"] {
@@ -315,20 +346,22 @@ a.links {
     font-size: 16px;
 }
 
-.author-wrapper input[type="submit"]:hover {
+.author-wrapper input[type="submit"]:hover,
+.comment-underpost input[type="submit"]:hover {
     cursor: pointer;
 }
 
 .comment-wrapper {
     width: 100%;
-    max-width: 960px;
+    max-width: 1200px;
     margin: 0 auto;
     color: #fff;
-    margin-top: 30px;
+    position: relative;
 }
 
 .comment-wrapper textarea {
     padding: 10px;
+    margin-left: -19px;
 }
 
 .comment-underpost {
@@ -351,7 +384,7 @@ a.links {
     color: #fff;
 }
 
-.dislike {
+.dislikeOld {
     position: absolute;
     right: 35%;
     bottom: 10px;
@@ -382,11 +415,14 @@ a.links {
     background: #fff;
     width: 100%;
     max-width: 1200px;
-    margin: 0 auto;
     min-width: 960px;
+    display: flex;
+    justify-content: center;
+    margin: 0 auto;
+    padding: 18px;
 }
 
-.footer p {
+.footer span {
     padding-left: 38px;
 }
 
@@ -462,6 +498,7 @@ a.dislike {
     background-color: transparent;
     border: none;
     position: relative;
+    align-items: center;
 }
 
 .lukas {
@@ -469,13 +506,17 @@ a.dislike {
 }
 
 .like {
-    padding: 10px;
+    color: red;
+    padding: 5px;
+}
+
+.dislike {
+    padding: 5px;
 }
 
 .error {
     color: red;
     font-size: 20px;
-    background-color: red;
 }
 
 #authWrapperId {
@@ -500,16 +541,17 @@ a.dislike {
 
 #category {
     position: absolute;
-    top: 60px;
-    left: 23%;
+    top: 66px;
+    left: 61%;
     color: #000;
     margin: 0;
+    z-index: 2;
 }
 
 .user-info {
     position: absolute;
-    left: 35%;
-    top: 11%;
+    left: 41%;
+    top: 13%;
     line-height: 24px;
 }
 
@@ -529,6 +571,10 @@ a.dislike {
     margin-top: 10px;
 }
 
+.profile-link-container a {
+    padding: 5px;
+}
+
 .categories-checkbox {
     display: flex;
 }
@@ -536,6 +582,12 @@ a.dislike {
 .container-pagination {
     display: flex;
     flex-direction: row;
+    background: #fff;
+    display: flex;
+    justify-content: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 18px;
 }
 
 .wrapper {
@@ -545,6 +597,12 @@ a.dislike {
 
 #notFound {
     color: red;
+    display: flex;
+    justify-content: center;
+    background: #fff;
+    max-width: 1200px;
+    padding: 18px;
+    margin: 0 auto;
 }
 
 .comment-wrapper-1 {
@@ -561,6 +619,7 @@ a.dislike {
 .like-comment-wrapper {
     display: flex;
     flex-direction: row;
+    padding-left: 10px;
 }
 
 .comment-btn-like {
@@ -572,12 +631,51 @@ a.dislike {
     cursor: pointer;
 }
 
-.tests:hover {}
-
 .dislike-comment-wrap {
     margin-left: 10px;
 }
 
 .vote-down {
     margin-right: -25px;
+}
+
+.post-content {
+    width: 100%;
+    max-width: 900px;
+    border: .5px solid grey;
+    padding: 20px;
+    box-shadow: 1px 2px 3px grey;
+    line-height: 24px;
+}
+
+.comment-btn {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
+
+.container-pagination-prev input[type="submit"],
+.container-pagination-next input[type="submit"] {
+    padding: 10px 16px;
+    margin-right: 10px;
+    background: royalblue;
+    color: #fff;
+    border-radius: 10%;
+    opacity: .7;
+}
+
+.container-pagination-prev input[type="submit"]:hover,
+.container-pagination-next input[type="submit"]:hover {
+    cursor: pointer;
+    opacity: 1;
+}
+
+.container-pagination-next input[type="submit"] {
+    margin-left: 10px !important;
+}
+
+.likes-card {
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
 }
