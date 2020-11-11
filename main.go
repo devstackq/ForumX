@@ -11,10 +11,13 @@ func main() {
 	controllers.Init()
 }
 
+// signin, profile, style, createPosts, Style- fix -> when Logged system
+//github, google, default -> 3 modal, hidden etc || 2 variant ->
+// email. password, down signin Google, sginin Github
+
 //fix dislike -1 comment ?
 
 //statrt - Auth
-//style ref
 //try - event -> add sound & confetti -Logiin
 
 //domen check - org, kz ru, etc

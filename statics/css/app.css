@@ -1,6 +1,5 @@
 body {
     background-color: #000;
-    height: 100vh;
     margin: 0;
     padding: 0;
     overflow: hidden;
@@ -427,11 +426,15 @@ a.links {
 }
 
 .signin-wrapper {
-    margin: 50px 0 0 380px;
-    background-color: rgb(226, 225, 156);
+    margin: 0 auto;
+    background-color: #fff;
     color: #000;
-    max-width: 400px;
-    padding: 10px;
+    max-width: 1200px;
+    padding: 18px;
+}
+
+.signin-wrapper h3 {
+    color: #000;
 }
 
 .signin-label {
@@ -461,12 +464,62 @@ a.links {
 }
 
 .signup-wrapper {
-    margin: 20px auto 0;
-    background-color: rgb(226, 225, 156);
+    margin: 0px auto 0;
+    background-color: #fff;
     color: #000;
     min-width: 960px;
     max-width: 1200px;
-    padding: 10px;
+    padding: 18px;
+    height: 100vh;
+}
+
+.signup-container {
+    margin: 150px auto;
+    border-radius: 1%;
+    width: 100%;
+    max-width: 450px;
+    height: 100%;
+    height: 580px;
+    padding: 18px 38px;
+    background: lightslategray;
+    color: #fff;
+}
+
+.signup-container input {
+    color: tomato;
+    width: 92%;
+    margin-bottom: 20px;
+    padding: 10px 12px;
+    font-size: 16px;
+}
+
+.signup-container input[type="submit"] {
+    background: royalblue;
+    border: none;
+    width: 100%;
+    opacity: 1;
+    color: #fff;
+}
+
+.signup-container input[type="submit"]:hover,
+input[type="file"]:hover {
+    cursor: pointer;
+    opacity: .9;
+    color: #fff;
+}
+
+.signup-container h3 {
+    display: flex;
+    justify-content: center;
+    margin-top: 5px;
+}
+
+.signup-container select {
+    color: tomato;
+    width: 100%;
+    margin-bottom: 20px;
+    padding: 8px 8px;
+    font-size: 16px;
 }
 
 .link-profile {
@@ -520,7 +573,7 @@ a.dislike {
 }
 
 #authWrapperId {
-    display: none;
+    display: block;
 }
 
 .btn-default {

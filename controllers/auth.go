@@ -30,10 +30,17 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 			//checkerEmail & password
 			if util.IsEmailValid(r.FormValue("email")) {
 
+				fullName := r.FormValue("fullname")
+				if fullName == "" {
+					fullName = "Noname"
+				}
+				if intAge == 0 {
+					intAge = 16
+				}
 				if util.IsPasswordValid(r.FormValue("password")) {
 
 					u := models.User{
-						FullName: r.FormValue("fullname"),
+						FullName: fullName,
 						Email:    r.FormValue("email"),
 						Age:      intAge,
 						Sex:      r.FormValue("sex"),
@@ -54,8 +61,6 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
-
-//signin -> logout another browser
 
 //Signin system function
 func Signin(w http.ResponseWriter, r *http.Request) {
