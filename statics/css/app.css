@@ -233,34 +233,39 @@ a.links {
     text-decoration: none;
 }
 
+.user-post-card {
+    border: 1px solid red;
+    padding: 5px;
+    background: lightgray;
+}
+
+.user-post-card:hover {}
+
 .profile-post-like {
     width: 100%;
-    background-color: yellow;
-    border: 1px solid green;
-    padding: 10px;
+    border: 1px solid #000;
+    padding: 18px;
 }
 
 .profile-post-create {
-    margin-bottom: -40px;
     width: 100%;
-    background-color: rgb(166, 214, 55);
-    border: 1px solid green;
-    padding: 10px;
+    border: 1px solid #000;
+    padding: 18px;
 }
 
 .profile-comment-create {
     width: 100%;
-    background-color: rgb(224, 67, 120);
     color: #000;
-    padding: 10px;
+    padding: 18px;
+    border: 1px solid #000;
 }
 
 .profile-wrapper {
     width: 100%;
     min-width: 960px;
     color: #000;
-    background-color: lightskyblue;
-    padding: 10px;
+    border: .5px solid #666;
+    padding: 18px;
     margin-top: 10px;
 }
 
@@ -431,10 +436,35 @@ a.links {
     color: #000;
     max-width: 1200px;
     padding: 18px;
+    height: 100vh;
+}
+
+.signin-container {
+    width: 450px;
+    height: 580px;
+    margin: 120px auto 0;
+    padding: 0 38px 18px;
+    background-color: lightslategray;
+    border-radius: 2%;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.signin-container span {
+    display: flex;
+    justify-content: center;
 }
 
 .signin-wrapper h3 {
-    color: #000;
+    display: flex;
+    justify-content: center;
+}
+
+.g-signin2 {
+    margin: 10px 0;
 }
 
 .signin-label {
@@ -442,18 +472,21 @@ a.links {
 }
 
 .signin-wrapper input[type="email"] {
-    padding: 10px;
-    background: #000;
-    color: #fff;
+    margin-top: 90px;
+    padding: 10px 0 10px 10px;
+    color: royalblue;
     border: none;
+    width: 100%;
+    margin-bottom: 10px;
 }
 
 .signin-wrapper input[type="password"] {
-    padding: 10px;
-    background: #000;
-    color: #fff;
+    padding: 10px 0 10px 10px;
+    color: royalblue;
     border: none;
     margin-top: 3px;
+    margin-bottom: 10px;
+    width: 100%;
 }
 
 .signin-wrapper input[type="submit"] {
@@ -461,6 +494,24 @@ a.links {
     width: 176px;
     background: fff;
     color: #000;
+}
+
+.github-signin {}
+
+.signin-wrapper button:hover {
+    opacity: 1;
+    cursor: pointer;
+}
+
+.signin-wrapper button {
+    margin-bottom: 20px;
+    width: 100%;
+    opacity: .9;
+    background: royalblue;
+    border: none;
+    color: #fff;
+    margin-top: 30px;
+    height: 40px;
 }
 
 .signup-wrapper {
@@ -474,7 +525,7 @@ a.links {
 }
 
 .signup-container {
-    margin: 150px auto;
+    margin: 120px auto;
     border-radius: 1%;
     width: 100%;
     max-width: 450px;
@@ -486,7 +537,7 @@ a.links {
 }
 
 .signup-container input {
-    color: tomato;
+    color: royalblue;
     width: 92%;
     margin-bottom: 20px;
     padding: 10px 12px;
@@ -515,7 +566,7 @@ input[type="file"]:hover {
 }
 
 .signup-container select {
-    color: tomato;
+    color: royalblue;
     width: 100%;
     margin-bottom: 20px;
     padding: 8px 8px;

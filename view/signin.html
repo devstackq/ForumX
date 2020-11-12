@@ -2,21 +2,22 @@
 
 <div class="signin-wrapper" id="signin-wrapper">
 <div class="signin-container"> 
-    <h3 class="signin-label">Signin Forum-X</h3>
+    <h3 class="signin-label">Login system</h3>
     <div id="authWrapperId">
-        <input id="email" type="email" name="email" placeholder="email"> <br />
-        <input id="password" type="password" name="password" placeholder="password"> <br />
+        <input id="email" type="email" name="email" placeholder="email"> 
+        <input id="password" type="password" name="password" placeholder="password"> 
         <button onclick="defAuthSendData()"> Login </button>
     </div>
+<span> OR </span>
+
+    <div class="g-signin2" data-onsuccess="onSignIn"></div>
+    <a href="#" onclick="signOut();">Sign out google</a>
+
+<span> OR </span>
 
 <div class="github-signin" > Signin Github</div>
-
-<div class="github-signin" > Signin Google</div>
-    <div class="g-signin2" data-onsuccess="onSignIn"></div>
-
-
     <p id="notify"></p>
-    <a href="#" onclick="signOut();">Sign out</a>
+
 </div>
 
 </div>
