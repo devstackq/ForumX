@@ -11,9 +11,7 @@ func main() {
 	controllers.Init()
 }
 
-// signin, profile, style, createPosts, Style- fix -> when Logged system
-//github, google, default -> 3 modal, hidden etc || 2 variant ->
-// email. password, down signin Google, sginin Github
+// profile, , Style- fix -> when Logged system, Create Post page
 
 //fix dislike -1 comment ?
 
