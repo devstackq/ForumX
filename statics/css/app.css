@@ -13,7 +13,7 @@ body {
 }
 
 .wrapper-main {
-    margin: 8px auto 0;
+    margin: 12px auto 0;
     border-radius: 6px;
     background-color: slategray;
     color: #fff;
@@ -85,6 +85,7 @@ body {
     max-width: 1200px;
     outline: none;
     color: steelblue;
+    margin-bottom: 10px;
 }
 
 .search-wrapper input[type="submit"]:hover,
@@ -265,7 +266,6 @@ a.links {
 }
 
 .profile-wrapper {
-    width: 100%;
     min-width: 960px;
     color: #000;
     border: .5px solid #666;
@@ -657,8 +657,8 @@ a.dislike {
 
 #category {
     position: absolute;
-    top: 18px;
-    left: 81%;
+    top: 94px;
+    left: 10%;
     color: #000;
     margin: 0;
     z-index: 2;
@@ -666,9 +666,10 @@ a.dislike {
 
 .user-info {
     position: absolute;
-    left: 41%;
-    top: 13%;
-    line-height: 24px;
+    left: 24%;
+    top: 165px;
+    line-height: 22px;
+    font-size: 14px;
 }
 
 .create-btn {
@@ -684,7 +685,7 @@ a.dislike {
 }
 
 .profile-link-container {
-    margin-top: 10px;
+    margin-top: 26px;
 }
 
 .profile-link-container a {
