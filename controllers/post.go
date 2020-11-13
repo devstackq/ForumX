@@ -34,10 +34,7 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 		Category: r.FormValue("cats"),
 	}
 
-	next := r.FormValue("next")
-	prev := r.FormValue("prev")
-
-	posts, endpoint, category, err := filterValue.GetAllPost(r, next, prev)
+	posts, endpoint, category, err := filterValue.GetAllPost(r, r.FormValue("next"), r.FormValue("prev"))
 
 	if err != nil {
 		log.Fatal(err)

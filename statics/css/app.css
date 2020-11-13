@@ -2,18 +2,14 @@ body {
     background-color: #000;
     margin: 0;
     padding: 0;
-    overflow: hidden;
 }
 
 .main {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     margin: 0 auto;
     background-color: #fff;
-    padding: 18px;
     max-width: 1200px;
     position: relative;
+    padding: 0 18px;
 }
 
 .wrapper-main {
@@ -78,15 +74,14 @@ body {
 }
 
 .search-wrapper {
-    padding: 8px 12px;
-    margin: 0 auto 0;
+    padding: 8px 100px;
 }
 
 .search-wrapper input[type="text"] {
     padding: 10px;
     background: transparent;
     border: 1px solid black;
-    min-width: 900px;
+    min-width: 864px;
     max-width: 1200px;
     outline: none;
     color: steelblue;
@@ -104,29 +99,23 @@ body {
     border: 1px solid #fff;
 }
 
-.navbar {
-    margin-left: 96px;
-}
-
 .navbar-wrapper {
     background: #fff;
     max-width: 1200px;
     margin: 0 auto;
     padding: 10px 18px 20px;
     border-bottom: 2px solid slategray;
+    position: relative;
 }
 
 .nav {
-    display: inline-block;
     margin-top: 15px;
 }
 
 .nav-link {
     text-decoration: none;
-    margin-bottom: 20px;
     margin-left: 3px;
-    padding: 5px;
-    width: 120px;
+    padding: 5px 9px;
     color: #000;
     border-radius: 2px;
     border: .3px solid transparent;
@@ -155,7 +144,6 @@ body {
 
 .create-post-wrapper {
     border: 1px solid #ccc;
-    width: 100%;
     margin: 0 auto;
     margin: 20px 0;
     background-color: #fff;
@@ -164,6 +152,7 @@ body {
     max-width: 1200px;
     padding: 20px;
     display: flex;
+    justify-content: center;
 }
 
 .wrapper-main-edit {
@@ -178,16 +167,27 @@ body {
     padding: 10px;
 }
 
+.create-post-label {
+    margin: 10px 0;
+}
+
 .wrapper-create input {
-    padding: 10px;
-    width: 100%;
+    padding: 10px 10px;
     margin-bottom: 10px;
+    width: 93%;
 }
 
 .wrapper-create input[type="submit"] {
-    background-color: gold;
-    width: 350px;
+    background-color: #000;
+    width: 100%;
+    color: #fff;
     padding: 10px;
+    opacity: .8;
+}
+
+.wrapper-create input[type="submit"]:hover {
+    opacity: 1;
+    cursor: pointer;
 }
 
 .wrapper-create input[type="file"] {
@@ -234,30 +234,34 @@ a.links {
 }
 
 .user-post-card {
-    border: 1px solid red;
-    padding: 5px;
+    padding: 9px 0;
     background: lightgray;
+    margin-bottom: 3px;
 }
 
-.user-post-card:hover {}
+.user-post-card a {
+    color: red !important;
+    padding: 6px 10px;
+    background: #000 !important;
+    text-decoration: none;
+    opacity: .7;
+}
+
+.user-post-card a:hover {
+    opacity: 1;
+}
 
 .profile-post-like {
     width: 100%;
-    border: 1px solid #000;
-    padding: 18px;
 }
 
 .profile-post-create {
     width: 100%;
-    border: 1px solid #000;
-    padding: 18px;
 }
 
 .profile-comment-create {
     width: 100%;
     color: #000;
-    padding: 18px;
-    border: 1px solid #000;
 }
 
 .profile-wrapper {
@@ -265,8 +269,8 @@ a.links {
     min-width: 960px;
     color: #000;
     border: .5px solid #666;
-    padding: 18px;
-    margin-top: 10px;
+    padding: 18px 10px;
+    margin-top: 20px;
 }
 
 .profile-wrapper img {
@@ -336,8 +340,8 @@ a.links {
     color: #000;
     outline: none;
     border: none;
-    color: #fff;
-    font-style: italic;
+    color: mediumblue;
+    text-decoration: underline;
 }
 
 .author-wrapper input[type="submit"] {
@@ -346,13 +350,22 @@ a.links {
     color: #000;
     outline: none;
     border: none;
-    color: dodgerblue;
+    color: mediumblue;
     font-size: 16px;
+    margin-bottom: 10px;
+    text-decoration: underline;
 }
 
 .author-wrapper input[type="submit"]:hover,
 .comment-underpost input[type="submit"]:hover {
     cursor: pointer;
+}
+
+.comment-wrapperz {
+    background: #fff;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 18px;
 }
 
 .comment-wrapper {
@@ -372,9 +385,8 @@ a.links {
     position: relative;
     background-color: gray;
     border: 1px solid #000;
-    width: 100%;
-    max-width: 940px;
-    margin: 3px auto;
+    width: 96%;
+    margin: 0px auto;
     color: #fff;
     padding: 8px 10px;
     z-index: 3;
@@ -418,12 +430,12 @@ a.links {
     color: #000;
     background: #fff;
     width: 100%;
-    max-width: 1200px;
+    max-width: 1236px;
     min-width: 960px;
     display: flex;
     justify-content: center;
     margin: 0 auto;
-    padding: 18px;
+    padding-top: 18px;
 }
 
 .footer span {
@@ -456,11 +468,11 @@ a.links {
 .signin-container span {
     display: flex;
     justify-content: center;
+    margin: 0px auto 10px;
 }
 
 .signin-wrapper h3 {
-    display: flex;
-    justify-content: center;
+    margin: 30px auto 0;
 }
 
 .g-signin2 {
@@ -472,7 +484,7 @@ a.links {
 }
 
 .signin-wrapper input[type="email"] {
-    margin-top: 90px;
+    margin-top: 130px;
     padding: 10px 0 10px 10px;
     color: royalblue;
     border: none;
@@ -645,8 +657,8 @@ a.dislike {
 
 #category {
     position: absolute;
-    top: 66px;
-    left: 61%;
+    top: 18px;
+    left: 81%;
     color: #000;
     margin: 0;
     z-index: 2;
@@ -745,9 +757,7 @@ a.dislike {
 
 .post-content {
     width: 100%;
-    max-width: 900px;
-    border: .5px solid grey;
-    padding: 20px;
+    padding: 16px;
     box-shadow: 1px 2px 3px grey;
     line-height: 24px;
 }
@@ -781,5 +791,24 @@ a.dislike {
 .likes-card {
     position: absolute;
     right: 18px;
+    bottom: 18px;
+}
+
+.logout-link {
+    background: #000 !important;
+    color: gold !important;
+    position: absolute;
+    right: 18px;
+    top: 18px;
+}
+
+.logout-link:hover {
+    background: gold;
+    color: #fff;
+}
+
+.auth-container {
+    position: absolute;
+    right: 120px;
     bottom: 18px;
 }
