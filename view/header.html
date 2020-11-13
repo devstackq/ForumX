@@ -14,18 +14,21 @@
 
 <body>
     <div class="navbar-wrapper">
-        <header class="navbar">
             <div class="nav" id="navId">
                 <a class="nav-link" href="/">All</a>
                 <a class="nav-link" href="/science">Science</a>
                 <a class="nav-link" href="/love">Love</a>
-                <a class="nav-link" href="/sapid">Sapid </a> {{if .Authenticated}}
+                <a class="nav-link" href="/sapid">Sapid </a> 
+                {{if .Authenticated}}
                 <a class="nav-link" href="/profile">Profile</a>
-                <a class="nav-link" href="/logout">Logout</a> {{else}}
-
-                <a class="nav-link" href="/signup">Signup</a>
-                <a class="nav-link" href="/signin">Signin</a>
+                <a class="nav-link logout-link" href="/logout">Logout</a> 
+                {{else}}
+                <div class="auth-container">
+                <a class="nav-link signup-link" href="/signup">Signup</a>
+                <a class="nav-link signin-link" href="/signin">Signin</a>
             </div>
-        </header>
+            </div>
     </div>
-    {{end}} {{end}}
+    </body>
+    {{end}}
+     {{end}}

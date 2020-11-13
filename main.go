@@ -11,10 +11,6 @@ func main() {
 	controllers.Init()
 }
 
-// profile, , Style- fix -> when Logged system, Create Post page
-
-//fix dislike -1 comment ?
-
 //statrt - Auth
 //try - event -> add sound & confetti -Logiin
 
