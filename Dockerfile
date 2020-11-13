@@ -1,4 +1,4 @@
-FROM golang:1.23 AS builder
+FROM golang:latest AS builder
 
 # enable Go modules support
 ENV GO111MODULE=on

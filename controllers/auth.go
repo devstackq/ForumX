@@ -90,7 +90,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 				}
 				u.Signin(w, r)
 			} else if person.Type == "google" {
-				fmt.Println("todo google auth")
+				fmt.Println("todo google auth", person)
 			} else if person.Type == "github" {
 				fmt.Println("todo github auth")
 			}
