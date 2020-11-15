@@ -1,25 +1,23 @@
 {{define "signin"}} {{template "header"}}
 
 <div class="signin-wrapper" id="signin-wrapper">
-<div class="signin-container"> 
-    <h3 class="signin-label">Login system</h3>
-    <div id="authWrapperId">
-        <input id="email" type="email" name="email" placeholder="email"> 
-        <input id="password" type="password" name="password" placeholder="password"> 
-        <button onclick="defAuthSendData()"> Login </button>
+    <div class="signin-container">
+        <h3 class="signin-label">Login system</h3>
+        <div id="authWrapperId">
+            <input id="email" type="email" name="email" placeholder="email">
+            <input id="password" type="password" name="password" placeholder="password">
+            <button onclick="defAuthSendData()"> Login </button>
+        </div>
+
+        <span> OR </span>
+
+        <div class="g-signin2" data-onsuccess="onSignIn"></div>
+        <a href="#" onclick="signOut();">Sign out google</a>
+
+        <span> OR </span>
+        <div class="github-signin"> Signin Github</div>
+        <p id="notify"></p>
     </div>
-<span> OR </span>
-
-    <div class="g-signin2" data-onsuccess="onSignIn"></div>
-    <a href="#" onclick="signOut();">Sign out google</a>
-
-<span> OR </span>
-
-<div class="github-signin" > Signin Github</div>
-    <p id="notify"></p>
-
-</div>
-
 </div>
 
 {{template "footer"}}
@@ -35,33 +33,50 @@
 
     function signOut() {
         var auth2 = gapi.auth2.getAuthInstance();
-        auth2.signOut().then(function() {
+        auth2.signOut().then(function () {
             console.log('User signed out.');
         });
     }
 
     function onSignIn(googleUser) {
 
+        var id_token = googleUser.getAuthResponse().id_token;
         var profile = googleUser.getBasicProfile();
-        user.name = profile.getName(),
-            user.image = profile.getImageUrl(),
-            user.email = profile.getEmail(),
-            user.type = "google"
-        sendGoogleData(user)
-        console.log(user, "user ")
+        user.name = profile.getName()
+        user.image = profile.getImageUrl()
+        user.email = profile.getEmail()
+        user.type = "google"
+
+        //signin -> save DB, and him data, give access - forumX
+        // window.gapi.load('auth2', function () {
+        //     window.gapi.auth2
+        //         .init({
+        //             client_id: '272819090705-qu6arlmkvs66hc5fuvalv6liuf2n9fj8',
+        //         })
+        //         .then(() => console.log('init'), console.log('err'))
+        // })
+        //send fake fetch type google -> check receive data
+
+        fetch('http://localhost:6969/signin', {
+            method: 'POST',
+            body: JSON.stringify(user)
+        })
+        //sendGoogleData(user)
+        console.log(user, "google user data ", id_token)
     }
 
     function sendGoogleData(user) {
+
         fetch('http://localhost:6969/signin', {
-                mode: 'cors',
-                method: 'post',
-                body: JSON.stringify(user),
-            })
+            method: 'post',
+            body: user,
+        })
             .then((response) => {
                 response.json()
             })
             .then((data) => {
-                console.log(data)
+                console.log(data, "D", user)
+                showNotify(data)
             });
     }
 
@@ -74,16 +89,16 @@
             let ns = document.getElementById('notify')
             ns.innerText = msg
         } else {
-        welcomeSound()
-        //sound & confetti
+            welcomeSound()
+            //sound & confetti
             window.location.replace("http://localhost:6969/profile")
         }
     }
 
     const welcomeSound = () => {
-var audio = new Audio('rihanna.mp3');
-audio.play();
-}
+        var audio = new Audio('rihanna.mp3');
+        audio.play();
+    }
 
     function defAuthSendData() {
 
