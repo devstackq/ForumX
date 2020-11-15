@@ -12,6 +12,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+//Signup func
 func (u *User) Signup(w http.ResponseWriter, r *http.Request) {
 
 	users := []User{}
@@ -31,7 +32,7 @@ func (u *User) Signup(w http.ResponseWriter, r *http.Request) {
 		var email string
 		err = checkEmail.Scan(&email)
 		if err != nil {
-			log.Println(err.Error)
+			log.Println(err.Error())
 		}
 
 		user.Email = email

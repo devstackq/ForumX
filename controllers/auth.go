@@ -72,6 +72,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if r.Method == "POST" {
+
 			var person models.User
 			err := json.NewDecoder(r.Body).Decode(&person)
 			//badrequest
@@ -80,7 +81,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			fmt.Println(person, "person data")
+			fmt.Println(person, "person data", person.Type)
 
 			if person.Type == "default" {
 
@@ -89,6 +90,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 					Password: person.Password,
 				}
 				u.Signin(w, r)
+
 			} else if person.Type == "google" {
 				fmt.Println("todo google auth", person)
 			} else if person.Type == "github" {

@@ -794,6 +794,9 @@ a.dislike {
     right: 18px;
     bottom: 18px;
 }
+.likes-card span {
+    margin-left: 10px;
+}
 
 .logout-link {
     background: #000 !important;
