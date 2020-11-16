@@ -57,7 +57,7 @@ func (u *User) Signup(w http.ResponseWriter, r *http.Request) {
 }
 
 //Signin function
-func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
+func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, authType bool) {
 
 	u := DB.QueryRow("SELECT id, password FROM users WHERE email=?", uStr.Email)
 
@@ -69,11 +69,12 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 		util.AuthError(w, err, "user not found")
 		return
 	}
-
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(uStr.Password))
-	if err != nil {
-		util.AuthError(w, err, "password incorrect")
-		return
+	if authType {
+		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(uStr.Password))
+		if err != nil {
+			util.AuthError(w, err, "password incorrect")
+			return
+		}
 	}
 	//get user by Id, and write session struct
 	s := structure.Session{
@@ -113,6 +114,7 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 
 //Logout function
 func Logout(w http.ResponseWriter, r *http.Request) {
+
 	cookie, err := r.Cookie("_cookie")
 	if err != nil {
 		fmt.Println(err, "cookie err")
