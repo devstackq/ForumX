@@ -41,6 +41,10 @@ body {
     box-shadow: 3px 2px 7px aliceblue;
 }
 
+.g-signin2 {
+    display: none;
+}
+
 .wrapper-filter {
     margin: 20px auto 20px;
     color: #000;
@@ -794,6 +798,7 @@ a.dislike {
     right: 18px;
     bottom: 18px;
 }
+
 .likes-card span {
     margin-left: 10px;
 }

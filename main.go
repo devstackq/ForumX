@@ -9,9 +9,12 @@ import (
 func main() {
 	config.Init()
 	controllers.Init()
+	//fmt.Println(googleConfig, "config")
 }
 
-//statrt - Auth
+//ClientID:     "154015070566-3s9nqt7qoe3dlhopeje85buq89603hae.apps.googleusercontent.com",
+//		ClientSecret: "HtjxrjYxw8g4WmvzQvsv9Efu",
+//Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email"},
 //try - event -> add sound & confetti -Logiin
 
 //domen check - org, kz ru, etc
@@ -22,7 +25,6 @@ func main() {
 //обработать ошикбки, log & http errors check http etc
 
 //google acc signin -> -> back signin ? what??
-//start Auth
 //google token, client id, event signin Google, -> get data User,
 //Name. email, photo, -> then save Db. -> authorized Forum
 // Logout event, logout system, delete cookie, logout Google

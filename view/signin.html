@@ -11,7 +11,9 @@
 
         <span> OR </span>
 
-        <div class="g-signin2" data-onsuccess="onSignIn"></div>
+        <div > <a onclick="gSignin('google')"> Gogole Signin </a> </div>
+
+        <div type="hidden" class="g-signin2" data-onsuccess="onSignIn" ></div>
         <a href="#" onclick="signOut();">Sign out google</a>
 
         <span> OR </span>
@@ -37,33 +39,20 @@
             console.log('User signed out.');
         });
     }
-
-    function onSignIn(googleUser) {
-
-        var id_token = googleUser.getAuthResponse().id_token;
-        var profile = googleUser.getBasicProfile();
-        user.name = profile.getName()
-        user.image = profile.getImageUrl()
-        user.email = profile.getEmail()
-        user.type = "google"
-
-        //signin -> save DB, and him data, give access - forumX
-        // window.gapi.load('auth2', function () {
-        //     window.gapi.auth2
-        //         .init({
-        //             client_id: '272819090705-qu6arlmkvs66hc5fuvalv6liuf2n9fj8',
-        //         })
-        //         .then(() => console.log('init'), console.log('err'))
-        // })
-        //send fake fetch type google -> check receive data
-
-        fetch('http://localhost:6969/signin', {
+const  gSignin =(type) => {
+        user.type=type
+      fetch('http://localhost:6969/signin', {
             method: 'POST',
             body: JSON.stringify(user)
         })
-        //sendGoogleData(user)
-        console.log(user, "google user data ", id_token)
-    }
+         .then((response) => {
+                response.json()
+            })
+        .then( (res) => {console.log(res) })
+}
+
+//154015070566-3s9nqt7qoe3dlhopeje85buq89603hae.apps.googleusercontent.com
+//HtjxrjYxw8g4WmvzQvsv9Efu
 
     function sendGoogleData(user) {
 
