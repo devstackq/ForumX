@@ -14,12 +14,23 @@ import (
 	"unicode"
 
 	structure "github.com/devstackq/ForumX/general"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
 var (
 	DB   *sql.DB
 	err  error
 	temp = template.Must(template.ParseFiles("view/header.html", "view/category_post.html", "view/favorites.html", "view/404page.html", "view/update_post.html", "view/created_post.html", "view/comment_user.html", "view/profile_update.html", "view/search.html", "view/another_user.html", "view/profile.html", "view/signin.html", "view/signup.html", "view/filter.html", "view/post.html", "view/comment_post.html", "view/create_post.html", "view/footer.html", "view/index.html"))
+
+	GoogleConfig = &oauth2.Config{
+		RedirectURL:  "http://localhost:6969/userInfo",
+		ClientID:     "154015070566-3s9nqt7qoe3dlhopeje85buq89603hae",
+		ClientSecret: "HtjxrjYxw8g4WmvzQvsv9Efu",
+		Scopes: []string{"https://www.googleapis.com/auth/userinfo.email",
+			"https://www.googleapis.com/auth/userinfo.profile"},
+		Endpoint: google.Endpoint,
+	}
 )
 
 type API struct {
@@ -254,4 +265,30 @@ func IsImage(r *http.Request) []byte {
 		imgBytes = FileByte(r, "post")
 	}
 	return imgBytes
+}
+
+func IsRegistered(w http.ResponseWriter, r *http.Request, email string) bool {
+	//check email by unique, if have same email
+	checkEmail, err := DB.Query("SELECT email FROM users")
+	if err != nil {
+		log.Println(err)
+	}
+	var users []string
+	for checkEmail.Next() {
+		var emailDB string
+		err = checkEmail.Scan(&emailDB)
+		if err != nil {
+			log.Println(err.Error())
+		}
+		users = append(users, emailDB)
+	}
+
+	for _, v := range users {
+
+		if v == email {
+			log.Println(err)
+			return true
+		}
+	}
+	return false
 }

@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"encoding/base64"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -28,6 +29,7 @@ type User struct {
 	SVG         bool
 	Type        string
 	Temp        string
+	Name        string
 }
 
 //GetUserProfile proffunction
@@ -50,10 +52,12 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 		post.PostID = pid
 		likedPostArr = append(likedPostArr, post)
 	}
-
+	fmt.Println(s.UserID, "id", s.UUID)
 	err = DB.QueryRow("SELECT * FROM users WHERE id = ?", s.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.Password, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
-	if u.Image[0] == 60 {
-		u.SVG = true
+	if u.Image != nil {
+		if u.Image[0] == 60 {
+			u.SVG = true
+		}
 	}
 	u.Temp = u.CreatedTime.Format("2006 Jan _2 15:04:05")
 	u.ImageHTML = base64.StdEncoding.EncodeToString(u.Image)

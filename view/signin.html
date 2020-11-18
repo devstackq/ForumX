@@ -11,7 +11,9 @@
 
         <span> OR </span>
 
-        <div > <a onclick="gSignin('google')"> Gogole Signin </a> </div>
+        {{/* <div > <a onclick="gSignin('google')"> Gogole Signin </a> </div> */}}
+
+        <div > <a href="/gSignin"> Gogole Signin </a> </div>
 
         <div type="hidden" class="g-signin2" data-onsuccess="onSignIn" ></div>
         <a href="#" onclick="signOut();">Sign out google</a>
@@ -45,10 +47,7 @@ const  gSignin =(type) => {
             method: 'POST',
             body: JSON.stringify(user)
         })
-         .then((response) => {
-                response.json()
-            })
-        .then( (res) => {console.log(res) })
+    
 }
 
 //154015070566-3s9nqt7qoe3dlhopeje85buq89603hae.apps.googleusercontent.com

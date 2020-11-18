@@ -11,12 +11,12 @@ import (
 	"github.com/devstackq/ForumX/models"
 	util "github.com/devstackq/ForumX/utils"
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 )
 
 var (
 	GoogleConfig *oauth2.Config
 	oAuthState   = "pseudo-random"
+	defaultAuth  bool
 )
 
 //Signup system function
@@ -56,7 +56,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 						Image:    iB,
 						Password: r.FormValue("password"),
 					}
-					u.Signup(w, r)
+					u.Signup(w, r, true)
 					http.Redirect(w, r, "/signin", 302)
 				} else {
 					msg := "Password must be 8 symbols, 1 big, 1 special character, example: 9Password!"
@@ -90,6 +90,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if person.Type == "default" {
+				defaultAuth = true
 				u := models.User{
 					Email:    person.Email,
 					Password: person.Password,
@@ -97,20 +98,13 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 				u.Signin(w, r, true)
 
 			} else if person.Type == "google" {
-				GoogleLogin(w, r)
-			//	google email. google Name
-				u := models.User{
-					Email: person.Email,
-					FullName : 
-				}
-				u.Signin(w, r, false)
+				//	GoogleLogin(w, r)
 				//check if not exist user Db -> Signup else ->  Signin
-
 				fmt.Println("google auth", person.Type)
 			} else if person.Type == "github" {
 				fmt.Println("todo github auth")
 			}
-			//http.Redirect(w, r, "/profile", 200)
+			http.Redirect(w, r, "/profile", 200)
 		}
 	}
 }
@@ -120,7 +114,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 
 	if util.URLChecker(w, r, "/logout") {
 		if r.Method == "GET" {
-			models.Logout(w, r)
+			models.Logout(w, r, defaultAuth)
 			http.Redirect(w, r, "/", 302)
 		}
 	}
@@ -129,25 +123,24 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 //GoogleLogin func
 func GoogleLogin(w http.ResponseWriter, r *http.Request) {
 
-	GoogleConfig = &oauth2.Config{
-		RedirectURL:  "http://localhost:6969/userInfo",
-		ClientID:     "154015070566-3s9nqt7qoe3dlhopeje85buq89603hae",
-		ClientSecret: "HtjxrjYxw8g4WmvzQvsv9Efu",
-		Scopes: []string{"https://www.googleapis.com/auth/userinfo.email",
-			"https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.getAuthResponse().id_token"},
-		Endpoint: google.Endpoint,
-	}
-	// /"https://www.googleapis.com/auth/userinfo.getAuthResponse().id_token"},
-	//get data
-	// data, _ := http.Get(url)
-	fmt.Println(GoogleConfig.AuthCodeURL(oAuthState))
-	http.Redirect(w, r, GoogleConfig.AuthCodeURL(oAuthState), http.StatusTemporaryRedirect)
+	defaultAuth = false
+
+	// GoogleConfig = &oauth2.Config{
+	// 	RedirectURL:  "http://localhost:6969/userInfo",
+	// 	ClientID:     "154015070566-3s9nqt7qoe3dlhopeje85buq89603hae",
+	// 	ClientSecret: "HtjxrjYxw8g4WmvzQvsv9Efu",
+	// 	Scopes: []string{"https://www.googleapis.com/auth/userinfo.email",
+	// 		"https://www.googleapis.com/auth/userinfo.profile"},
+	// 	Endpoint: google.Endpoint,
+	// }
+	url := util.GoogleConfig.AuthCodeURL(oAuthState)
+	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
+
+// data, _ := http.Get(url)
 
 //GoogleUserData func
 func GoogleUserData(w http.ResponseWriter, r *http.Request) {
-
-	fmt.Println("google user data")
 
 	content, err := getUserInfo(r.FormValue("state"), r.FormValue("code"))
 	if err != nil {
@@ -155,9 +148,33 @@ func GoogleUserData(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
-	//delete id_token -> signout
-	fmt.Println(string(content), "res")
-	fmt.Fprintf(w, "Content: %s\n", content)
+	gData := models.User{}
+	json.Unmarshal(content, &gData)
+
+	if util.IsRegistered(w, r, gData.Email) {
+		//	google email. google Name
+		u := models.User{
+			Email:    gData.Email,
+			FullName: gData.Name,
+		}
+		u.Signin(w, r, false)
+		//	http.Redirect(w, r, "/profile", http.StatusTemporaryRedirect)
+	} else {
+		u := models.User{
+			Email:    gData.Email,
+			FullName: gData.Name,
+			Age:      16,
+			Sex:      "male",
+			City:     "Almaty",
+			Image:    util.FileByte(r, "user"),
+			Password: "",
+		}
+		u.Signup(w, r, false)
+		u.Signin(w, r, false)
+
+	}
+	http.Redirect(w, r, "/profile", 200)
+	//fmt.Fprintf(w, "Content: %s\n", content)
 }
 
 //delete token
@@ -167,10 +184,7 @@ func logoutGoogle(code string) {
 	if err != nil {
 		log.Println(err)
 	}
-	// auth2.getAuthInstance();
-	//     auth2.signOut()
-	// token.WithExtra()
-
+	fmt.Println(token, "delete Token")
 	//here delete token
 }
 
@@ -184,7 +198,6 @@ func getUserInfo(state, code string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("code exchange failed: %s", err.Error())
 	}
-	//here delete token
 
 	response, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + token.AccessToken)
 	if err != nil {

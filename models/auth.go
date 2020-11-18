@@ -10,16 +10,20 @@ import (
 	util "github.com/devstackq/ForumX/utils"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/oauth2"
 )
 
 //Signup func
-func (u *User) Signup(w http.ResponseWriter, r *http.Request) {
+func (u *User) Signup(w http.ResponseWriter, r *http.Request, authType bool) {
 
 	users := []User{}
+	var hashPwd []byte
 
-	hashPwd, err := bcrypt.GenerateFromPassword([]byte(u.Password), 8)
-	if err != nil {
-		log.Println(err)
+	if authType {
+		hashPwd, err = bcrypt.GenerateFromPassword([]byte(u.Password), 8)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 	//check email by unique, if have same email
 	checkEmail, err := DB.Query("SELECT email FROM users")
@@ -40,12 +44,14 @@ func (u *User) Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, v := range users {
+
 		if v.Email == u.Email {
 			msg = "Not unique email lel"
 			util.DisplayTemplate(w, "signup", &msg)
 			log.Println(err)
 		}
 	}
+	//fmt.Println(hashPwd, "Pwd")
 
 	_, err = DB.Exec("INSERT INTO users( full_name, email, password, age, sex, created_time, city, image) VALUES (?,?, ?, ?, ?, ?, ?, ?)",
 		u.FullName, u.Email, hashPwd, u.Age, u.Sex, time.Now(), u.City, u.Image)
@@ -59,17 +65,20 @@ func (u *User) Signup(w http.ResponseWriter, r *http.Request) {
 //Signin function
 func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, authType bool) {
 
-	u := DB.QueryRow("SELECT id, password FROM users WHERE email=?", uStr.Email)
+	u := DB.QueryRow("SELECT id FROM users WHERE email=?", uStr.Email)
 
 	var user User
 	var err error
-	//check pwd, if not correct, error
-	err = u.Scan(&user.ID, &user.Password)
-	if err != nil {
-		util.AuthError(w, err, "user not found")
-		return
-	}
+	err = u.Scan(&user.ID)
 	if authType {
+		u := DB.QueryRow("SELECT id, password FROM users WHERE email=?", uStr.Email)
+		//check pwd, if not correct, error
+		err = u.Scan(&user.Password)
+		if err != nil {
+			util.AuthError(w, err, "user not found")
+			return
+		}
+
 		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(uStr.Password))
 		if err != nil {
 			util.AuthError(w, err, "password incorrect")
@@ -113,7 +122,7 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, authType bool) 
 }
 
 //Logout function
-func Logout(w http.ResponseWriter, r *http.Request) {
+func Logout(w http.ResponseWriter, r *http.Request, authType bool) {
 
 	cookie, err := r.Cookie("_cookie")
 	if err != nil {
@@ -133,4 +142,15 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	}
 	// then delete cookie from client
 	util.DeleteCookie(w)
+
+	if !authType {
+here stop
+		fmt.Println(r.FormValue("code"), "Code")
+		token, err := util.GoogleConfig.Exchange(oauth2.NoContext, r.FormValue("code"))
+		if err != nil {
+			log.Println(err)
+		}
+		//delete token, exit,
+		fmt.Println(token)
+	}
 }

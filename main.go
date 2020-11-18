@@ -9,8 +9,11 @@ import (
 func main() {
 	config.Init()
 	controllers.Init()
-	//fmt.Println(googleConfig, "config")
 }
+
+//logoutGoogle -> delete googleTokenId,
+//userId wtf ? gUser
+//redirect fix -> after signup/signin
 
 //ClientID:     "154015070566-3s9nqt7qoe3dlhopeje85buq89603hae.apps.googleusercontent.com",
 //		ClientSecret: "HtjxrjYxw8g4WmvzQvsv9Efu",
