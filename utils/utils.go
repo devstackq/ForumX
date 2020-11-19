@@ -24,15 +24,16 @@ var (
 	temp = template.Must(template.ParseFiles("view/header.html", "view/category_post.html", "view/favorites.html", "view/404page.html", "view/update_post.html", "view/created_post.html", "view/comment_user.html", "view/profile_update.html", "view/search.html", "view/another_user.html", "view/profile.html", "view/signin.html", "view/signup.html", "view/filter.html", "view/post.html", "view/comment_post.html", "view/create_post.html", "view/footer.html", "view/index.html"))
 
 	GoogleConfig = &oauth2.Config{
-		RedirectURL:  "http://localhost:6969/userInfo",
+		RedirectURL:  "http://localhost:6969/googleUserInfo",
 		ClientID:     "154015070566-3s9nqt7qoe3dlhopeje85buq89603hae",
 		ClientSecret: "HtjxrjYxw8g4WmvzQvsv9Efu",
 		Scopes: []string{"https://www.googleapis.com/auth/userinfo.email",
 			"https://www.googleapis.com/auth/userinfo.profile"},
 		Endpoint: google.Endpoint,
 	}
-	Code  string
-	Token string
+	Code     string
+	Token    string
+	AuthType string
 )
 
 type API struct {

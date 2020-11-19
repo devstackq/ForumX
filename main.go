@@ -13,6 +13,7 @@ func main() {
 
 // Age, sex, picture, city, date ?
 //start github
+//delete id token, logouyt Github
 
 //try - event -> add sound & confetti -Logiin
 

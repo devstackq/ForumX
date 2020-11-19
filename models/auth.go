@@ -13,12 +13,12 @@ import (
 )
 
 //Signup func
-func (u *User) Signup(w http.ResponseWriter, r *http.Request, authType string) {
+func (u *User) Signup(w http.ResponseWriter, r *http.Request) {
 
 	users := []User{}
 	var hashPwd []byte
 
-	if authType == "default" {
+	if util.AuthType == "default" {
 		hashPwd, err = bcrypt.GenerateFromPassword([]byte(u.Password), 8)
 		if err != nil {
 			log.Println(err)
@@ -59,7 +59,7 @@ func (u *User) Signup(w http.ResponseWriter, r *http.Request, authType string) {
 }
 
 //Signin function
-func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, authType string) {
+func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 
 	u := DB.QueryRow("SELECT id FROM users WHERE email=?", uStr.Email)
 
@@ -67,18 +67,18 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, authType string
 	var err error
 
 	err = u.Scan(&user.ID)
-	if authType == "default" {
+	if util.AuthType == "default" {
 		u := DB.QueryRow("SELECT id, password FROM users WHERE email=?", uStr.Email)
 		//check pwd, if not correct, error
 		err = u.Scan(&user.ID, &user.Password)
 		if err != nil {
-			util.AuthError(w, r, err, "user not found", authType)
+			util.AuthError(w, r, err, "user not found", util.AuthType)
 			return
 		}
 
 		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(uStr.Password))
 		if err != nil {
-			util.AuthError(w, r, err, "password incorrect", authType)
+			util.AuthError(w, r, err, "password incorrect", util.AuthType)
 			return
 		}
 	}
@@ -88,21 +88,21 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, authType string
 	}
 	uuid := uuid.Must(uuid.NewV4(), err).String()
 	if err != nil {
-		util.AuthError(w, r, err, "uuid trouble", authType)
+		util.AuthError(w, r, err, "uuid trouble", util.AuthType)
 		return
 	}
 	//create uuid and set uid DB table session by userid,
 	_, err = DB.Exec("INSERT INTO session(uuid, user_id) VALUES (?, ?)", uuid, s.UserID)
 
 	if err != nil {
-		util.AuthError(w, r, err, "the user is already in the system", authType)
+		util.AuthError(w, r, err, "the user is already in the system", util.AuthType)
 		//get ssesion id, by local struct uuid
 		return
 	}
 	// get user in info by session Id
 	err = DB.QueryRow("SELECT id, uuid FROM session WHERE user_id = ?", s.UserID).Scan(&s.ID, &s.UUID)
 	if err != nil {
-		util.AuthError(w, r, err, "not find user from session", authType)
+		util.AuthError(w, r, err, "not find user from session", util.AuthType)
 		return
 	}
 
@@ -115,11 +115,12 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, authType string
 		HttpOnly: false,
 	}
 	http.SetCookie(w, &cookie)
-	util.AuthError(w, r, nil, "success", authType)
+	util.AuthError(w, r, nil, "success", util.AuthType)
+	fmt.Println(util.AuthType, "auth type")
 }
 
 //Logout function
-func Logout(w http.ResponseWriter, r *http.Request, authType string) {
+func Logout(w http.ResponseWriter, r *http.Request) {
 
 	cookie, err := r.Cookie("_cookie")
 	if err != nil {
@@ -140,8 +141,17 @@ func Logout(w http.ResponseWriter, r *http.Request, authType string) {
 	// then delete cookie from client
 	util.DeleteCookie(w)
 
-	if authType == "google" {
+	if util.AuthType == "google" {
 		_, err = http.Get("https://accounts.google.com/o/oauth2/revoke?token=" + util.Token)
+		if err != nil {
+			log.Println(err)
+		}
+	} else if util.AuthType == "github" {
+		fmt.Println("her", util.AuthType, util.Token)
+		here
+		_, err = http.Get("https://github.com/login/oauth/access_token=" + util.Token)
+		//	https://api.github.com/applications/CLIENT_ID/tokens/ACCESS_TOKEN
+
 		if err != nil {
 			log.Println(err)
 		}
