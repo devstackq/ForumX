@@ -3,7 +3,6 @@ package models
 import (
 	"database/sql"
 	"encoding/base64"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -16,7 +15,7 @@ import (
 type User struct {
 	ID          int
 	FullName    string
-	Email       string
+	Email       string `json:"email"`
 	Password    string
 	IsAdmin     bool
 	Age         int
@@ -29,8 +28,8 @@ type User struct {
 	SVG         bool
 	Type        string
 	Temp        string
-	Name        string
-	Token       string
+	Name        string `json:"name"`
+	Location    string `json:"location"`
 }
 
 //GetUserProfile proffunction
@@ -53,14 +52,13 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 		likedPostArr = append(likedPostArr, post)
 	}
 
-	fmt.Println(s.UserID, "id")
-	err = DB.QueryRow("SELECT * FROM users WHERE id = ?", s.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.Password, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
-	// Age, sex, picture, city, date ?
-	if u.Image != nil {
-		fmt.Println(s.UserID, "U", u.Image)
-		if u.Image[0] == 60 {
-			u.SVG = true
-		}
+	err = DB.QueryRow("SELECT id, full_name, email, isAdmin, age, sex, created_time, city, image  FROM users WHERE id = ?", s.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
+	//Age, sex, picture, city, date ?
+	if err != nil {
+		log.Println(err)
+	}
+	if u.Image[0] == 60 {
+		u.SVG = true
 	}
 	u.Temp = u.CreatedTime.Format("2006 Jan _2 15:04:05")
 	u.ImageHTML = base64.StdEncoding.EncodeToString(u.Image)

@@ -8,22 +8,17 @@
             <input id="password" type="password" name="password" placeholder="password">
             <button onclick="defAuthSendData()"> Login </button>
         </div>
-
         <span> OR </span>
-
-        {{/* <div > <a onclick="gSignin('google')"> Gogole Signin </a> </div> */}}
-
-        <div > <a href="/gSignin"> Gogole Signin </a> </div>
-
+        <div> <a href="/googleSignin"> Gogole Signin </a> </div>
         <span> OR </span>
-        <div class="github-signin"> Signin Github</div>
-        <p id="notify"></p>
+        <div class="github-signin"></div> <a href="/githubSignin"> Github Signin </a>
     </div>
+    <p id="notify"></p>
+</div>
 </div>
 
 {{template "footer"}}
 <script>
-
     let user = {
         name: '',
         image: null,
@@ -34,28 +29,25 @@
 
     function signOut() {
         var auth2 = gapi.auth2.getAuthInstance();
-        auth2.signOut().then(function () {
+        auth2.signOut().then(function() {
             console.log('User signed out.');
         });
     }
-const  gSignin =(type) => {
-        user.type=type
-      fetch('http://localhost:6969/signin', {
+    const gSignin = (type) => {
+        user.type = type
+        fetch('http://localhost:6969/signin', {
             method: 'POST',
             body: JSON.stringify(user)
         })
-            window.location.replace("http://localhost:6969/profile")
-}
-
-//154015070566-3s9nqt7qoe3dlhopeje85buq89603hae.apps.googleusercontent.com
-//HtjxrjYxw8g4WmvzQvsv9Efu
+        window.location.replace("http://localhost:6969/profile")
+    }
 
     function sendGoogleData(user) {
 
         fetch('http://localhost:6969/signin', {
-            method: 'post',
-            body: user,
-        })
+                method: 'post',
+                body: user,
+            })
             .then((response) => {
                 response.json()
             })
@@ -75,7 +67,7 @@ const  gSignin =(type) => {
             ns.innerText = msg
         } else {
             welcomeSound()
-            //sound & confetti
+                //sound & confetti
             window.location.replace("http://localhost:6969/profile")
         }
     }
