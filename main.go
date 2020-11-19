@@ -11,13 +11,9 @@ func main() {
 	controllers.Init()
 }
 
-//logoutGoogle -> delete googleTokenId,
-//userId wtf ? gUser
-//redirect fix -> after signup/signin
+// Age, sex, picture, city, date ?
+//start github
 
-//ClientID:     "154015070566-3s9nqt7qoe3dlhopeje85buq89603hae.apps.googleusercontent.com",
-//		ClientSecret: "HtjxrjYxw8g4WmvzQvsv9Efu",
-//Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email"},
 //try - event -> add sound & confetti -Logiin
 
 //domen check - org, kz ru, etc

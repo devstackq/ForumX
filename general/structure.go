@@ -1,9 +1,5 @@
 package structure
 
-import (
-	"database/sql"
-)
-
 //general model
 type Session struct {
 	ID     int
@@ -15,5 +11,4 @@ type Session struct {
 var API struct {
 	Authenticated bool
 	Message       string
-	DB            *sql.DB
 }

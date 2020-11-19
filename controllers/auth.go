@@ -14,9 +14,10 @@ import (
 )
 
 var (
-	GoogleConfig *oauth2.Config
-	oAuthState   = "pseudo-random"
-	defaultAuth  bool
+	//GoogleConfig *oauth2.Config
+	oAuthState  = "pseudo-random"
+	defaultAuth string
+	Code        string
 )
 
 //Signup system function
@@ -56,7 +57,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 						Image:    iB,
 						Password: r.FormValue("password"),
 					}
-					u.Signup(w, r, true)
+					u.Signup(w, r, "default")
 					http.Redirect(w, r, "/signin", 302)
 				} else {
 					msg := "Password must be 8 symbols, 1 big, 1 special character, example: 9Password!"
@@ -90,12 +91,12 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if person.Type == "default" {
-				defaultAuth = true
+				defaultAuth = "default"
 				u := models.User{
 					Email:    person.Email,
 					Password: person.Password,
 				}
-				u.Signin(w, r, true)
+				u.Signin(w, r, "default")
 
 			} else if person.Type == "google" {
 				//	GoogleLogin(w, r)
@@ -104,7 +105,6 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 			} else if person.Type == "github" {
 				fmt.Println("todo github auth")
 			}
-			http.Redirect(w, r, "/profile", 200)
 		}
 	}
 }
@@ -123,26 +123,18 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 //GoogleLogin func
 func GoogleLogin(w http.ResponseWriter, r *http.Request) {
 
-	defaultAuth = false
-
-	// GoogleConfig = &oauth2.Config{
-	// 	RedirectURL:  "http://localhost:6969/userInfo",
-	// 	ClientID:     "154015070566-3s9nqt7qoe3dlhopeje85buq89603hae",
-	// 	ClientSecret: "HtjxrjYxw8g4WmvzQvsv9Efu",
-	// 	Scopes: []string{"https://www.googleapis.com/auth/userinfo.email",
-	// 		"https://www.googleapis.com/auth/userinfo.profile"},
-	// 	Endpoint: google.Endpoint,
-	// }
+	defaultAuth = "google"
 	url := util.GoogleConfig.AuthCodeURL(oAuthState)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
-
-// data, _ := http.Get(url)
 
 //GoogleUserData func
 func GoogleUserData(w http.ResponseWriter, r *http.Request) {
 
 	content, err := getUserInfo(r.FormValue("state"), r.FormValue("code"))
+
+	util.Code = r.FormValue("code")
+
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
@@ -152,13 +144,11 @@ func GoogleUserData(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(content, &gData)
 
 	if util.IsRegistered(w, r, gData.Email) {
-		//	google email. google Name
 		u := models.User{
 			Email:    gData.Email,
 			FullName: gData.Name,
 		}
-		u.Signin(w, r, false)
-		//	http.Redirect(w, r, "/profile", http.StatusTemporaryRedirect)
+		u.Signin(w, r, "google")
 	} else {
 		u := models.User{
 			Email:    gData.Email,
@@ -167,25 +157,10 @@ func GoogleUserData(w http.ResponseWriter, r *http.Request) {
 			Sex:      "male",
 			City:     "Almaty",
 			Image:    util.FileByte(r, "user"),
-			Password: "",
 		}
-		u.Signup(w, r, false)
-		u.Signin(w, r, false)
-
+		u.Signup(w, r, "google")
+		u.Signin(w, r, "google")
 	}
-	http.Redirect(w, r, "/profile", 200)
-	//fmt.Fprintf(w, "Content: %s\n", content)
-}
-
-//delete token
-func logoutGoogle(code string) {
-
-	token, err := GoogleConfig.Exchange(oauth2.NoContext, code)
-	if err != nil {
-		log.Println(err)
-	}
-	fmt.Println(token, "delete Token")
-	//here delete token
 }
 
 func getUserInfo(state, code string) ([]byte, error) {
@@ -194,10 +169,11 @@ func getUserInfo(state, code string) ([]byte, error) {
 		return nil, fmt.Errorf("invalid oauth state")
 	}
 
-	token, err := GoogleConfig.Exchange(oauth2.NoContext, code)
+	token, err := util.GoogleConfig.Exchange(oauth2.NoContext, code)
 	if err != nil {
 		return nil, fmt.Errorf("code exchange failed: %s", err.Error())
 	}
+	util.Token = token.AccessToken
 
 	response, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + token.AccessToken)
 	if err != nil {
@@ -210,5 +186,4 @@ func getUserInfo(state, code string) ([]byte, error) {
 		return nil, fmt.Errorf("failed reading response body: %s", err.Error())
 	}
 	return contents, nil
-
 }
