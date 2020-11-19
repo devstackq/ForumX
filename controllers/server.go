@@ -5,21 +5,6 @@ import (
 	"net/http"
 )
 
-// type Server struct {
-// 	config *config.Config
-// }
-
-// func New(conf *config.Config) *Server {
-// 	return &Server{
-// 		config: conf,
-// 	}
-// }
-
-// func (s *Server) Run() error {
-// 	return nil
-// }
-
-//handlers
 //mux own server,  route init  - google, config FileServer
 //handlers
 func Init() {
@@ -51,7 +36,6 @@ func Init() {
 	http.HandleFunc("/logout", Logout)
 
 	http.HandleFunc("/gSignin", GoogleLogin)
-
 	http.HandleFunc("/userInfo", GoogleUserData)
 
 	// http.HandleFunc("/chat", routing.StartChat)

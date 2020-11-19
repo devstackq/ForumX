@@ -10,16 +10,15 @@ import (
 	util "github.com/devstackq/ForumX/utils"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
-	"golang.org/x/oauth2"
 )
 
 //Signup func
-func (u *User) Signup(w http.ResponseWriter, r *http.Request, authType bool) {
+func (u *User) Signup(w http.ResponseWriter, r *http.Request, authType string) {
 
 	users := []User{}
 	var hashPwd []byte
 
-	if authType {
+	if authType == "default" {
 		hashPwd, err = bcrypt.GenerateFromPassword([]byte(u.Password), 8)
 		if err != nil {
 			log.Println(err)
@@ -44,14 +43,12 @@ func (u *User) Signup(w http.ResponseWriter, r *http.Request, authType bool) {
 	}
 
 	for _, v := range users {
-
 		if v.Email == u.Email {
 			msg = "Not unique email lel"
 			util.DisplayTemplate(w, "signup", &msg)
 			log.Println(err)
 		}
 	}
-	//fmt.Println(hashPwd, "Pwd")
 
 	_, err = DB.Exec("INSERT INTO users( full_name, email, password, age, sex, created_time, city, image) VALUES (?,?, ?, ?, ?, ?, ?, ?)",
 		u.FullName, u.Email, hashPwd, u.Age, u.Sex, time.Now(), u.City, u.Image)
@@ -59,29 +56,29 @@ func (u *User) Signup(w http.ResponseWriter, r *http.Request, authType bool) {
 	if err != nil {
 		log.Println(err)
 	}
-
 }
 
 //Signin function
-func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, authType bool) {
+func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, authType string) {
 
 	u := DB.QueryRow("SELECT id FROM users WHERE email=?", uStr.Email)
 
 	var user User
 	var err error
+
 	err = u.Scan(&user.ID)
-	if authType {
+	if authType == "default" {
 		u := DB.QueryRow("SELECT id, password FROM users WHERE email=?", uStr.Email)
 		//check pwd, if not correct, error
-		err = u.Scan(&user.Password)
+		err = u.Scan(&user.ID, &user.Password)
 		if err != nil {
-			util.AuthError(w, err, "user not found")
+			util.AuthError(w, r, err, "user not found", authType)
 			return
 		}
 
 		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(uStr.Password))
 		if err != nil {
-			util.AuthError(w, err, "password incorrect")
+			util.AuthError(w, r, err, "password incorrect", authType)
 			return
 		}
 	}
@@ -91,21 +88,21 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, authType bool) 
 	}
 	uuid := uuid.Must(uuid.NewV4(), err).String()
 	if err != nil {
-		util.AuthError(w, err, "uuid trouble")
+		util.AuthError(w, r, err, "uuid trouble", authType)
 		return
 	}
 	//create uuid and set uid DB table session by userid,
 	_, err = DB.Exec("INSERT INTO session(uuid, user_id) VALUES (?, ?)", uuid, s.UserID)
 
 	if err != nil {
-		util.AuthError(w, err, "the user is already in the system")
+		util.AuthError(w, r, err, "the user is already in the system", authType)
 		//get ssesion id, by local struct uuid
 		return
 	}
 	// get user in info by session Id
 	err = DB.QueryRow("SELECT id, uuid FROM session WHERE user_id = ?", s.UserID).Scan(&s.ID, &s.UUID)
 	if err != nil {
-		util.AuthError(w, err, "not find user from session")
+		util.AuthError(w, r, err, "not find user from session", authType)
 		return
 	}
 
@@ -118,11 +115,11 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, authType bool) 
 		HttpOnly: false,
 	}
 	http.SetCookie(w, &cookie)
-	util.AuthError(w, nil, "success")
+	util.AuthError(w, r, nil, "success", authType)
 }
 
 //Logout function
-func Logout(w http.ResponseWriter, r *http.Request, authType bool) {
+func Logout(w http.ResponseWriter, r *http.Request, authType string) {
 
 	cookie, err := r.Cookie("_cookie")
 	if err != nil {
@@ -143,14 +140,10 @@ func Logout(w http.ResponseWriter, r *http.Request, authType bool) {
 	// then delete cookie from client
 	util.DeleteCookie(w)
 
-	if !authType {
-here stop
-		fmt.Println(r.FormValue("code"), "Code")
-		token, err := util.GoogleConfig.Exchange(oauth2.NoContext, r.FormValue("code"))
+	if authType == "google" {
+		_, err = http.Get("https://accounts.google.com/o/oauth2/revoke?token=" + util.Token)
 		if err != nil {
 			log.Println(err)
 		}
-		//delete token, exit,
-		fmt.Println(token)
 	}
 }

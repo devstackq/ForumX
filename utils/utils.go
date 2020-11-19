@@ -31,6 +31,8 @@ var (
 			"https://www.googleapis.com/auth/userinfo.profile"},
 		Endpoint: google.Endpoint,
 	}
+	Code  string
+	Token string
 )
 
 type API struct {
@@ -171,24 +173,27 @@ func FileByte(r *http.Request, typePhoto string) []byte {
 	if err != nil {
 		log.Println(err)
 	}
-
 	return imgBytes
 }
 
 //AuthError show auth error
-func AuthError(w http.ResponseWriter, err error, text string) {
+func AuthError(w http.ResponseWriter, r *http.Request, err error, text string, authType string) {
 
 	fmt.Println(text, "errka auth")
-	w.Header().Set("Content-Type", "application/json")
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		m, _ := json.Marshal(text)
-		w.Write(m)
-		return
+	if authType == "default" {
+		w.Header().Set("Content-Type", "application/json")
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			m, _ := json.Marshal(text)
+			w.Write(m)
+			return
+		} else {
+			w.WriteHeader(200)
+			m, _ := json.Marshal(text)
+			w.Write(m)
+		}
 	} else {
-		w.WriteHeader(200)
-		m, _ := json.Marshal(text)
-		w.Write(m)
+		http.Redirect(w, r, "/profile", 302)
 	}
 }
 

@@ -15,9 +15,6 @@
 
         <div > <a href="/gSignin"> Gogole Signin </a> </div>
 
-        <div type="hidden" class="g-signin2" data-onsuccess="onSignIn" ></div>
-        <a href="#" onclick="signOut();">Sign out google</a>
-
         <span> OR </span>
         <div class="github-signin"> Signin Github</div>
         <p id="notify"></p>
@@ -47,7 +44,7 @@ const  gSignin =(type) => {
             method: 'POST',
             body: JSON.stringify(user)
         })
-    
+            window.location.replace("http://localhost:6969/profile")
 }
 
 //154015070566-3s9nqt7qoe3dlhopeje85buq89603hae.apps.googleusercontent.com

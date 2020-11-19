@@ -30,6 +30,7 @@ type User struct {
 	Type        string
 	Temp        string
 	Name        string
+	Token       string
 }
 
 //GetUserProfile proffunction
@@ -41,7 +42,6 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
 	likedPostArr := []Votes{}
 
-	//count dislike equal 0 - add query
 	likedpost, err := DB.Query("select post_id from voteState where user_id =? and like_state =?", s.UserID, 1)
 	defer likedpost.Close()
 
@@ -52,9 +52,12 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 		post.PostID = pid
 		likedPostArr = append(likedPostArr, post)
 	}
-	fmt.Println(s.UserID, "id", s.UUID)
+
+	fmt.Println(s.UserID, "id")
 	err = DB.QueryRow("SELECT * FROM users WHERE id = ?", s.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.Password, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
+	// Age, sex, picture, city, date ?
 	if u.Image != nil {
+		fmt.Println(s.UserID, "U", u.Image)
 		if u.Image[0] == 60 {
 			u.SVG = true
 		}
