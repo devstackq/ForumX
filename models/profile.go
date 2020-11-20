@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"encoding/base64"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -32,7 +33,17 @@ type User struct {
 	Location    string `json:"location"`
 }
 
-//GetUserProfile proffunction
+type Notify struct {
+	ID          int
+	PostID      int
+	CommentID   int
+	UserLostID  int
+	voteState   int
+	CreatedTime string
+	ToWhom      int
+}
+
+//GetUserProfile function
 func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie) ([]Post, []Post, []Comment, User, error) {
 
 	//time.AfterFunc(10, checkCookieLife(cookie, w, r)) try check every 30 min cookie
@@ -109,6 +120,7 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 	}
 
 	cSmtp, err := DB.Query("SELECT * FROM comments WHERE user_idx=?", s.UserID)
+
 	var comments []Comment
 	defer cSmtp.Close()
 
@@ -119,11 +131,29 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 		if err != nil {
 			log.Println(err.Error())
 		}
-
 		comment = AppendComment(id, content, postID, userID, createdTime, like, dislike, title)
 		comments = append(comments, comment)
 	}
+	//------------------
+	var notifies []Notify
+	nQuery, err := DB.Query("SELECT * FROM notify WHERE to_whom=?", s.UserID)
 
+	
+	write if commentId || voteState == 0 -> from Db
+
+	for nQuery.Next() {
+		n := Notify{}
+
+		nQuery.Scan(&n.ID, &n.PostID, &n.CommentID, &n.UserLostID, &n.voteState, &n.CreatedTime, &n.ToWhom)
+		// nQuery.Scan(&id, &pid, &cid, &uslid, &vs, &crtm, &tw)
+
+		notifies = append(notifies, n)
+	}
+	fmt.Println(notifies, "notidy arr")
+
+	// if to_whom == currUser_id ? -> notify_table -> send Client, liked/dislieked post || comment -> UserID
+	//check if CommentID == nil && voteState != nil 2 case if CommentID !=nil && voteState == nil -> show Comment Post User
+	//--------------------
 	if err != nil {
 		return nil, nil, nil, u, err
 	}
@@ -134,12 +164,13 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 //GetAnotherProfile other user data
 func (user *User) GetAnotherProfile(r *http.Request) ([]Post, User, error) {
 
-	userQR := DB.QueryRow("SELECT * FROM users WHERE id = ?", user.Temp)
+	//userQR := DB.QueryRow("SELECT * FROM users WHERE id = ?", user.Temp)
 
 	u := User{}
 	postsU := []Post{}
 
-	err = userQR.Scan(&u.ID, &u.FullName, &u.Email, &u.Password, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
+	//err = userQR.Scan(&u.ID, &u.FullName, &u.Email, &u.Password, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
+	err = DB.QueryRow("SELECT id, full_name, email, isAdmin, age, sex, created_time, city, image  FROM users WHERE id = ?", user.Temp).Scan(&u.ID, &u.FullName, &u.Email, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
 	if u.Image[0] == 60 {
 		u.SVG = true
 	}

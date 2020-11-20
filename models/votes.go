@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	structure "github.com/devstackq/ForumX/general"
 )
@@ -19,6 +20,7 @@ type Votes struct {
 	CommentID    int
 	OldLike      int
 	OldDislike   int
+	CreatorID    int
 }
 
 //VoteDislike func
@@ -85,6 +87,8 @@ func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s struc
 		}
 	}
 }
+
+//VoteLike func
 func VoteLike(w http.ResponseWriter, r *http.Request, id, any string, s structure.Session) {
 
 	vote := Votes{}
@@ -96,8 +100,17 @@ func VoteLike(w http.ResponseWriter, r *http.Request, id, any string, s structur
 	DB.QueryRow("SELECT id FROM voteState where "+field+"=? and user_id=?", id, s.UserID).Scan(&vote.ID)
 
 	if vote.ID == 0 {
-		fmt.Println(vote.ID, s.UserID, "start", id, table, "table", "init Like field", field)
+		//-------------------
+		// first Like  test Post -> like post, notify, postCreatedUserId
+		err = DB.QueryRow("SELECT creator_id FROM "+table+"  WHERE id=?", id).Scan(&vote.CreatorID)
 
+		if any == "post" && vote.CreatorID != 0 {
+			_, err = DB.Exec("INSERT INTO notify( post_id,  current_user_id, voteState, created_time, to_whom  ) VALUES(?, ?, ?, ?, ?)", id, s.UserID, 1, time.Now(), vote.CreatorID)
+		}
+		fmt.Println(id, s.UserID, 1, time.Now(), vote.CreatorID, "notify table")
+		//-------------------
+
+		fmt.Println(vote.ID, s.UserID, "start", id, table, "table", "init Like field", field)
 		_, err = DB.Exec("INSERT INTO voteState( "+field+", user_id, like_state, dislike_state) VALUES(?, ?, ?, ?)", id, s.UserID, 1, 0)
 		err = DB.QueryRow("SELECT count_like FROM "+table+" WHERE id=?", id).Scan(&vote.OldLike)
 		_, err = DB.Exec("UPDATE "+table+" SET count_like=? WHERE id=?", vote.OldLike+1, id)
@@ -141,10 +154,5 @@ func VoteLike(w http.ResponseWriter, r *http.Request, id, any string, s structur
 			_, err = DB.Exec("UPDATE "+table+" SET count_like=? WHERE id=?", vote.OldLike, id)
 			_, err = DB.Exec("UPDATE voteState SET like_state = ?, dislike_state=? WHERE "+field+"= ?  and user_id=?", 1, 0, id, s.UserID)
 		}
-
 	}
 }
-
-//Likes table, filed posrid, userid, state_id
-// 0,1,2 if state ==0, 1 || 2,
-// next btn, if 1 == 1, state =0

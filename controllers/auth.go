@@ -98,7 +98,6 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 					Password: person.Password,
 				}
 				u.Signin(w, r)
-
 			}
 		}
 	}
@@ -124,6 +123,7 @@ func GoogleSignin(w http.ResponseWriter, r *http.Request) {
 
 //GoogleUserData func
 func GoogleUserData(w http.ResponseWriter, r *http.Request) {
+
 	util.AuthType = "google"
 	content, err := getUserInfo(r.FormValue("state"), r.FormValue("code"))
 	util.Code = r.FormValue("code")
@@ -137,7 +137,6 @@ func GoogleUserData(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(content, &googleData)
 
 	SigninSideService(w, r, googleData)
-
 }
 
 func getUserInfo(state, code string) ([]byte, error) {
@@ -172,6 +171,7 @@ func GithubSignin(w http.ResponseWriter, r *http.Request) {
 }
 
 func GithubUserData(w http.ResponseWriter, r *http.Request) {
+
 	util.AuthType = "github"
 	reqBody := map[string]string{"client_id": "b8f04afed4e89468b1cf", "client_secret": "6ab9cf0c812fbf5ed4e44aea599c418bd3d8cf08", "code": r.URL.Query().Get("code")}
 	reqJSON, _ := json.Marshal(reqBody)

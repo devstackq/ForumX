@@ -18,7 +18,7 @@ func (u *User) Signup(w http.ResponseWriter, r *http.Request) {
 	users := []User{}
 	var hashPwd []byte
 
-	if util.AuthType == "default" {
+	if util.AuthType != "google" && util.AuthType != "github" {
 		hashPwd, err = bcrypt.GenerateFromPassword([]byte(u.Password), 8)
 		if err != nil {
 			log.Println(err)
@@ -143,15 +143,6 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 
 	if util.AuthType == "google" {
 		_, err = http.Get("https://accounts.google.com/o/oauth2/revoke?token=" + util.Token)
-		if err != nil {
-			log.Println(err)
-		}
-	} else if util.AuthType == "github" {
-		fmt.Println("her", util.AuthType, util.Token)
-		here
-		_, err = http.Get("https://github.com/login/oauth/access_token=" + util.Token)
-		//	https://api.github.com/applications/CLIENT_ID/tokens/ACCESS_TOKEN
-
 		if err != nil {
 			log.Println(err)
 		}
