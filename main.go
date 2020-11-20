@@ -11,24 +11,17 @@ func main() {
 	controllers.Init()
 }
 
-// Age, sex, picture, city, date ?
-//start github
-//delete id token, logouyt Github
+//ref 	nQuery.Scan(&n.ID, &n.PostID, &n.CommentID, &n.UserLostID, &n.voteState, &n.CreatedTime, &n.ToWhom) -> like this
+//start adv feat
+// 1 show notify  like/dislike post, comment, Lost comment by post
+// 2 activity page -> show user created post?comment, liked, disliked post/comment,
+// 3 add - func, update/delete -> comment/post
+//3.1 link another post -> show
 
-//try - event -> add sound & confetti -Logiin
-
-//domen check - org, kz ru, etc
+//try - event -> add sound & confetti -Login
 // save photo, like - source DB refactor
 //config, router refactor
-
 //if cookie = 0, notify message  user, logout etc
-//обработать ошикбки, log & http errors check http etc
-
-//google acc signin -> -> back signin ? what??
-//google token, client id, event signin Google, -> get data User,
-//Name. email, photo, -> then save Db. -> authorized Forum
-// Logout event, logout system, delete cookie, logout Google
-//272819090705-qu6arlmkvs66hc5fuvalv6liuf2n9fj8.apps.googleusercontent.com   || W42c6sfYqhPc4O5wXMobY3av
 
 // 1 request, 910 additional, 0904 - 101202 ->
 // 2 request -7575
