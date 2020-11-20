@@ -41,6 +41,8 @@ type Notify struct {
 	voteState   int
 	CreatedTime string
 	ToWhom      int
+	PostTitle string
+	UserLost string
 }
 
 //GetUserProfile function
@@ -119,38 +121,55 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 		postsCreated = append(postsCreated, postCr)
 	}
 
-	cSmtp, err := DB.Query("SELECT * FROM comments WHERE user_idx=?", s.UserID)
+	commentQuery, err := DB.Query("SELECT * FROM comments WHERE user_idx=?", s.UserID)
 
 	var comments []Comment
-	defer cSmtp.Close()
+	var cmt Comment
+	defer commentQuery.Close()
 
-	for cSmtp.Next() {
+	for commentQuery.Next() {
 
-		err = cSmtp.Scan(&id, &content, &postID, &userID, &createdTime, &like, &dislike)
+		err = commentQuery.Scan(&id, &content, &postID, &userID, &createdTime, &like, &dislike)
 		err = DB.QueryRow("SELECT title FROM posts WHERE id = ?", postID).Scan(&title)
 		if err != nil {
 			log.Println(err.Error())
 		}
-		comment = AppendComment(id, content, postID, userID, createdTime, like, dislike, title)
+
+		err = commentQuery.Scan(&cmt.ID, &cmt.Content, &cmt.PostID, &cmt.UserID, &cmt.CreatedTime, &cmt.Like, &cmt.Dislike)
 		comments = append(comments, comment)
 	}
 	//------------------
 	var notifies []Notify
 	nQuery, err := DB.Query("SELECT * FROM notify WHERE to_whom=?", s.UserID)
 
-	
-	write if commentId || voteState == 0 -> from Db
-
+//	write if commentId || voteState == 0 -> from Db
 	for nQuery.Next() {
 		n := Notify{}
-
-		nQuery.Scan(&n.ID, &n.PostID, &n.CommentID, &n.UserLostID, &n.voteState, &n.CreatedTime, &n.ToWhom)
-		// nQuery.Scan(&id, &pid, &cid, &uslid, &vs, &crtm, &tw)
-
+		err = nQuery.Scan(&n.ID, &n.PostID,  &n.UserLostID, &n.voteState, &n.CreatedTime, &n.ToWhom, &n.CommentID)
+		if err !=nil {
+			log.Println(err)
+		}
 		notifies = append(notifies, n)
 	}
 	fmt.Println(notifies, "notidy arr")
-
+	//send client history(list) Likes/Dislikes
+	for _, v := range notifies {
+		n := Notify{}
+		//like/dislike case
+		if  v.voteState == 1 {
+			
+			err = DB.QueryRow("SELECT title FROM posts WHERE id = ?", v.PostID).Scan(&n.PostTitle)
+			//get postTitle, by postID, / get userLost Name, - uid /
+			err = DB.QueryRow("SELECT full_name FROM users WHERE id = ?", v.UserLostID).Scan(&n.UserLost)
+			fmt.Println("user: ", n.UserLost,  " lost like yiur post : ",  n.PostTitle, " in ", v.CreatedTime, "")
+		}
+		if  v.voteState == 2 {
+			fmt.Println()
+		}
+		// if v.CommentID > 0 {
+		// }
+	}
+	//lops@mail.com
 	// if to_whom == currUser_id ? -> notify_table -> send Client, liked/dislieked post || comment -> UserID
 	//check if CommentID == nil && voteState != nil 2 case if CommentID !=nil && voteState == nil -> show Comment Post User
 	//--------------------

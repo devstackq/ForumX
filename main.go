@@ -11,10 +11,13 @@ func main() {
 	controllers.Init()
 }
 
-//ref 	nQuery.Scan(&n.ID, &n.PostID, &n.CommentID, &n.UserLostID, &n.voteState, &n.CreatedTime, &n.ToWhom) -> like this
-//start adv feat
+//ref 	nQuery.Scan(&n.ID, &n.PostID, &n.CommentID, &n.UserLostID, &n.voteState, &n.CreatedTime, &n.ToWhom) -> like this -> REFactor
+//voteState 1 - like, 2 dislike
+//1 todo 1 time -> set like / dislike - notify/ like, dislike case 
+fix -> like =0, dislike =1, like & dislike = 0 etc
+
 // 1 show notify  like/dislike post, comment, Lost comment by post
-// 2 activity page -> show user created post?comment, liked, disliked post/comment,
+// 2 activity page -> show user created post?comment, liked, disliked post/comment
 // 3 add - func, update/delete -> comment/post
 //3.1 link another post -> show
 
