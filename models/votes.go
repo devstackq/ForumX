@@ -105,7 +105,7 @@ func VoteLike(w http.ResponseWriter, r *http.Request, id, any string, s structur
 		err = DB.QueryRow("SELECT creator_id FROM "+table+"  WHERE id=?", id).Scan(&vote.CreatorID)
 
 		if any == "post" && vote.CreatorID != 0 {
-			_, err = DB.Exec("INSERT INTO notify( post_id,  current_user_id, voteState, created_time, to_whom  ) VALUES(?, ?, ?, ?, ?)", id, s.UserID, 1, time.Now(), vote.CreatorID)
+			_, err = DB.Exec("INSERT INTO notify( post_id,  current_user_id, voteState, created_time, to_whom, comment_id) VALUES(?, ?, ?,?, ?, ?)", id, s.UserID, 1, time.Now(), vote.CreatorID, 0)
 		}
 		fmt.Println(id, s.UserID, 1, time.Now(), vote.CreatorID, "notify table")
 		//-------------------
@@ -154,5 +154,15 @@ func VoteLike(w http.ResponseWriter, r *http.Request, id, any string, s structur
 			_, err = DB.Exec("UPDATE "+table+" SET count_like=? WHERE id=?", vote.OldLike, id)
 			_, err = DB.Exec("UPDATE voteState SET like_state = ?, dislike_state=? WHERE "+field+"= ?  and user_id=?", 1, 0, id, s.UserID)
 		}
+		//------------
+		err = DB.QueryRow("SELECT creator_id FROM "+table+"  WHERE id=?", id).Scan(&vote.CreatorID)
+	//	err = DB.QueryRow("SELECT creator_id FROM notify  WHERE id=?", id).Scan(&vote.CreatorID)
+		
+
+		if any == "post" && vote.CreatorID != 0 {
+			_, err = DB.Exec("INSERT INTO notify( post_id,  current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?,?, ?, ?, ?, ?)", id, s.UserID, 1, time.Now(), vote.CreatorID,0)
+		}
+		fmt.Println(id, s.UserID, 1, time.Now(), vote.CreatorID, "notify table Else case")
+		//-------------
 	}
 }
