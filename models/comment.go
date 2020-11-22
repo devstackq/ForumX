@@ -10,7 +10,6 @@ type Comment struct {
 	Content string
 	PostID  int
 	UserID  int
-	//CreatedTime time.Time
 	Author      string
 	Like        int
 	Dislike     int
@@ -20,12 +19,15 @@ type Comment struct {
 
 //LeaveComment for post by id
 func (c *Comment) LeaveComment() error {
-	_, err := DB.Exec("INSERT INTO comments(content, post_id, user_idx, created_time) VALUES(?,?,?,?)",
+	_, err := DB.Exec("INSERT INTO comments(content, post_id, creator_id, created_time) VALUES(?,?,?,?)",
 		c.Content, c.PostID, c.UserID, time.Now())
 	if err != nil {
 		return err
 	}
+	//util.SetCommentNotify(any, vote.CreatorID, s.UserID, pid, false)
+
 	return nil
+
 }
 
 //AppendComment helper func

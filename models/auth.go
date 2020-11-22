@@ -19,6 +19,8 @@ func (u *User) Signup(w http.ResponseWriter, r *http.Request) {
 	var hashPwd []byte
 
 	if util.AuthType != "google" && util.AuthType != "github" {
+		fmt.Print(u.Password, "pwd")
+		
 		hashPwd, err = bcrypt.GenerateFromPassword([]byte(u.Password), 8)
 		if err != nil {
 			log.Println(err)

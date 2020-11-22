@@ -43,6 +43,7 @@ type Notify struct {
 	ToWhom      int
 	PostTitle string
 	UserLost string
+	CommentTitle string
 }
 
 //GetUserProfile function
@@ -121,7 +122,7 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 		postsCreated = append(postsCreated, postCr)
 	}
 
-	commentQuery, err := DB.Query("SELECT * FROM comments WHERE user_idx=?", s.UserID)
+	commentQuery, err := DB.Query("SELECT * FROM comments WHERE creator_id=?", s.UserID)
 
 	var comments []Comment
 	var cmt Comment
@@ -156,15 +157,24 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 	for _, v := range notifies {
 		n := Notify{}
 		//like/dislike case
-		if  v.voteState == 1 {
-			
-			err = DB.QueryRow("SELECT title FROM posts WHERE id = ?", v.PostID).Scan(&n.PostTitle)
+		err = DB.QueryRow("SELECT title FROM posts WHERE id = ?", v.PostID).Scan(&n.PostTitle)
+
+		err = DB.QueryRow("SELECT title FROM comments WHERE id = ?", v.CommentID).Scan(&n.CommentTitle)
 			//get postTitle, by postID, / get userLost Name, - uid /
 			err = DB.QueryRow("SELECT full_name FROM users WHERE id = ?", v.UserLostID).Scan(&n.UserLost)
-			fmt.Println("user: ", n.UserLost,  " lost like yiur post : ",  n.PostTitle, " in ", v.CreatedTime, "")
+
+		if  v.voteState == 1 && v.PostID !=0{
+			fmt.Println("user: ", n.UserLost,  " lost liked your post : ",  n.PostTitle, " in ", v.CreatedTime, "")
 		}
-		if  v.voteState == 2 {
-			fmt.Println()
+		if  v.voteState == 2  && v.PostID != 0{
+			fmt.Println("user: ", n.UserLost,  " lost Dislike your post : ",  n.PostTitle, " in ", v.CreatedTime, "")
+		}
+
+		if  v.voteState == 1 && v.CommentID !=0{
+			fmt.Println("user: ", n.UserLost,  " lost liked your COmment : ",  n.CommentTitle, " in ", v.CreatedTime, "")
+		}
+		if  v.voteState == 2  && v.CommentID != 0{
+			fmt.Println("user: ", n.UserLost,  " lost Dislike your Comment : ",  n.CommentTitle, " in ", v.CreatedTime, "")
 		}
 		// if v.CommentID > 0 {
 		// }
@@ -229,7 +239,7 @@ func (u *User) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 
 	_, err = DB.Exec("DELETE FROM  session  WHERE user_id=?", u.ID)
 	_, err = DB.Exec("DELETE FROM  voteState  WHERE user_id=?", u.ID)
-	_, err = DB.Exec("DELETE FROM  comments  WHERE user_idx=?", u.ID)
+	_, err = DB.Exec("DELETE FROM  comments  WHERE creator_id=?", u.ID)
 	_, err = DB.Exec("DELETE FROM  users  WHERE id=?", u.ID)
 
 	if err != nil {
