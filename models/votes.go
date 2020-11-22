@@ -35,7 +35,6 @@ func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s struc
 
 	err = DB.QueryRow("SELECT creator_id FROM "+table+"  WHERE id=?", id).Scan(&vote.CreatorID)
 	objID, _:= strconv.Atoi(id)
-fmt.Println(objID, "OBJID")
 
 	if vote.ID == 0 {
 		fmt.Println(vote.ID, s.UserID, "start", objID, table, "table", "init Dislike field", field)
