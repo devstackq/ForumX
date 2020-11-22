@@ -17,7 +17,6 @@ func main() {
 //fix -> like =0, dislike =1, like & dislike = 0 etc
 //todo comment - for post -> notify
 
-
 // 1 show notify  like/dislike post, comment, Lost comment by post
 // 2 activity page -> show user created post?comment, liked, disliked post/comment
 // 3 add - func, update/delete -> comment/post
