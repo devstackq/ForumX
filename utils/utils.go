@@ -21,7 +21,7 @@ import (
 var (
 	DB   *sql.DB
 	err  error
-	temp = template.Must(template.ParseFiles("view/header.html", "view/category_post.html", "view/favorites.html", "view/404page.html", "view/update_post.html", "view/created_post.html", "view/comment_user.html", "view/profile_update.html", "view/search.html", "view/another_user.html", "view/profile.html", "view/signin.html", "view/signup.html", "view/filter.html", "view/post.html", "view/comment_post.html", "view/create_post.html", "view/footer.html", "view/index.html"))
+	temp = template.Must(template.ParseFiles("view/header.html", "view/activity.html", "view/disliked.html", "view/category_post.html", "view/favorites.html", "view/404page.html", "view/update_post.html", "view/created_post.html", "view/comment_user.html", "view/profile_update.html", "view/search.html", "view/another_user.html", "view/profile.html", "view/signin.html", "view/signup.html", "view/filter.html", "view/post.html", "view/comment_post.html", "view/create_post.html", "view/footer.html", "view/index.html"))
 
 	GoogleConfig = &oauth2.Config{
 		RedirectURL:  "http://localhost:6969/googleUserInfo",
@@ -116,7 +116,6 @@ func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 		fmt.Fprintf(w, err.Error())
 		return
 	}
-
 }
 
 //IsCookieExpiration if cookie time = 0, delete session and cookie client
@@ -137,19 +136,6 @@ func IsCookieExpiration(t time.Time, cookie *http.Cookie, w http.ResponseWriter,
 			return
 		}
 	}
-}
-
-//IsUnique find unique liked post
-func IsUnique(intSlice []int) []int {
-	keys := make(map[int]bool)
-	list := []int{}
-	for _, entry := range intSlice {
-		if _, value := keys[entry]; !value {
-			keys[entry] = true
-			list = append(list, entry)
-		}
-	}
-	return list
 }
 
 //FileByte func for convert receive file - to fileByte
@@ -273,6 +259,7 @@ func IsImage(r *http.Request) []byte {
 	return imgBytes
 }
 
+//IsRegistered func
 func IsRegistered(w http.ResponseWriter, r *http.Request, email string) bool {
 	//check email by unique, if have same email
 	checkEmail, err := DB.Query("SELECT email FROM users")
@@ -299,39 +286,38 @@ func IsRegistered(w http.ResponseWriter, r *http.Request, email string) bool {
 	return false
 }
 
-//RemoveLikeNotify func 
+//RemoveVoteNotify func
 func RemoveVoteNotify(table string, toWhom, fromWhom, objID int) {
-	
+
 	if table == "post" && toWhom != 0 {
-		_, err = DB.Exec("DELETE FROM notify  WHERE post_id =? AND current_user_id=?  AND to_whom=?", objID, fromWhom,  toWhom)
+		_, err = DB.Exec("DELETE FROM notify  WHERE post_id =? AND current_user_id=?  AND to_whom=?", objID, fromWhom, toWhom)
 		if err != nil {
 			fmt.Println(err)
 		}
-		fmt.Println( objID, fromWhom, toWhom, "notify Remove Like/Dislike")
-	}else if table == "comment" && toWhom !=0 {
-		_, err = DB.Exec("DELETE FROM notify  WHERE comment_id =? AND current_user_id=? AND to_whom=?", objID, fromWhom,  toWhom)
+		fmt.Println(objID, fromWhom, toWhom, "notify Remove Like/Dislike")
+	} else if table == "comment" && toWhom != 0 {
+		_, err = DB.Exec("DELETE FROM notify  WHERE comment_id =? AND current_user_id=? AND to_whom=?", objID, fromWhom, toWhom)
 		if err != nil {
 			fmt.Println(err)
 		}
 	}
-	
+
 }
 
+//SetVoteNotify
 func SetVoteNotify(table string, toWhom, fromWhom, objID int, voteLD bool) {
 
 	voteState := 2
 	if voteLD {
-	voteState = 1
+		voteState = 1
 	}
-
 	if table == "post" && toWhom != 0 {
 		_, err = DB.Exec("INSERT INTO notify( post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)", objID, fromWhom, voteState, time.Now(), toWhom, 0)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	}else if table == "comment" && toWhom != 0 {
-		_, err = DB.Exec("INSERT INTO notify( post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)", 0, fromWhom, voteState, time.Now(), toWhom, objID )
+		if err != nil {
+			fmt.Println(err)
+		}
+	} else if table == "comment" && toWhom != 0 {
+		_, err = DB.Exec("INSERT INTO notify( post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)", 0, fromWhom, voteState, time.Now(), toWhom, objID)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -339,6 +325,10 @@ func SetVoteNotify(table string, toWhom, fromWhom, objID int, voteLD bool) {
 	fmt.Println(table, objID, fromWhom, toWhom, "notify Set Like/Dislike")
 }
 
-func SetCommentNotify(table string, toWhom, fromWhom, objID int ) {
-	
+//SetCommentNotify func
+func SetCommentNotify(pid, fromWhom, toWhom int, lid int64) {
+	_, err = DB.Exec("INSERT INTO notify(post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)", pid, fromWhom, 0, time.Now(), toWhom, lid)
+	if err != nil {
+		fmt.Println(err)
+	}
 }

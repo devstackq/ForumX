@@ -11,15 +11,12 @@ func main() {
 	controllers.Init()
 }
 
-//ref 	nQuery.Scan(&n.ID, &n.PostID, &n.CommentID, &n.UserLostID, &n.voteState, &n.CreatedTime, &n.ToWhom) -> like this -> REFactor
-// add interest func
+// add interest func - adv feat
 //fix create user -> signup  after -> github signout?- password null
-//fix -> like =0, dislike =1, like & dislike = 0 etc
-//todo comment - for post -> notify
 
-// 1 show notify  like/dislike post, comment, Lost comment by post
-// 2 activity page -> show user created post?comment, liked, disliked post/comment
-// 3 add - func, update/delete -> comment/post
+// 1 show notify  comment, Lost comment by post
+// 2 activity page -> show user created post.comment,
+// 3 add - func, update/delete -> comment
 //3.1 link another post -> show
 
 //try - event -> add sound & confetti -Login

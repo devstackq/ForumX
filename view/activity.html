@@ -1,0 +1,21 @@
+{{define "activity"}}
+
+<div class="profile-post-create">
+    <h3>Activities</h3>
+    {{range .}}
+    <div class="user-post-card">
+        {{if gt .PID 0 }}
+        <form action="/user/id/?{{.UID}}" method="post" class="author-post">
+            <input type="hidden" name="uid" value="{{.UID}}">
+            <input type="submit" value="{{.UserLost}}">
+        </form>
+        <a href="/post?id={{.PID}}">see post</a> {{.PostTitle}} {{end}} {{if gt .CID 0 }}
+        <form action="/user/id/?{{.UID}}" method="post" class="author-post">
+            <input type="hidden" name="uid" value="{{.UID}}">
+            <input type="submit" value="{{.UserLost}}">
+        </form>
+        {{if eq .VoteState 1 }} lost Like your comment {{end}} {{if eq .VoteState 2 }} lost Disike your comment {{end}}
+        <a href="/post?id={{.CID}}">see Comment</a> {{.CommentTitle}} {{end}} {{end}}
+    </div>
+</div>
+{{end}}
