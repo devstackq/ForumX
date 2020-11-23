@@ -112,12 +112,12 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 }
 
 //GetUserActivities func
-func GetUserActivities(w http.ResponseWriter, r *http.Request) (votes, comments []Notify) {
+func GetUserActivities(w http.ResponseWriter, r *http.Request) (votes []Notify) {
 
 	cookie, _ := r.Cookie("_cookie")
 	s := structure.Session{UUID: cookie.Value}
 	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
-	//------------------
+
 	var notifies []Notify
 	nQuery, err := DB.Query("SELECT * FROM notify WHERE to_whom=?", s.UserID)
 
@@ -146,7 +146,6 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request) (votes, comments 
 			n.PID = v.PostID
 			fmt.Println("user: ", n.UserLost, " lost Dislike your post : ", n.PostTitle, " in ", v.CreatedTime, "")
 		}
-
 		if v.VoteState == 1 && v.CommentID != 0 {
 			n.CID = v.CommentID
 			fmt.Println("user: ", n.UserLost, " lost liked your Comment : ", n.CommentTitle, " in ", v.CreatedTime, "")
@@ -155,15 +154,16 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request) (votes, comments 
 			n.CID = v.CommentID
 			fmt.Println("user: ", n.UserLost, " lost Dislike your Comment : ", n.CommentTitle, " in ", v.CreatedTime, "")
 		}
-		n.UID = v.UserLostID
-		n.VoteState = v.VoteState
-		votes = append(votes, n)
 		//comment lost
 		if v.VoteState == 0 && v.CommentID != 0 {
 			fmt.Println("user: ", n.UserLost, " lost Comment u Post: ", n.CommentTitle, " in ", v.CreatedTime)
+			n.PID = v.PostID
 		}
+		n.UID = v.UserLostID
+		n.VoteState = v.VoteState
+		votes = append(votes, n)
 	}
-	return votes, comments
+	return votes
 }
 
 //GetAnotherProfile other user data
@@ -223,7 +223,6 @@ func (u *User) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-
 	util.DeleteCookie(w)
 }
 
