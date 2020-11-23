@@ -1,7 +1,6 @@
 package models
 
 import (
-	"database/sql"
 	"encoding/base64"
 	"fmt"
 	"log"
@@ -33,38 +32,33 @@ type User struct {
 	Location    string `json:"location"`
 }
 
+//Notify struct
 type Notify struct {
-	ID          int
-	PostID      int
-	CommentID   int
-	UserLostID  int
-	voteState   int
-	CreatedTime string
-	ToWhom      int
-	PostTitle string
-	UserLost string
+	UID          int
+	PID          int
+	CID          int
+	ID           int
+	PostID       int
+	CommentID    int
+	UserLostID   int
+	VoteState    int
+	CreatedTime  string
+	ToWhom       int
+	PostTitle    string
+	UserLost     string
 	CommentTitle string
 }
 
 //GetUserProfile function
-func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie) ([]Post, []Post, []Comment, User, error) {
+func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie) ([]Post, []Post, []Post, []Comment, User, error) {
 
 	//time.AfterFunc(10, checkCookieLife(cookie, w, r)) try check every 30 min cookie
 	s := structure.Session{UUID: cookie.Value}
 	u := User{}
 	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
-	likedPostArr := []Votes{}
 
-	likedpost, err := DB.Query("select post_id from voteState where user_id =? and like_state =?", s.UserID, 1)
-	defer likedpost.Close()
-
-	for likedpost.Next() {
-		post := Votes{}
-		var pid int
-		err = likedpost.Scan(&pid)
-		post.PostID = pid
-		likedPostArr = append(likedPostArr, post)
-	}
+	liked := VotedPosts("like_state", s.UserID)
+	disliked := VotedPosts("dislike_state", s.UserID)
 
 	err = DB.QueryRow("SELECT id, full_name, email, isAdmin, age, sex, created_time, city, image  FROM users WHERE id = ?", s.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
 	//Age, sex, picture, city, date ?
@@ -77,49 +71,18 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 	u.Temp = u.CreatedTime.Format("2006 Jan _2 15:04:05")
 	u.ImageHTML = base64.StdEncoding.EncodeToString(u.Image)
 
-	var smtp *sql.Rows
-	postsL := []Post{}
-
-	var arrIDLiked []int
-
-	for _, v := range likedPostArr {
-		arrIDLiked = append(arrIDLiked, v.PostID)
-	}
-
-	//unique liked post by user
-	fin := util.IsUnique(arrIDLiked)
-
-	for _, v := range fin {
-		//get each only  liked post by ID, then likedpost, put array post
-		smtp, err = DB.Query("SELECT * FROM posts WHERE id=? and count_like > 0", v)
-		if err != nil {
-			log.Println(err)
-		}
-		for smtp.Next() {
-			err = smtp.Scan(&id, &title, &content, &creatorID, &createdTime, &image, &like, &dislike)
-			if err != nil {
-				log.Println(err.Error())
-			}
-
-			post = AppendPost(id, title, content, creatorID, image, like, dislike, s.UserID, createdTime)
-			postsL = append(postsL, post)
-		}
-	}
 	//create post current user
 	pStmp, err := DB.Query("SELECT * FROM posts WHERE creator_id=?", s.UserID)
-	//defer psu.Close()
-	var postCr Post
 	postsCreated := []Post{}
 
-	//todo get uniq post - created post
 	for pStmp.Next() {
-		err = pStmp.Scan(&id, &title, &content, &creatorID, &createdTime, &image, &like, &dislike)
+		err = pStmp.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreatedTime, &post.Image, &post.Like, &post.Dislike)
 		if err != nil {
 			log.Println(err.Error())
 		}
-		//post.AuthorForPost = s.UserID
-		postCr = AppendPost(id, title, content, creatorID, image, like, dislike, s.UserID, createdTime)
-		postsCreated = append(postsCreated, postCr)
+		post.AuthorForPost = s.UserID
+		post.Time = post.CreatedTime.Format("2006 Jan _2 15:04:05")
+		postsCreated = append(postsCreated, post)
 	}
 
 	commentQuery, err := DB.Query("SELECT * FROM comments WHERE creator_id=?", s.UserID)
@@ -130,71 +93,83 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 
 	for commentQuery.Next() {
 
-		err = commentQuery.Scan(&id, &content, &postID, &userID, &createdTime, &like, &dislike)
 		err = DB.QueryRow("SELECT title FROM posts WHERE id = ?", postID).Scan(&title)
 		if err != nil {
 			log.Println(err.Error())
 		}
 
-		err = commentQuery.Scan(&cmt.ID, &cmt.Content, &cmt.PostID, &cmt.UserID, &cmt.CreatedTime, &cmt.Like, &cmt.Dislike)
-		comments = append(comments, comment)
+		err = commentQuery.Scan(&cmt.ID, &cmt.Content, &cmt.PostID, &cmt.UserID, &cmt.Time, &cmt.Like, &cmt.Dislike)
+		if err != nil {
+			log.Println(err.Error())
+		}
+		cmt.CreatedTime = cmt.Time.Format("2006 Jan _2 15:04:05")
+		comments = append(comments, cmt)
 	}
+	if err != nil {
+		return nil, nil, nil, nil, u, err
+	}
+	return disliked, liked, postsCreated, comments, u, nil
+}
+
+//GetUserActivities func
+func GetUserActivities(w http.ResponseWriter, r *http.Request) (votes, comments []Notify) {
+
+	cookie, _ := r.Cookie("_cookie")
+	s := structure.Session{UUID: cookie.Value}
+	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
 	//------------------
 	var notifies []Notify
 	nQuery, err := DB.Query("SELECT * FROM notify WHERE to_whom=?", s.UserID)
 
-//	write if commentId || voteState == 0 -> from Db
 	for nQuery.Next() {
 		n := Notify{}
-		err = nQuery.Scan(&n.ID, &n.PostID,  &n.UserLostID, &n.voteState, &n.CreatedTime, &n.ToWhom, &n.CommentID)
-		if err !=nil {
+		err = nQuery.Scan(&n.ID, &n.PostID, &n.UserLostID, &n.VoteState, &n.CreatedTime, &n.ToWhom, &n.CommentID)
+		if err != nil {
 			log.Println(err)
 		}
 		notifies = append(notifies, n)
 	}
-	fmt.Println(notifies, "notidy arr")
-	//send client history(list) Likes/Dislikes
+
 	for _, v := range notifies {
 		n := Notify{}
 		//like/dislike case
 		err = DB.QueryRow("SELECT title FROM posts WHERE id = ?", v.PostID).Scan(&n.PostTitle)
+		err = DB.QueryRow("SELECT content FROM comments WHERE id = ?", v.CommentID).Scan(&n.CommentTitle)
+		//get postTitle, by postID, / get userLost Name, - uid /
+		err = DB.QueryRow("SELECT full_name FROM users WHERE id = ?", v.UserLostID).Scan(&n.UserLost)
 
-		err = DB.QueryRow("SELECT title FROM comments WHERE id = ?", v.CommentID).Scan(&n.CommentTitle)
-			//get postTitle, by postID, / get userLost Name, - uid /
-			err = DB.QueryRow("SELECT full_name FROM users WHERE id = ?", v.UserLostID).Scan(&n.UserLost)
-
-		if  v.voteState == 1 && v.PostID !=0{
-			fmt.Println("user: ", n.UserLost,  " lost liked your post : ",  n.PostTitle, " in ", v.CreatedTime, "")
+		if v.VoteState == 1 && v.PostID != 0 {
+			n.PID = v.PostID
+			fmt.Println("user: ", n.UserLost, " lost liked your post : ", n.PostTitle, " in ", v.CreatedTime, "")
 		}
-		if  v.voteState == 2  && v.PostID != 0{
-			fmt.Println("user: ", n.UserLost,  " lost Dislike your post : ",  n.PostTitle, " in ", v.CreatedTime, "")
+		if v.VoteState == 2 && v.PostID != 0 {
+			n.PID = v.PostID
+			fmt.Println("user: ", n.UserLost, " lost Dislike your post : ", n.PostTitle, " in ", v.CreatedTime, "")
 		}
 
-		if  v.voteState == 1 && v.CommentID !=0{
-			fmt.Println("user: ", n.UserLost,  " lost liked your COmment : ",  n.CommentTitle, " in ", v.CreatedTime, "")
+		if v.VoteState == 1 && v.CommentID != 0 {
+			n.CID = v.CommentID
+			fmt.Println("user: ", n.UserLost, " lost liked your Comment : ", n.CommentTitle, " in ", v.CreatedTime, "")
 		}
-		if  v.voteState == 2  && v.CommentID != 0{
-			fmt.Println("user: ", n.UserLost,  " lost Dislike your Comment : ",  n.CommentTitle, " in ", v.CreatedTime, "")
+		if v.VoteState == 2 && v.CommentID != 0 {
+			n.CID = v.CommentID
+			fmt.Println("user: ", n.UserLost, " lost Dislike your Comment : ", n.CommentTitle, " in ", v.CreatedTime, "")
 		}
-		// if v.CommentID > 0 {
-		// }
+		n.UID = v.UserLostID
+		n.VoteState = v.VoteState
+		votes = append(votes, n)
+		//comment lost
+		if v.VoteState == 0 && v.CommentID != 0 {
+			fmt.Println("user: ", n.UserLost, " lost Comment u Post: ", n.CommentTitle, " in ", v.CreatedTime)
+		}
 	}
-	//lops@mail.com
-	// if to_whom == currUser_id ? -> notify_table -> send Client, liked/dislieked post || comment -> UserID
-	//check if CommentID == nil && voteState != nil 2 case if CommentID !=nil && voteState == nil -> show Comment Post User
-	//--------------------
-	if err != nil {
-		return nil, nil, nil, u, err
-	}
-
-	return postsL, postsCreated, comments, u, nil
+	return votes, comments
 }
 
 //GetAnotherProfile other user data
 func (user *User) GetAnotherProfile(r *http.Request) ([]Post, User, error) {
 
 	//userQR := DB.QueryRow("SELECT * FROM users WHERE id = ?", user.Temp)
-
 	u := User{}
 	postsU := []Post{}
 
@@ -209,12 +184,14 @@ func (user *User) GetAnotherProfile(r *http.Request) ([]Post, User, error) {
 	defer psu.Close()
 
 	for psu.Next() {
-		err = psu.Scan(&id, &title, &content, &creatorID, &createdTime, &image, &like, &dislike)
 
+		err = psu.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreatedTime, &post.Image, &post.Like, &post.Dislike)
 		if err != nil {
 			log.Println(err.Error())
 		}
-		post = AppendPost(id, title, content, creatorID, image, like, dislike, 0, createdTime)
+		//AuthorForPost
+		post.Time = post.CreatedTime.Format("2006 Jan _2 15:04:05")
+
 		postsU = append(postsU, post)
 	}
 	if err != nil {
@@ -248,4 +225,41 @@ func (u *User) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	util.DeleteCookie(w)
+}
+
+func VotedPosts(voteType string, uid int) (result []Post) {
+
+	postArr := []Votes{}
+	arrIDVote := []int{}
+
+	votedPost, err := DB.Query("select post_id from voteState where user_id=? and  "+voteType+" and comment_id is null", uid, 1)
+	if err != nil {
+		log.Println(err)
+	}
+	for votedPost.Next() {
+		voteLiked := Votes{}
+		err = votedPost.Scan(&voteLiked.PostID)
+		postArr = append(postArr, voteLiked)
+	}
+	defer votedPost.Close()
+
+	for _, v := range postArr {
+		arrIDVote = append(arrIDVote, v.PostID)
+	}
+
+	for _, v := range arrIDVote {
+		smtp, err := DB.Query("SELECT * FROM posts WHERE id=?", v)
+		if err != nil {
+			log.Println(err)
+		}
+		p := Post{}
+		for smtp.Next() {
+			err = smtp.Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreatedTime, &p.Image, &p.Like, &p.Dislike)
+			if err != nil {
+				log.Println(err.Error())
+			}
+			result = append(result, p)
+		}
+	}
+	return result
 }

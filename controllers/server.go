@@ -19,6 +19,7 @@ func Init() {
 	http.HandleFunc("/create/post", CreatePost)
 	http.HandleFunc("/edit/post", UpdatePost)
 	http.HandleFunc("/delete/post", DeletePost)
+	http.HandleFunc("/activity", GetUserActivities)
 
 	http.HandleFunc("/comment", LeaveComment)
 

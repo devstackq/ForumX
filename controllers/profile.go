@@ -25,15 +25,15 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 			}
 			cookie, _ := r.Cookie("_cookie")
 			//if userId now, createdPost uid equal -> show
-			likedPost, posts, comments, user, err := models.GetUserProfile(r, w, cookie)
+			dislikedPost, likedPost, posts, comments, user, err := models.GetUserProfile(r, w, cookie)
 			if err != nil {
 				log.Println(err)
 			}
-
 			//check if current cookie equal - cookie
 			util.DisplayTemplate(w, "header", util.IsAuth(r))
 			util.DisplayTemplate(w, "profile", user)
 			util.DisplayTemplate(w, "favorited_post", likedPost)
+			util.DisplayTemplate(w, "disliked_post", dislikedPost)
 			util.DisplayTemplate(w, "created_post", posts)
 			util.DisplayTemplate(w, "comment_user", comments)
 
@@ -65,6 +65,26 @@ func GetAnotherProfile(w http.ResponseWriter, r *http.Request) {
 			util.DisplayTemplate(w, "another_user", user)
 			util.DisplayTemplate(w, "created_post", posts)
 		}
+	}
+}
+
+//GetUserActivities func
+func GetUserActivities(w http.ResponseWriter, r *http.Request) {
+
+	if util.URLChecker(w, r, "/activity") {
+
+		access, _ := util.IsCookie(w, r)
+		if !access {
+			http.Redirect(w, r, "/signin", 302)
+			return
+		}
+		notifyVotes, notifyComments := models.GetUserActivities(w, r)
+		if err != nil {
+			log.Println(err)
+		}
+		fmt.Println(notifyComments)
+		util.DisplayTemplate(w, "header", util.IsAuth(r))
+		util.DisplayTemplate(w, "activity", notifyVotes)
 	}
 }
 

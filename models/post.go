@@ -91,7 +91,6 @@ func (f *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string,
 		pageNum--
 	}
 	//count pageNum, fix
-	//fmt.Print(pageNum)
 
 	limit := 4
 	offset := limit * (pageNum - 1)
@@ -278,14 +277,15 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 
 	for stmp.Next() {
 
-		comment := Comment{}
-		err = stmp.Scan(&id, &content, &postID, &userID, &createdTime, &like, &dislike)
+		c := Comment{}
+		err = stmp.Scan(&c.ID, &c.Content, &c.PostID, &c.UserID, &c.Time, &c.Like, &c.Dislike)
 		if err != nil {
 			log.Println(err.Error())
 		}
-		comment = AppendComment(id, content, postID, userID, createdTime, like, dislike, "")
-		DB.QueryRow("SELECT full_name FROM users WHERE id = ?", userID).Scan(&comment.Author)
-		comments = append(comments, comment)
+		c.CreatedTime = c.Time.Format("2006 Jan _2 15:04:05")
+
+		DB.QueryRow("SELECT full_name FROM users WHERE id = ?", c.UserID).Scan(&c.Author)
+		comments = append(comments, c)
 	}
 
 	if err != nil {
@@ -315,11 +315,8 @@ func Search(w http.ResponseWriter, r *http.Request) ([]Post, error) {
 
 	for psu.Next() {
 
-		err = psu.Scan(&id, &title, &content, &creatorID, &createdTime, &image, &like, &dislike)
-		if err != nil {
-			log.Println(err.Error())
-		}
-		post = AppendPost(id, title, content, creatorID, image, like, dislike, 0, createdTime)
+		err = psu.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreatedTime, &post.Image, &post.Like, &post.Dislike)
+		post.Time = post.CreatedTime.Format("2006 Jan _2 15:04:05")
 		posts = append(posts, post)
 	}
 
@@ -327,21 +324,4 @@ func Search(w http.ResponseWriter, r *http.Request) ([]Post, error) {
 		return nil, err
 	}
 	return posts, nil
-}
-
-//appendPost each post put value from Db
-func AppendPost(id int, title, content string, creatorID int, image []byte, like, dislike, authorID int, createdTime time.Time) Post {
-
-	post = Post{
-		ID:            id,
-		Title:         title,
-		Content:       content,
-		CreatorID:     creatorID,
-		Image:         image,
-		Like:          like,
-		Dislike:       dislike,
-		AuthorForPost: authorID,
-		Time:          createdTime.Format("2006 Jan _2 15:04:05"),
-	}
-	return post
 }
