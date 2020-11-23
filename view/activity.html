@@ -9,13 +9,23 @@
             <input type="hidden" name="uid" value="{{.UID}}">
             <input type="submit" value="{{.UserLost}}">
         </form>
-        <a href="/post?id={{.PID}}">see post</a> {{.PostTitle}} {{end}} {{if gt .CID 0 }}
+        <a href="/post?id={{.PID}}"> {{if eq .VoteState 2 }} Disiked post {{end}} 
+        {{if eq .VoteState 1 }} Liked post{{end}} </a>
+        </a>in Post "{{.PostTitle}}" {{end}} {{end}} {{if gt .CID 0 }}
         <form action="/user/id/?{{.UID}}" method="post" class="author-post">
             <input type="hidden" name="uid" value="{{.UID}}">
             <input type="submit" value="{{.UserLost}}">
         </form>
-        {{if eq .VoteState 1 }} lost Like your comment {{end}} {{if eq .VoteState 2 }} lost Disike your comment {{end}}
-        <a href="/post?id={{.CID}}">see Comment</a> {{.CommentTitle}} {{end}} {{end}}
+
+        <a href="/post?id={{.CID}}"> 
+        {{if eq .VoteState 2 }} lost Disike your comment {{end}} 
+         {{if eq .VoteState 1 }} lost Like your comment {{end}} 
+         </a>in Coment "{{.CommentTitle}}" {{end}} {{if eq .VoteState 0 }}
+        <form action="/user/id/?{{.UID}}" method="post" class="author-post">
+            <input type="hidden" name="uid" value="{{.UID}}">
+            <input type="submit" value="{{.UserLost}}">
+        </form>
+        <a href="/post?id={{.PID}}"> losted comment</a> at Post "{{.PostTitle}}" Lost comment "{{.CommentTitle}}" {{end}}
     </div>
 </div>
-{{end}}
+{{end}} FIX!
