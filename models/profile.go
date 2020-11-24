@@ -95,15 +95,16 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 
 	for commentQuery.Next() {
 
-		err = DB.QueryRow("SELECT title FROM posts WHERE id = ?", postID).Scan(&title)
-		if err != nil {
-			log.Println(err.Error())
-		}
-
 		err = commentQuery.Scan(&cmt.ID, &cmt.Content, &cmt.PostID, &cmt.UserID, &cmt.Time, &cmt.Like, &cmt.Dislike)
 		if err != nil {
 			log.Println(err.Error())
 		}
+		err = DB.QueryRow("SELECT post_id FROM comments WHERE id = ?", cmt.ID).Scan(&postID)
+		err = DB.QueryRow("SELECT title FROM posts WHERE id = ?", postID).Scan(&cmt.TitlePost)
+		if err != nil {
+			log.Println(err.Error())
+		}
+
 		cmt.CreatedTime = cmt.Time.Format("2006 Jan _2 15:04:05")
 		comments = append(comments, cmt)
 	}
@@ -133,17 +134,14 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request) (result []Notify)
 	}
 
 	for _, v := range notifies {
-
+		//get postTitle, by postID, / get userLost Name, - uid /
 		n := Notify{}
 		//like/dislike case
 		err = DB.QueryRow("SELECT title FROM posts WHERE id = ?", v.PostID).Scan(&n.PostTitle)
 		err = DB.QueryRow("SELECT post_id FROM comments WHERE id = ?", v.CommentID).Scan(&n.CIDPID)
-
 		err = DB.QueryRow("SELECT content FROM comments WHERE id = ?", v.CommentID).Scan(&n.CommentTitle)
-		//get postTitle, by postID, / get userLost Name, - uid /
 		err = DB.QueryRow("SELECT full_name FROM users WHERE id = ?", v.UserLostID).Scan(&n.UserLost)
 
-		// n.UID = v.UserLostID
 		n.VoteState = v.VoteState
 		n.UID = v.UserLostID
 
@@ -165,16 +163,14 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request) (result []Notify)
 			n.PostTitle = n.CommentTitle
 			fmt.Println("user: ", n.UserLost, " lost Dislike your Comment!!!: ", n.CommentTitle, " in ", v.CreatedTime, "", n.CID, n.CIDPID)
 		}
-		//comment lost
+		//comment lost case
 		if v.VoteState == 0 && v.CommentID != 0 {
 			fmt.Println("user: ", n.UserLost, " lost Comment u Post: ", n.CommentTitle, " in ", v.CreatedTime)
 			n.CLID = v.PostID
 			n.PostTitle = n.CommentTitle
 		}
 		result = append(result, n)
-
 	}
-
 	return result
 }
 
@@ -203,7 +199,6 @@ func (user *User) GetAnotherProfile(r *http.Request) ([]Post, User, error) {
 		}
 		//AuthorForPost
 		post.Time = post.CreatedTime.Format("2006 Jan _2 15:04:05")
-
 		postsU = append(postsU, post)
 	}
 	if err != nil {

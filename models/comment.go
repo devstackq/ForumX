@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -40,7 +39,27 @@ func (c *Comment) LeaveComment() error {
 	if err != nil {
 		log.Println(err)
 	}
-	fmt.Println(c.ToWhom, "comment to whom lost")
+	//fmt.Println(c.ToWhom, "comment to whom lost")
 	util.SetCommentNotify(c.PostID, c.UserID, c.ToWhom, lid)
 	return nil
+}
+
+//UpdateComment func
+func (c *Comment) UpdateComment() {
+
+	_, err := DB.Exec("UPDATE  comments SET  content=? WHERE id =?",
+		c.Content, c.ID)
+
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+// DeleteComment func
+func DeleteComment(id string) {
+	_, err := DB.Exec("DELETE FROM  comments  WHERE id =?", id)
+
+	if err != nil {
+		log.Println(err)
+	}
 }
