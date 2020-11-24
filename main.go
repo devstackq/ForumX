@@ -14,13 +14,12 @@ func main() {
 // add interest func - adv feat
 //fix create user -> signup  after -> github signout?- password null
 
-//fix normal show - liede/disleked post
 // 3 add - func, update/delete -> comment
 // like/dislike -> comment -> uid, pid, uid
 
 //try - event -> add sound & confetti -Login
 // save photo, like - source DB refactor
-//config, router refactor
+//config, router refactorr
 //if cookie = 0, notify message  user, logout etc
 
 // 1 request, 910 additional, 0904 - 101202 ->

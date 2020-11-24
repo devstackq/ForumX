@@ -78,12 +78,16 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/signin", 302)
 			return
 		}
-		notifyVotes := models.GetUserActivities(w, r)
+		notifies := models.GetUserActivities(w, r)
+
 		if err != nil {
 			log.Println(err)
 		}
 		util.DisplayTemplate(w, "header", util.IsAuth(r))
-		util.DisplayTemplate(w, "activity", notifyVotes)
+
+		if notifies != nil {
+			util.DisplayTemplate(w, "activity", notifies)
+		}
 	}
 }
 
