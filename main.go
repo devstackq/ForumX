@@ -11,11 +11,10 @@ func main() {
 	controllers.Init()
 }
 
-// add interest func - adv feat
+// add interest func - adv feat -> search, pagination
 //fix create user -> signup  after -> github signout?- password null
-// 3 add - func, update/delete -> comment
 //fix design
-//fix some error
+//delete cascade -> when post/comment
 
 //try - event -> add sound & confetti -Login
 // save photo, like - source DB refactor

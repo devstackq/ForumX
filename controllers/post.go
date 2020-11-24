@@ -117,6 +117,11 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 
 	if util.URLChecker(w, r, "/edit/post") {
 
+		access, _ := util.IsCookie(w, r)
+		if !access {
+			http.Redirect(w, r, "/signin", 200)
+			return
+		}
 		pid, _ := strconv.Atoi(r.FormValue("id"))
 
 		if r.Method == "GET" {
@@ -127,16 +132,9 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 
 			util.DisplayTemplate(w, "header", util.IsAuth(r))
 			util.DisplayTemplate(w, "update_post", p)
-
 		}
 
 		if r.Method == "POST" {
-
-			access, _ := util.IsCookie(w, r)
-			if !access {
-				http.Redirect(w, r, "/signin", 200)
-				return
-			}
 
 			p := models.Post{
 				Title:   r.FormValue("title"),
@@ -152,7 +150,8 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 				defer log.Println(err, "upd post err")
 			}
 		}
-		http.Redirect(w, r, "/post?id="+strconv.Itoa(int(pid)), 302)
+		http.Redirect(w, r, "/profile", 302)
+		//http.Redirect(w, r, "/post?id="+strconv.Itoa(int(pid)), 302)
 	}
 }
 
@@ -174,7 +173,7 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err.Error())
 		}
-		http.Redirect(w, r, "/", 302)
+		http.Redirect(w, r, "/profile", 302)
 	}
 }
 

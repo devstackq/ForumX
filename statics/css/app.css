@@ -85,7 +85,7 @@ body {
     padding: 10px;
     background: transparent;
     border: 1px solid black;
-    min-width: 864px;
+    min-width: 862px;
     max-width: 1200px;
     outline: none;
     color: steelblue;
@@ -239,7 +239,7 @@ a.links {
 }
 
 .user-post-card {
-    padding: 9px 0;
+    padding: 9px;
     background: lightgray;
     margin-bottom: 3px;
 }
@@ -307,6 +307,7 @@ a.links {
     color: #000;
     margin: 0px auto 0;
     padding: 36px 18px 18px;
+    margin-bottom: 24px;
 }
 
 .post-wrapper h2 {
@@ -368,8 +369,7 @@ a.links {
 .comment-wrapperz {
     background: #fff;
     max-width: 1200px;
-    margin: 0 auto;
-    padding: 18px;
+    margin: 10px auto;
 }
 
 .comment-wrapper {
@@ -382,14 +382,13 @@ a.links {
 
 .comment-wrapper textarea {
     padding: 10px;
-    margin-left: -19px;
 }
 
 .comment-underpost {
     position: relative;
     background-color: gray;
     border: 1px solid #000;
-    width: 96%;
+    width: 97%;
     margin: 0px auto;
     color: #fff;
     padding: 8px 10px;
