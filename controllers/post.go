@@ -153,7 +153,6 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		http.Redirect(w, r, "/post?id="+strconv.Itoa(int(pid)), 302)
-
 	}
 }
 

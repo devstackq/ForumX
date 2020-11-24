@@ -44,3 +44,14 @@ func LeaveComment(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/post?id="+r.FormValue("curr"), 302)
 	}
 }
+
+func UpdateComment(w http.ResponseWriter, r *http.Request) {
+
+	if util.URLChecker(w, r, "/edit/comment") {
+
+	}
+}
+
+func DeleteComment(w http.ResponseWriter, r *http.Request) {
+
+}

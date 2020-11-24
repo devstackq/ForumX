@@ -11,13 +11,13 @@
             background-color: #000;
             color: cornsilk;
         }
-
+        
         a {
-            color: #fff;
-            padding: 5px;
-            background: orange;
+            color: #000;
+            padding: 6px 12px;
+            background: gold;
         }
-
+        
         .wrapper-main {
             width: 100%;
             max-width: 960px;
@@ -32,17 +32,16 @@
 <body>
     <div class="wrapper-main">
         <h3>Welcome to guest: {{.FullName}} page</h3>
-
         <div class="img-wrapper">
-
             {{if .SVG}}
-
             <img alt=" " width="500px" src="data:image/svg+xml;base64, {{.ImageHTML}} "> {{else}}
-
             <img class="post-img" src="data:image/jpeg;base64, {{.ImageHTML}}" alt=" "> {{end}}
         </div>
-
-        Name: {{.FullName}} <br /> Email : {{.Email}}<br /> Age : {{.Age}}<br /> Sex : {{.Sex}}<br /> From :
-        {{.City}}<br /> On site with : {{.CreatedTime}}<br />
+        Name: {{.FullName}} <br /> Email : {{.Email}}<br /> Age : {{.Age}}<br /> Sex : {{.Sex}}<br /> From : {{.City}}
+        <br /> On site with : {{.CreatedTime}}<br />
     </div>
     {{end}}
+
+</body>
+
+</html>
