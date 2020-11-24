@@ -61,6 +61,7 @@ func GetAnotherProfile(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Println(err)
 			}
+
 			util.DisplayTemplate(w, "header", util.IsAuth(r))
 			util.DisplayTemplate(w, "another_user", user)
 			util.DisplayTemplate(w, "created_post", posts)

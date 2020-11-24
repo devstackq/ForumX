@@ -13,9 +13,9 @@ func main() {
 
 // add interest func - adv feat
 //fix create user -> signup  after -> github signout?- password null
-
 // 3 add - func, update/delete -> comment
-// like/dislike -> comment -> uid, pid, uid
+//fix design
+//fix some error
 
 //try - event -> add sound & confetti -Login
 // save photo, like - source DB refactor
@@ -25,15 +25,3 @@ func main() {
 // 1 request, 910 additional, 0904 - 101202 ->
 // 2 request -7575
 // 3 request 910 additional, 090410 - 101202 ->Otegen batyr etc
-
-// {{if gt .CID 0 }}
-
-//         <form action="/user/id/?{{.UID}}" method="post" class="author-post">
-//             <input type="hidden" name="uid" value="{{.UID}}">
-//             <input type="submit" value="{{.UserLost}}">
-//         </form>
-
-//         {{if eq .VoteState 1 }}  <a href="/post?id={{.CID}}"> Liked comment</a>in Coment  "{{.CommentTitle}} "{{end}}
-//         {{if eq .VoteState 2 }}  <a href="/post?id={{.CID}}"> Disliked comment</a>in Coment  "{{.CommentTitle}} "{{end}}
-
-//          {{end}}
