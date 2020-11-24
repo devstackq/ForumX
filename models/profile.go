@@ -37,7 +37,9 @@ type Notify struct {
 	UID          int
 	PID          int
 	CID          int
+	CLID         int
 	ID           int
+	CIDPID       int
 	PostID       int
 	CommentID    int
 	UserLostID   int
@@ -112,7 +114,7 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 }
 
 //GetUserActivities func
-func GetUserActivities(w http.ResponseWriter, r *http.Request) (votes []Notify) {
+func GetUserActivities(w http.ResponseWriter, r *http.Request) (result []Notify) {
 
 	cookie, _ := r.Cookie("_cookie")
 	s := structure.Session{UUID: cookie.Value}
@@ -131,12 +133,19 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request) (votes []Notify) 
 	}
 
 	for _, v := range notifies {
+
 		n := Notify{}
 		//like/dislike case
 		err = DB.QueryRow("SELECT title FROM posts WHERE id = ?", v.PostID).Scan(&n.PostTitle)
+		err = DB.QueryRow("SELECT post_id FROM comments WHERE id = ?", v.CommentID).Scan(&n.CIDPID)
+
 		err = DB.QueryRow("SELECT content FROM comments WHERE id = ?", v.CommentID).Scan(&n.CommentTitle)
 		//get postTitle, by postID, / get userLost Name, - uid /
 		err = DB.QueryRow("SELECT full_name FROM users WHERE id = ?", v.UserLostID).Scan(&n.UserLost)
+
+		// n.UID = v.UserLostID
+		n.VoteState = v.VoteState
+		n.UID = v.UserLostID
 
 		if v.VoteState == 1 && v.PostID != 0 {
 			n.PID = v.PostID
@@ -148,22 +157,25 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request) (votes []Notify) 
 		}
 		if v.VoteState == 1 && v.CommentID != 0 {
 			n.CID = v.CommentID
+			n.PostTitle = n.CommentTitle
 			fmt.Println("user: ", n.UserLost, " lost liked your Comment : ", n.CommentTitle, " in ", v.CreatedTime, "")
 		}
 		if v.VoteState == 2 && v.CommentID != 0 {
 			n.CID = v.CommentID
-			fmt.Println("user: ", n.UserLost, " lost Dislike your Comment : ", n.CommentTitle, " in ", v.CreatedTime, "")
+			n.PostTitle = n.CommentTitle
+			fmt.Println("user: ", n.UserLost, " lost Dislike your Comment!!!: ", n.CommentTitle, " in ", v.CreatedTime, "", n.CID, n.CIDPID)
 		}
 		//comment lost
 		if v.VoteState == 0 && v.CommentID != 0 {
 			fmt.Println("user: ", n.UserLost, " lost Comment u Post: ", n.CommentTitle, " in ", v.CreatedTime)
-			n.PID = v.PostID
+			n.CLID = v.PostID
+			n.PostTitle = n.CommentTitle
 		}
-		n.UID = v.UserLostID
-		n.VoteState = v.VoteState
-		votes = append(votes, n)
+		result = append(result, n)
+
 	}
-	return votes
+
+	return result
 }
 
 //GetAnotherProfile other user data
@@ -257,6 +269,7 @@ func VotedPosts(voteType string, uid int) (result []Post) {
 			if err != nil {
 				log.Println(err.Error())
 			}
+			p.Time = p.CreatedTime.Format("2006 Jan _2 15:04:05")
 			result = append(result, p)
 		}
 	}

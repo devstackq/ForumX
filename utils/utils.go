@@ -36,6 +36,7 @@ var (
 	AuthType string
 )
 
+//moh@mail.com
 type API struct {
 	Authenticated bool
 }
