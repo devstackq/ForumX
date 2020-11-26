@@ -14,7 +14,7 @@ func main() {
 // add interest func - adv feat -> search, pagination
 //fix create user -> signup  after -> github signout?- password null
 //fix design
-//delete cascade -> when post/comment
+delete cascade -> when post/comment, delete comment -> delete likes - for comment
 
 //try - event -> add sound & confetti -Login
 // save photo, like - source DB refactor

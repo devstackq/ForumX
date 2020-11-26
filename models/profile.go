@@ -168,6 +168,7 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request) (result []Notify)
 			fmt.Println("user: ", n.UserLost, " lost Comment u Post: ", n.CommentTitle, " in ", v.CreatedTime)
 			n.CLID = v.PostID
 			n.PostTitle = n.CommentTitle
+			//n.CommentID = v.CommentID
 		}
 		result = append(result, n)
 	}
