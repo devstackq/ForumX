@@ -137,10 +137,24 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request) (result []Notify)
 		//get postTitle, by postID, / get userLost Name, - uid /
 		n := Notify{}
 		//like/dislike case
+		// commneId - delete, but notify - Have row
 		err = DB.QueryRow("SELECT title FROM posts WHERE id = ?", v.PostID).Scan(&n.PostTitle)
+		if err != nil {
+			log.Println(err)
+		}
 		err = DB.QueryRow("SELECT post_id FROM comments WHERE id = ?", v.CommentID).Scan(&n.CIDPID)
+		if err != nil {
+			log.Println(err)
+		}
+
 		err = DB.QueryRow("SELECT content FROM comments WHERE id = ?", v.CommentID).Scan(&n.CommentTitle)
+		if err != nil {
+			log.Println(err)
+		}
 		err = DB.QueryRow("SELECT full_name FROM users WHERE id = ?", v.UserLostID).Scan(&n.UserLost)
+		if err != nil {
+			log.Println(err)
+		}
 
 		n.VoteState = v.VoteState
 		n.UID = v.UserLostID
@@ -154,6 +168,9 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request) (result []Notify)
 			fmt.Println("user: ", n.UserLost, " lost Dislike your post : ", n.PostTitle, " in ", v.CreatedTime, "")
 		}
 		if v.VoteState == 1 && v.CommentID != 0 {
+			// if n.CommentTitle == "" {
+			// 	return
+			// }
 			n.CID = v.CommentID
 			n.PostTitle = n.CommentTitle
 			fmt.Println("user: ", n.UserLost, " lost liked your Comment : ", n.CommentTitle, " in ", v.CreatedTime, "")
@@ -168,7 +185,6 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request) (result []Notify)
 			fmt.Println("user: ", n.UserLost, " lost Comment u Post: ", n.CommentTitle, " in ", v.CreatedTime)
 			n.CLID = v.PostID
 			n.PostTitle = n.CommentTitle
-			//n.CommentID = v.CommentID
 		}
 		result = append(result, n)
 	}
