@@ -21,9 +21,9 @@
         </form>
         <a href="/post?id={{.CIDPID}}"> {{if eq .VoteState 2 }} Disiked Comment {{end}} 
         {{if eq .VoteState 1 }} Liked Comment{{end}} </a>
-
-        </a> in Comment "{{.PostTitle}}" {{end}} {{end}} {{if .CLID}} {{if gt .CLID 0 }}
-
+        </a> in Comment "{{.PostTitle}}" {{end}} {{end}}
+         {{if .CLID}}
+         {{if gt .CLID 0 }}
         <form action="/user/id/?{{.UID}}" method="post" class="author-post">
             <input type="hidden" name="uid" value="{{.UID}}">
             <input type="submit" value="{{.UserLost}}">
