@@ -13,7 +13,9 @@
         <span> OR </span>
         <div class="github-signin"></div> <a href="/githubSignin"> Github Signin </a>
     </div>
-    <p id="notify"></p>
+ 
+    <p id="notify"> {{.}} </p>
+
 </div>
 </div>
 
@@ -63,6 +65,7 @@
     }
     const showNotify = (msg) => {
         if (msg != "success") {
+            console.log(msg, "msg")
             let ns = document.getElementById('notify')
             ns.innerText = msg
         } else {

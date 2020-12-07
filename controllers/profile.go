@@ -32,9 +32,9 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 			//check if current cookie equal - cookie
 			util.DisplayTemplate(w, "header", util.IsAuth(r))
 			util.DisplayTemplate(w, "profile", user)
+			util.DisplayTemplate(w, "created_post", posts)
 			util.DisplayTemplate(w, "favorited_post", likedPost)
 			util.DisplayTemplate(w, "disliked_post", dislikedPost)
-			util.DisplayTemplate(w, "created_post", posts)
 			util.DisplayTemplate(w, "comment_user", comments)
 
 			//delete coookie db

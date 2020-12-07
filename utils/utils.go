@@ -167,21 +167,29 @@ func FileByte(r *http.Request, typePhoto string) []byte {
 //AuthError show auth error
 func AuthError(w http.ResponseWriter, r *http.Request, err error, text string, authType string) {
 
-	fmt.Println(text, "errka auth")
+	fmt.Println(text, "notify auth")
+
 	if authType == "default" {
 		w.Header().Set("Content-Type", "application/json")
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			m, _ := json.Marshal(text)
 			w.Write(m)
-			return
 		} else {
-			w.WriteHeader(200)
+			w.WriteHeader(http.StatusOK)
 			m, _ := json.Marshal(text)
 			w.Write(m)
 		}
 	} else {
-		http.Redirect(w, r, "/profile", 302)
+		if err != nil {
+			msg := structure.API.Message
+			msg = text
+
+			w.WriteHeader(http.StatusUnauthorized)
+			DisplayTemplate(w, "signin", msg)
+		} else {
+			http.Redirect(w, r, "/profile", 302)
+		}
 	}
 }
 
