@@ -94,6 +94,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 			f2, _, _ := r.FormFile("uploadfile")
 
 			categories, _ := r.Form["input"]
+
 			photoFlag := false
 			if f != nil && f2 != nil {
 				photoFlag = true

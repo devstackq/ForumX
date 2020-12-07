@@ -188,7 +188,6 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 	var buff bytes.Buffer
 
 	if p.IsPhoto {
-
 		fileSize, _ := buff.ReadFrom(p.FileS)
 		defer p.FileS.Close()
 
@@ -217,12 +216,22 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		last, err := db.LastInsertId()
+		
 		if err != nil {
 			log.Println(err)
 		}
+		pcb := PostCategory{}
 
-		if len(p.Categories) == 1 {
-			pcb := PostCategory{
+		if len(p.Categories) == 0 {
+
+			pcb = PostCategory{
+				PostID:   last,
+				Category: "sapid",
+			}
+			pcb.CreateBridge()
+		} else if len(p.Categories) == 1 {
+
+			pcb = PostCategory{
 				PostID:   last,
 				Category: p.Categories[0],
 			}
@@ -231,15 +240,15 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 		} else if len(p.Categories) > 1 {
 			//loop add > 1 category post
 			for _, v := range p.Categories {
-				pcb := PostCategory{
+				pcb = PostCategory{
 					PostID:   last,
 					Category: v,
 				}
 				pcb.CreateBridge()
 			}
 		}
-		s := strconv.Itoa(int(last))
-		http.Redirect(w, r, "/post?id="+s, 302)
+
+		http.Redirect(w, r, "/post?id="+strconv.Itoa(int(last)), 302)
 
 	} else {
 		msg = "Empty title or content"

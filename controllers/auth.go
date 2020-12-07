@@ -42,13 +42,14 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 
 				fullName := r.FormValue("fullname")
 				if fullName == "" {
-					fullName = "Noname"
+					fullName = "No Name"
 				}
 				if intAge == 0 {
 					intAge = 16
 				}
-				if util.IsPasswordValid(r.FormValue("password")) {
+				util.AuthType = r.FormValue("authType")
 
+				if util.IsPasswordValid(r.FormValue("password")) {
 					u := models.User{
 						FullName: fullName,
 						Email:    r.FormValue("email"),
@@ -116,7 +117,6 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 
 //GoogleLogin func
 func GoogleSignin(w http.ResponseWriter, r *http.Request) {
-
 	url := util.GoogleConfig.AuthCodeURL(oAuthState)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
@@ -165,14 +165,12 @@ func getUserInfo(state, code string) ([]byte, error) {
 }
 
 func GithubSignin(w http.ResponseWriter, r *http.Request) {
-
 	redirectURL := fmt.Sprintf("https://github.com/login/oauth/authorize?client_id=%s&scope=user:email&redirect_uri=%s", "b8f04afed4e89468b1cf", "http://localhost:6969/githubUserInfo")
-	http.Redirect(w, r, redirectURL, 301)
+	http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
 }
 
 func GithubUserData(w http.ResponseWriter, r *http.Request) {
 
-	util.AuthType = "github"
 	reqBody := map[string]string{"client_id": "b8f04afed4e89468b1cf", "client_secret": "6ab9cf0c812fbf5ed4e44aea599c418bd3d8cf08", "code": r.URL.Query().Get("code")}
 	reqJSON, _ := json.Marshal(reqBody)
 
@@ -194,17 +192,37 @@ func GithubUserData(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	githubData := structure.Session{}
+	githubSession := structure.Session{}
+	gitUserData := models.User{}
 
-	json.Unmarshal(responseBody, &githubData)
-	fmt.Println(githubData)
+	json.Unmarshal(responseBody, &githubSession)
+	fmt.Println(githubSession, "github token")
 
-	gitData := models.User{}
-	util.Token = githubData.AccessToken
-	json.Unmarshal(GetGithubData(githubData.AccessToken), &gitData)
+	util.Token = githubSession.AccessToken
+	json.Unmarshal(GetGithubData(githubSession.AccessToken), &gitUserData)
 
-	SigninSideService(w, r, gitData)
+	SigninSideService(w, r, gitUserData)
 
+}
+
+func GetGithubData(token string) []byte {
+
+	util.AuthType = "github"
+
+	req, err := http.NewRequest("GET", "https://api.github.com/user", nil)
+	if err != nil {
+		log.Println(err)
+	}
+	req.Header.Set("accept", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("token %s", token))
+	resp, err := http.DefaultClient.Do(req)
+
+	if err != nil {
+		log.Println(err)
+	}
+	responseBody, _ := ioutil.ReadAll(resp.Body)
+
+	return responseBody
 }
 func SigninSideService(w http.ResponseWriter, r *http.Request, u models.User) {
 
@@ -227,21 +245,4 @@ func SigninSideService(w http.ResponseWriter, r *http.Request, u models.User) {
 		u.Signup(w, r)
 		u.Signin(w, r)
 	}
-}
-func GetGithubData(token string) []byte {
-
-	req, err := http.NewRequest("GET", "https://api.github.com/user", nil)
-	if err != nil {
-		log.Println(err)
-	}
-	req.Header.Set("accept", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("token %s", token))
-	resp, err := http.DefaultClient.Do(req)
-
-	if err != nil {
-		log.Println(err)
-	}
-	responseBody, _ := ioutil.ReadAll(resp.Body)
-
-	return responseBody
 }

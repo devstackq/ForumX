@@ -17,10 +17,7 @@ func (u *User) Signup(w http.ResponseWriter, r *http.Request) {
 
 	users := []User{}
 	var hashPwd []byte
-
-	if util.AuthType != "google" && util.AuthType != "github" {
-		fmt.Print(u.Password, "pwd")
-		
+	if util.AuthType == "default" {
 		hashPwd, err = bcrypt.GenerateFromPassword([]byte(u.Password), 8)
 		if err != nil {
 			log.Println(err)
@@ -51,7 +48,6 @@ func (u *User) Signup(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 	}
-
 	_, err = DB.Exec("INSERT INTO users( full_name, email, password, age, sex, created_time, city, image) VALUES (?,?, ?, ?, ?, ?, ?, ?)",
 		u.FullName, u.Email, hashPwd, u.Age, u.Sex, time.Now(), u.City, u.Image)
 
@@ -67,12 +63,13 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 
 	var user User
 	var err error
-
 	err = u.Scan(&user.ID)
+	
 	if util.AuthType == "default" {
 		u := DB.QueryRow("SELECT id, password FROM users WHERE email=?", uStr.Email)
 		//check pwd, if not correct, error
 		err = u.Scan(&user.ID, &user.Password)
+
 		if err != nil {
 			util.AuthError(w, r, err, "user not found", util.AuthType)
 			return
