@@ -12,7 +12,7 @@ func main() {
 }
 
 //delete notify - when delete comment & post
-//fix docker
+fix docker
 
 // add interest func - adv feat -> search, pagination
 //fix design
