@@ -1,3 +1,3 @@
     #!/bin/bash
-    docker build --tag forumx .
-    docker run --publish 8080:6969 --detach --name forum forumx
+    docker build --tag forum .
+    docker run --publish 6969:6969 --detach --name forumxx forum
