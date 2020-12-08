@@ -11,8 +11,10 @@ func main() {
 	controllers.Init()
 }
 
-try change chmod, try port chnage 8080
 //delete notify - when delete comment & post
+//delete casecade - profile page, whend delete post -> delete comment
+//fix delete post -> delete pcb table
+
 
 // add interest func - adv feat -> search, pagination
 //fix design

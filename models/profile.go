@@ -73,12 +73,13 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 	u.Temp = u.CreatedTime.Format("2006 Jan _2 15:04:05")
 	u.ImageHTML = base64.StdEncoding.EncodeToString(u.Image)
 
-	//create post current user
+	//get posts current user
 	pStmp, err := DB.Query("SELECT * FROM posts WHERE creator_id=?", s.UserID)
 	postsCreated := []Post{}
 
 	for pStmp.Next() {
 		err = pStmp.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreatedTime, &post.Image, &post.Like, &post.Dislike)
+		
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -100,6 +101,9 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 			log.Println(err.Error())
 		}
 		err = DB.QueryRow("SELECT post_id FROM comments WHERE id = ?", cmt.ID).Scan(&postID)
+		if err != nil {
+			log.Println(err.Error())
+		}
 		err = DB.QueryRow("SELECT title FROM posts WHERE id = ?", postID).Scan(&cmt.TitlePost)
 		if err != nil {
 			log.Println(err.Error())
@@ -108,9 +112,9 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 		cmt.CreatedTime = cmt.Time.Format("2006 Jan _2 15:04:05")
 		comments = append(comments, cmt)
 	}
-	if err != nil {
-		return nil, nil, nil, nil, u, err
-	}
+	// if err != nil {
+	// 	return nil, nil, nil, nil, u, err
+	// }
 	return disliked, liked, postsCreated, comments, u, nil
 }
 
