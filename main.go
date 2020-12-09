@@ -11,16 +11,11 @@ func main() {
 	controllers.Init()
 }
 
-//delete notify - when delete comment & post
-//delete casecade - profile page, whend delete post -> delete comment
-//fix delete post -> delete pcb table
-
-
-// add interest func - adv feat -> search, pagination
-//fix design
-// create post, if category, empty - set -> default category - sapid
+//try todo  answer -> to another comment
+// interest func - adv feat -> search, pagination
 
 //try - event -> add sound & confetti -Login
+
 // save photo, like - source DB refactor
 //config, router refactorr
 //if cookie = 0, notify message  user, logout etc
