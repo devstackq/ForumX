@@ -295,25 +295,46 @@ func IsRegistered(w http.ResponseWriter, r *http.Request, email string) bool {
 	return false
 }
 
-//RemoveVoteNotify func
-func RemoveVoteNotify(table string, toWhom, fromWhom, objID int) {
+//UpdateVoteNotify func
+func UpdateVoteNotify(table string, toWhom, fromWhom, objID, voteType int) {
+
+	fmt.Println(voteType, "TYPE", table)
 
 	if table == "post" && toWhom != 0 {
-		_, err = DB.Exec("DELETE FROM notify  WHERE post_id =? AND current_user_id=?  AND to_whom=?", objID, fromWhom, toWhom)
+		_, err = DB.Exec("UPDATE notify SET voteState=? WHERE comment_id=? AND post_id =? AND current_user_id=?  AND to_whom=?", voteType, 0, objID, fromWhom, toWhom)
 		if err != nil {
 			fmt.Println(err)
 		}
-		fmt.Println(objID, fromWhom, toWhom, "notify Remove Like/Dislike")
+		fmt.Println(objID, fromWhom, toWhom, "update  Like/Dislike Post")
+
 	} else if table == "comment" && toWhom != 0 {
-		_, err = DB.Exec("DELETE FROM notify  WHERE comment_id =? AND current_user_id=? AND to_whom=?", objID, fromWhom, toWhom)
+		fmt.Println(objID, fromWhom, toWhom, "notify Update Vote Comment")
+		_, err = DB.Exec("UPDATE notify SET voteState=? WHERE post_id=? AND  comment_id=? AND current_user_id=?  AND to_whom=?", voteType, 0, objID, fromWhom, toWhom)
 		if err != nil {
 			fmt.Println(err)
 		}
 	}
-
 }
 
-//SetVoteNotify
+//RemoveVoteNotify func
+func RemoveVoteNotify(table string, toWhom, fromWhom, objID int) {
+
+	if table == "post" && toWhom != 0 {
+		_, err = DB.Exec("DELETE FROM notify WHERE post_id =? AND current_user_id=?  AND to_whom=? AND comment_id =?", objID, fromWhom, toWhom, 0)
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(objID, fromWhom, toWhom, "notify Remove Like/Dislike Post")
+	} else if table == "comment" && toWhom != 0 {
+		fmt.Println(objID, fromWhom, toWhom, "notify Remove Voter Comment")
+		_, err = DB.Exec("DELETE FROM notify  WHERE comment_id = ? AND current_user_id=? AND to_whom=? AND post_id = ?", objID, fromWhom, toWhom, 0)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+}
+
+//SetVoteNotify func
 func SetVoteNotify(table string, toWhom, fromWhom, objID int, voteLD bool) {
 
 	voteState := 2
@@ -321,20 +342,23 @@ func SetVoteNotify(table string, toWhom, fromWhom, objID int, voteLD bool) {
 		voteState = 1
 	}
 	if table == "post" && toWhom != 0 {
+
 		_, err = DB.Exec("INSERT INTO notify( post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)", objID, fromWhom, voteState, time.Now(), toWhom, 0)
 		if err != nil {
 			fmt.Println(err)
 		}
+		fmt.Println(table, objID, fromWhom, toWhom, "notify Set Like/Dislike")
+
 	} else if table == "comment" && toWhom != 0 {
+		fmt.Println(objID, fromWhom, toWhom, "notify Set Vote comment")
 		_, err = DB.Exec("INSERT INTO notify( post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)", 0, fromWhom, voteState, time.Now(), toWhom, objID)
 		if err != nil {
 			fmt.Println(err)
 		}
 	}
-	fmt.Println(table, objID, fromWhom, toWhom, "notify Set Like/Dislike")
 }
 
-//SetCommentNotify func
+//SetCommentNotify func by PostID
 func SetCommentNotify(pid, fromWhom, toWhom int, lid int64) {
 	_, err = DB.Exec("INSERT INTO notify(post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)", pid, fromWhom, 0, time.Now(), toWhom, lid)
 	if err != nil {

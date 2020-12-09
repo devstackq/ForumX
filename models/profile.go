@@ -79,7 +79,7 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 
 	for pStmp.Next() {
 		err = pStmp.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreatedTime, &post.Image, &post.Like, &post.Dislike)
-		
+
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -179,6 +179,7 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request) (result []Notify)
 			n.PostTitle = n.CommentTitle
 			fmt.Println("user: ", n.UserLost, " lost liked your Comment : ", n.CommentTitle, " in ", v.CreatedTime, "")
 		}
+		
 		if v.VoteState == 2 && v.CommentID != 0 {
 			n.CID = v.CommentID
 			n.PostTitle = n.CommentTitle
