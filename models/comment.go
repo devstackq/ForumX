@@ -57,8 +57,16 @@ func (c *Comment) UpdateComment() {
 
 // DeleteComment func
 func DeleteComment(id string) {
-	_, err := DB.Exec("DELETE FROM  comments  WHERE id =?", id)
 
+	_, err = DB.Exec("DELETE FROM  comments  WHERE id =?", id)
+	if err != nil {
+		log.Println(err)
+	}
+	_, err = DB.Exec("DELETE FROM notify  WHERE comment_id =?", id)
+	if err != nil {
+		log.Println(err)
+	}
+	_, err = DB.Exec("DELETE FROM voteState  WHERE comment_id =?", id)
 	if err != nil {
 		log.Println(err)
 	}

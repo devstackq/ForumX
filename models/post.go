@@ -172,12 +172,30 @@ func (p *Post) UpdatePost() error {
 	return nil
 }
 
-//DeletePost function
+//DeletePost function, delete rows, notify, voteState, comment, by postId
 func (p *Post) DeletePost() error {
-	_, err := DB.Exec("DELETE FROM  posts  WHERE id =?", p.ID)
+
+	_, err = DB.Exec("DELETE FROM posts  WHERE id =?", p.ID)
 	if err != nil {
 		return err
 	}
+	_, err = DB.Exec("DELETE FROM comments  WHERE post_id =?", p.ID)
+	if err != nil {
+		return err
+	}
+	_, err = DB.Exec("DELETE FROM notify  WHERE post_id =?", p.ID)
+	if err != nil {
+		return err
+	}
+	_, err = DB.Exec("DELETE FROM voteState  WHERE post_id =?", p.ID)
+	if err != nil {
+		return err
+	}
+	_, err = DB.Exec("DELETE FROM post_cat_bridge  WHERE post_id =?", p.ID)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -216,7 +234,7 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		last, err := db.LastInsertId()
-		
+
 		if err != nil {
 			log.Println(err)
 		}
