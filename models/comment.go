@@ -30,7 +30,7 @@ func (c *Comment) LeaveComment() error {
 	if err != nil {
 		return err
 	}
-	//comnet contetn
+	//commet content
 	err = DB.QueryRow("SELECT creator_id FROM posts WHERE id=?", c.PostID).Scan(&c.ToWhom)
 	if err != nil {
 		log.Println(err)
@@ -39,7 +39,7 @@ func (c *Comment) LeaveComment() error {
 	if err != nil {
 		log.Println(err)
 	}
-	//fmt.Println(c.ToWhom, "comment to whom lost")
+	//fmt.Println(c.ToWhom, "comment to whom lost")7
 	util.SetCommentNotify(c.PostID, c.UserID, c.ToWhom, lid)
 	return nil
 }
