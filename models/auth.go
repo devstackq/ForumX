@@ -48,9 +48,12 @@ func (u *User) Signup(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 	}
-	_, err = DB.Exec("INSERT INTO users( full_name, email, password, age, sex, created_time, city, image) VALUES (?,?, ?, ?, ?, ?, ?, ?)",
-		u.FullName, u.Email, hashPwd, u.Age, u.Sex, time.Now(), u.City, u.Image)
-
+	userPrepare, err := DB.Prepare(`INSERT INTO users(full_name, email, password, age, sex, created_time, city, image) VALUES(?,?,?,?,?,?,?,?)` )
+	if err != nil {
+		log.Println(err)
+	}
+	defer userPrepare.Close()
+	_, err = userPrepare.Exec(u.FullName, u.Email, hashPwd, u.Age, u.Sex, time.Now(), u.City, u.Image) 
 	if err != nil {
 		log.Println(err)
 	}
