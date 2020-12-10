@@ -2,9 +2,9 @@ package structure
 
 //general model
 type Session struct {
-	ID          int
-	UUID        string
-	UserID      int
+	ID          int `json:"id"`
+	UUID        string `json:"uuid"`
+	UserID      int  `json:"userId"`
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
 	Scope       string `json:"scope"`
@@ -12,6 +12,6 @@ type Session struct {
 
 //general global variable
 var API struct {
-	Authenticated bool
-	Message       string
+	Authenticated bool `json:"authenticated"`
+	Message       string  `json:"message"`
 }

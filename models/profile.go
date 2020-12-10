@@ -13,42 +13,42 @@ import (
 
 //Users struct
 type User struct {
-	ID          int
-	FullName    string
+	ID          int `json:"id"`
+	FullName    string `json:"fullName"`
 	Email       string `json:"email"`
-	Password    string
-	IsAdmin     bool
-	Age         int
-	Sex         string
-	CreatedTime time.Time
-	City        string
-	Image       []byte
-	ImageHTML   string
-	Role        string
-	SVG         bool
-	Type        string
-	Temp        string
+	Password    string `json:"password"`
+	IsAdmin     bool   `json:"isAdmin"`
+	Age         int    `json:"age"`
+	Sex         string `json:"sex"`
+	CreatedTime time.Time `json:"createdTime"`
+	City        string `json:"city"`
+	Image       []byte `json:"image"`
+	ImageHTML   string `json:"imageHtml"`
+	Role        string `json:"role"`
+	SVG         bool   `json:"svg"`
+	Type        string `json:"type"`
+	Temp        string `json:"temp"`
 	Name        string `json:"name"`
 	Location    string `json:"location"`
 }
 
 //Notify struct
 type Notify struct {
-	UID          int
-	PID          int
-	CID          int
-	CLID         int
-	ID           int
-	CIDPID       int
-	PostID       int
-	CommentID    int
-	UserLostID   int
-	VoteState    int
-	CreatedTime  string
-	ToWhom       int
-	PostTitle    string
-	UserLost     string
-	CommentTitle string
+	UID          int `json:"uid"`
+	PID          int `json:"pid"`
+	CID          int `json:"cid"`
+	CLID         int `json:"clid"`
+	ID           int `json:"id"`
+	CIDPID       int `json:"cidpid"`
+	PostID       int `json:"postId"`
+	CommentID    int `json:"commentId"`
+	UserLostID   int `json:"userLostId"`
+	VoteState    int `json:"voteState"`
+	CreatedTime  string `json:"createdTime"`
+	ToWhom       int `json:"toWhom"`
+	PostTitle    string `json:"postTitle"`
+	UserLost     string `json:"userLost"`
+	CommentTitle string `json:"commentTitle"`
 }
 
 //GetUserProfile function
@@ -95,16 +95,15 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 	defer commentQuery.Close()
 
 	for commentQuery.Next() {
-
 		err = commentQuery.Scan(&cmt.ID, &cmt.Content, &cmt.PostID, &cmt.UserID, &cmt.Time, &cmt.Like, &cmt.Dislike)
 		if err != nil {
 			log.Println(err.Error())
 		}
-		err = DB.QueryRow("SELECT post_id FROM comments WHERE id = ?", cmt.ID).Scan(&postID)
+		err = DB.QueryRow("SELECT post_id FROM comments WHERE id = ?", cmt.ID).Scan(&post.ID)
 		if err != nil {
 			log.Println(err.Error())
 		}
-		err = DB.QueryRow("SELECT title FROM posts WHERE id = ?", postID).Scan(&cmt.TitlePost)
+		err = DB.QueryRow("SELECT title FROM posts WHERE id = ?", post.ID).Scan(&cmt.TitlePost)
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -112,9 +111,7 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 		cmt.CreatedTime = cmt.Time.Format("2006 Jan _2 15:04:05")
 		comments = append(comments, cmt)
 	}
-	// if err != nil {
-	// 	return nil, nil, nil, nil, u, err
-	// }
+
 	return disliked, liked, postsCreated, comments, u, nil
 }
 

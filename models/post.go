@@ -22,12 +22,6 @@ var (
 	err                          error
 	DB                           *sql.DB
 	rows                         *sql.Rows
-	id, creatorID, like, dislike int
-	content, title               string
-	createdTime                  time.Time
-	image                        []byte
-	postID                       int
-	userID                       int
 	post                         Post
 	comment                      Comment
 	msg                          = structure.API.Message
@@ -36,31 +30,31 @@ var (
 
 //Posts struct
 type Post struct {
-	ID            int
-	Title         string
-	Content       string
-	CreatorID     int
-	CreatedTime   time.Time
-	Endpoint      string
-	FullName      string
-	Image         []byte
-	ImageHTML     string
-	PostIDEdit    int
-	AuthorForPost int
-	Like          int
-	Dislike       int
-	SVG           bool
-	PBGID         int
-	PBGPostID     int
-	PBGCategory   string
-	FileS         multipart.File
-	FileI         multipart.File
-	Session       structure.Session
-	Categories    []string
-	Temp          string
-	IsPhoto       bool
-	Time          string
-	CountPost     int
+	ID            int `json:"id"`
+	Title         string `json:"title"`
+	Content       string `json:"content"`
+	CreatorID     int `json:"creatorId"`
+	CreatedTime   time.Time `json:"createdTime"`
+	Endpoint      string `json:"endpoint"`
+	FullName      string `json:"fullName"`
+	Image         []byte `json:"image"`
+	ImageHTML     string `json:"imageHtml"`
+	PostIDEdit    int `json:"postEditId"`
+	AuthorForPost int `json:"authorPost"`
+	Like          int `json:"like"`
+	Dislike       int `json:"dislike"`
+	SVG           bool `json:"svg"`
+	PBGID         int `json:"pbgId"`
+	PBGPostID     int `json:"pbgPostId"`
+	PBGCategory   string `json:"pbgCategory"`
+	FileS         multipart.File `json:"fileS"`
+	FileI         multipart.File `json:"fileB"`
+	Session       structure.Session `json:"session"`
+	Categories    []string `json:"categories"`
+	Temp          string `json:"temp"`
+	IsPhoto       bool `json:"isPhoto"`
+	Time          string `json:"time"`
+	CountPost     int `json:"countPost"`
 }
 
 //PostCategory struct
@@ -71,9 +65,9 @@ type PostCategory struct {
 
 //Filter struct
 type Filter struct {
-	Category string
-	Like     string
-	Date     string
+	Category string `json:"cateogry"`
+	Like     string `json:"like"`
+	Date     string `json:"date"`
 }
 
 //GetAllPost function
@@ -228,12 +222,17 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 	//check empty values
 	if util.CheckLetter(p.Title) && util.CheckLetter(p.Content) {
 
-		db, err := DB.Exec("INSERT INTO posts (title, content, creator_id, created_time, image) VALUES ( ?,?, ?, ?, ?)",
-			p.Title, p.Content, p.Session.UserID, time.Now(), fileBytes)
+		createPostPrepare, err := DB.Prepare(`INSERT INTO posts (title, content, creator_id, created_time, image) VALUES ( ?,?, ?, ?, ?)` )
 		if err != nil {
 			log.Println(err)
 		}
-		last, err := db.LastInsertId()
+		defer createPostPrepare.Close()
+		createPostExec, err := createPostPrepare.Exec(p.Title, p.Content, p.Session.UserID, time.Now(), fileBytes) 
+		if err != nil {
+			log.Println(err)
+		}
+
+		last, err := createPostExec.LastInsertId()
 
 		if err != nil {
 			log.Println(err)
@@ -324,13 +323,15 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 //CreateBridge create post  -> post_id + category
 func (pcb *PostCategory) CreateBridge() {
 
-	_, err := DB.Exec("INSERT INTO post_cat_bridge (post_id, category) VALUES (?, ?)",
-		pcb.PostID, pcb.Category)
-
-	if err != nil {
-		log.Println(err)
-		return
-	}
+		createBridgePrepare, err := DB.Prepare(`INSERsT INTO post_cat_bridge (post_id, category) VALUES (?, ?)` )
+		if err != nil {
+			log.Println(err)
+		}
+		defer createBridgePrepare.Close()
+		_, err = createBridgePrepare.Exec(pcb.PostID, pcb.Category) 
+		if err != nil {
+			log.Println(err)
+		}
 }
 
 //Search post by contain title
