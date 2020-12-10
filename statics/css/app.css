@@ -856,3 +856,27 @@ a.dislike {
   right: 120px;
   bottom: 18px;
 }
+.google-signin {
+  width: 89%;
+  background: #000;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+}
+.google-signin a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.github-signin {
+  margin: 10px 0;
+  width: 89%;
+  background: #fff;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+}
+.github-signin a {
+  color: #000;
+  text-decoration: none;
+}
