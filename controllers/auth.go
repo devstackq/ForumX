@@ -133,6 +133,7 @@ func GoogleUserData(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
+	//email,name
 	googleData := models.User{}
 	json.Unmarshal(content, &googleData)
 
@@ -231,7 +232,7 @@ func SigninSideService(w http.ResponseWriter, r *http.Request, u models.User) {
 			Email:    u.Email,
 			FullName: u.Name,
 		}
-		u.Signin(w, r)
+		u.Signin(w, r) //login
 	} else {
 		//if github = location -> else Almaty
 		u := models.User{

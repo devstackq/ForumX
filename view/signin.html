@@ -3,20 +3,20 @@
 <div class="signin-wrapper" id="signin-wrapper">
     <div class="signin-container">
         <h3 class="signin-label">Login system</h3>
-        <form action="">
-            <div id="authWrapperId">
-                <input id="email" type="email" name="email" placeholder="email" required="заполни емаиль">
+        <form onsubmit="event.preventDefault()">
+            <div id=" authWrapperId">
+                <input id="email" type="email" name="email" placeholder="email" required="poli nil mlya">
                 <input id="password" type="password" name="password" placeholder="password" required>
                 <input onclick="defAuthSendData()" type="submit" value="Login">
-            </div>
         </form>
-        <span> OR </span>
-        <div> <a href="/googleSignin"> Gogole Signin </a> </div>
-        <span> OR </span>
-        <div class="github-signin"></div> <a href="/githubSignin"> Github Signin </a>
     </div>
+    <span> OR </span>
+    <div> <a href="/googleSignin"> Gogole Signin </a> </div>
+    <span> OR </span>
+    <div class="github-signin"></div> <a href="/githubSignin"> Github Signin </a>
+</div>
 
-    <p id="notify"> {{.}} </p>
+<p id="notify"> {{.}} </p>
 
 </div>
 </div>
