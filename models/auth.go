@@ -94,7 +94,14 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//create uuid and set uid DB table session by userid,
-	_, err = DB.Exec("INSERT INTO session(uuid, user_id) VALUES (?, ?)", uuid, s.UserID)
+
+	userPrepare, err := DB.Prepare(`INSERT INTO session(uuid, user_id) VALUES (?, ?)` )
+	if err != nil {
+		log.Println(err)
+	}
+	defer userPrepare.Close()
+	_, err = userPrepare.Exec(uuid, s.UserID) 
+
 
 	if err != nil {
 		util.AuthError(w, r, err, "the user is already in the system", util.AuthType)

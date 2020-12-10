@@ -9,33 +9,39 @@ import (
 
 //Comment ID -> foreign key -> postID
 type Comment struct {
-	ID          int
-	Content     string
-	PostID      int
-	UserID      int
-	Author      string
-	Like        int
-	Dislike     int
-	TitlePost   string
-	Time        time.Time
-	CreatedTime string
-	ToWhom      int
+	ID          int `json:"id"`
+	Content     string  `json:"content"`
+	PostID      int `json:"postId"`
+	UserID      int `json:"userId"`
+	Author      string `json:"author"`
+	Like        int `json:"like"`
+	Dislike     int `json:"dislike"`
+	TitlePost   string `json:"titlePost"`
+	Time        time.Time `json:"time"`
+	CreatedTime string `json:"createdTime"`
+	ToWhom      int `json:"toWhom"`
 }
 
 //LeaveComment for post by id
 func (c *Comment) LeaveComment() error {
 
-	q, err := DB.Exec("INSERT INTO comments(content, post_id, creator_id, created_time) VALUES(?,?,?,?)",
-		c.Content, c.PostID, c.UserID, time.Now())
+	commentPrepare, err := DB.Prepare(`INSERT INTO comments(content, post_id, creator_id, created_time) VALUES(?,?,?,?)` )
 	if err != nil {
+		log.Println(err)
+	}
+	defer commentPrepare.Close()
+	commentExec, err := commentPrepare.Exec(c.Content, c.PostID, c.UserID, time.Now()) 
+	if err != nil {
+		log.Println(err)
 		return err
 	}
+
 	//commet content
 	err = DB.QueryRow("SELECT creator_id FROM posts WHERE id=?", c.PostID).Scan(&c.ToWhom)
 	if err != nil {
 		log.Println(err)
 	}
-	lid, err := q.LastInsertId()
+	lid, err := commentExec.LastInsertId()
 	if err != nil {
 		log.Println(err)
 	}
