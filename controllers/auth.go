@@ -247,3 +247,6 @@ func SigninSideService(w http.ResponseWriter, r *http.Request, u models.User) {
 		u.Signin(w, r)
 	}
 }
+
+//alnikolaevich, Auth
+//Yenlik29, 4ubak, YeldarMl, saulem - Adv Feat

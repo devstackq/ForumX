@@ -96,10 +96,11 @@ func DeleteComment(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/profile", 302)
 }
 
+//AnswerComment func
 func AnswerComment(w http.ResponseWriter, r *http.Request) {
 
-	fmt.Print("here")
 	if util.URLChecker(w, r, "/answer/comment") {
+
 		access, s := util.IsCookie(w, r)
 		if !access {
 			http.Redirect(w, r, "/signin", 200)
@@ -114,9 +115,8 @@ func AnswerComment(w http.ResponseWriter, r *http.Request) {
 	var toWhom int
 	DB.QueryRow("SELECT creator_id FROM comments WHERE id = ?", cid).Scan(&toWhom)
 
-	// create table - answer comment, fields, id, answer, fromWho, ToWhom, commentID, 
-
 	fmt.Println(pid, "pid", cid, "cid", answer, "ans", s.UserID, "uid", toWhom)
 
+	//receive data from Client, -> insert Db, show client under Comment
 	}
-}
+} 
