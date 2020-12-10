@@ -5,8 +5,10 @@ import (
 	"net/http"
 )
 
+//routes -> handlers
 //mux own server,  route init  - google, config FileServer
-//handlers
+
+//Init func handlers
 func Init() {
 	http.Handle("/statics/", http.StripPrefix("/statics/", http.FileServer(http.Dir("./statics/"))))
 
@@ -24,6 +26,7 @@ func Init() {
 	http.HandleFunc("/comment", LeaveComment)
 	http.HandleFunc("/edit/comment", UpdateComment)
 	http.HandleFunc("/delete/comment", DeleteComment)
+	http.HandleFunc("/answer/comment", AnswerComment)
 
 	http.HandleFunc("/votes", VotesPost)
 	http.HandleFunc("/votes/comment", VotesComment)
@@ -43,7 +46,6 @@ func Init() {
 
 	http.HandleFunc("/githubSignin", GithubSignin)
 	http.HandleFunc("/githubUserInfo", GithubUserData)
-
 	// http.HandleFunc("/chat", routing.StartChat)
 	log.Fatal(http.ListenAndServe(":6969", nil))
 }

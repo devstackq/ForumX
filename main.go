@@ -9,12 +9,9 @@ import (
 func main() {
 	config.Init()
 	controllers.Init()
-
 }
-
 //try todo  answer -> to another comment
 // interest func - adv feat -> search, pagination
-//strcuture projet  ref
 
 //try - event -> add sound & confetti -Login
 // save photo, like - source DB refactor

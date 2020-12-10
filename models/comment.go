@@ -35,7 +35,6 @@ func (c *Comment) LeaveComment() error {
 		log.Println(err)
 		return err
 	}
-
 	//commet content
 	err = DB.QueryRow("SELECT creator_id FROM posts WHERE id=?", c.PostID).Scan(&c.ToWhom)
 	if err != nil {
@@ -45,14 +44,12 @@ func (c *Comment) LeaveComment() error {
 	if err != nil {
 		log.Println(err)
 	}
-	//fmt.Println(c.ToWhom, "comment to whom lost")7
 	util.SetCommentNotify(c.PostID, c.UserID, c.ToWhom, lid)
 	return nil
 }
 
 //UpdateComment func
 func (c *Comment) UpdateComment() {
-
 	_, err := DB.Exec("UPDATE  comments SET  content=? WHERE id =?",
 		c.Content, c.ID)
 
@@ -64,15 +61,15 @@ func (c *Comment) UpdateComment() {
 // DeleteComment func
 func DeleteComment(id string) {
 
-	_, err = DB.Exec("DELETE FROM  comments  WHERE id =?", id)
-	if err != nil {
-		log.Println(err)
-	}
 	_, err = DB.Exec("DELETE FROM notify  WHERE comment_id =?", id)
 	if err != nil {
 		log.Println(err)
 	}
 	_, err = DB.Exec("DELETE FROM voteState  WHERE comment_id =?", id)
+	if err != nil {
+		log.Println(err)
+	}
+	_, err = DB.Exec("DELETE FROM  comments  WHERE id =?", id)
 	if err != nil {
 		log.Println(err)
 	}
