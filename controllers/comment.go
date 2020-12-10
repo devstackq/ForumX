@@ -95,3 +95,28 @@ func DeleteComment(w http.ResponseWriter, r *http.Request) {
 	}
 	http.Redirect(w, r, "/profile", 302)
 }
+
+func AnswerComment(w http.ResponseWriter, r *http.Request) {
+
+	fmt.Print("here")
+	if util.URLChecker(w, r, "/answer/comment") {
+		access, s := util.IsCookie(w, r)
+		if !access {
+			http.Redirect(w, r, "/signin", 200)
+			return
+		}
+
+	answer := r.FormValue("answer")
+	cid := r.FormValue("commentID")
+	pid := r.FormValue("pid")
+
+	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
+	var toWhom int
+	DB.QueryRow("SELECT creator_id FROM comments WHERE id = ?", cid).Scan(&toWhom)
+
+	// create table - answer comment, fields, id, answer, fromWho, ToWhom, commentID, 
+
+	fmt.Println(pid, "pid", cid, "cid", answer, "ans", s.UserID, "uid", toWhom)
+
+	}
+}

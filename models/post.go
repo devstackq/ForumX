@@ -169,10 +169,7 @@ func (p *Post) UpdatePost() error {
 //DeletePost function, delete rows, notify, voteState, comment, by postId
 func (p *Post) DeletePost() error {
 
-	_, err = DB.Exec("DELETE FROM posts  WHERE id =?", p.ID)
-	if err != nil {
-		return err
-	}
+
 	_, err = DB.Exec("DELETE FROM comments  WHERE post_id =?", p.ID)
 	if err != nil {
 		return err
@@ -186,6 +183,10 @@ func (p *Post) DeletePost() error {
 		return err
 	}
 	_, err = DB.Exec("DELETE FROM post_cat_bridge  WHERE post_id =?", p.ID)
+	if err != nil {
+		return err
+	}
+	_, err = DB.Exec("DELETE FROM posts  WHERE id =?", p.ID)
 	if err != nil {
 		return err
 	}
@@ -323,7 +324,7 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 //CreateBridge create post  -> post_id + category
 func (pcb *PostCategory) CreateBridge() {
 
-		createBridgePrepare, err := DB.Prepare(`INSERsT INTO post_cat_bridge (post_id, category) VALUES (?, ?)` )
+		createBridgePrepare, err := DB.Prepare(`INSERT INTO post_cat_bridge (post_id, category) VALUES (?, ?)` )
 		if err != nil {
 			log.Println(err)
 		}

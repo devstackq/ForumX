@@ -1,6 +1,6 @@
 package structure
 
-//general model
+//general structure -> for child packages use
 type Session struct {
 	ID          int `json:"id"`
 	UUID        string `json:"uuid"`
