@@ -778,10 +778,6 @@ a.dislike {
   padding-left: 10px;
 }
 
-.comment-btn-like {
-  background-image: url("images/like.png") !important;
-}
-
 .vote-up {
   margin-right: -28px;
   cursor: pointer;
@@ -879,4 +875,11 @@ a.dislike {
 .github-signin a {
   color: #000;
   text-decoration: none;
+}
+.answer {
+  padding: 10px;
+  border: 1px solid red;
+}
+.answer-form {
+  display: none;
 }

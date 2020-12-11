@@ -25,7 +25,7 @@
             <span class="" style="color:red; font-size: 15px; padding-left:5px;">
                 {{.Like}}
             </span>
-            <form class="dislike-comment-wrap" action="/votes/comment?commentID={{.ID}}" method="POST">
+            <form class="dislike-c  omment-wrap" action="/votes/comment?commentID={{.ID}}" method="POST">
                 <span class="fa fa-thumbs-down vote-down"> </span>
                 <input type="hidden" name="commentDislike" value="1">
                 <input class="" type="submit" value="     ">
@@ -35,18 +35,23 @@
                 {{.Dislike}}
             </span>
         </div>
+        <button onclick="showAnswerForm()">Reply</button>
     </div>
-    //
-    {{if eq .ReplyID .ID }}
-    <p>GG</p>
+    //toggle button
+    {{range .RepliesComments}}
+    <br />
+    <div class="answer">
+        Answer your author Comment ID comment : {{.Author}}
+        {{.Content}}
+        {{.CreatedTime}}
+    </div>
+    <br />
     {{end}}
-
-    <form class="" action="/answer/comment?commentID={{.ID}}" method="POST">
+    <form class="answer-form" id="answerFormId" action="/answer/comment?commentID={{.ID}}" method="POST">
         <textarea name="answer" id="" cols="66" rows="6"></textarea>
         <input type="hidden" name="pid" value="{{.PostID}}">
-        <input type="submit" value="asnwer comment" />
+        <input type="submit" value="send" />
     </form>
-
 </div>
 {{end}}
 
