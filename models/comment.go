@@ -23,6 +23,7 @@ type Comment struct {
 	FromWhom    int       `json:"fromWhom"`
 	CommentID   int       `json:"commentId"`
 	ReplyID     int       `json:"replyId"`
+	RepliesComments []Comment
 }
 
 //LeaveComment for post by id

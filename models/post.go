@@ -276,7 +276,7 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 }
 
 //GetPostByID function take from all post, only post by id, then write p struct Post
-func (post *Post) GetPostByID(r *http.Request) ([]Comment, []Comment, Post, error) {
+func (post *Post) GetPostByID(r *http.Request) ( []Comment, Post, error) {
 
 	p := Post{}
 	DB.QueryRow("SELECT * FROM posts WHERE id = ?", post.ID).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreatedTime, &p.Image, &p.Like, &p.Dislike)
@@ -289,9 +289,7 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, []Comment, Post, erro
 		}
 	}
 	p.Time = p.CreatedTime.Format("2006 Jan _2 15:04:05")
-
 	p.ImageHTML = base64.StdEncoding.EncodeToString(p.Image)
-
 	DB.QueryRow("SELECT full_name FROM users WHERE id = ?", p.CreatorID).Scan(&p.FullName)
 
 	stmp, err := DB.Query("SELECT * FROM comments WHERE  post_id =?", p.ID)
@@ -302,66 +300,40 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, []Comment, Post, erro
 	//write each fields inside Comment struct -> then  append Array Comments
 	var comments []Comment
 
-	var tests []Comment
 	for stmp.Next() {
-
 		c := Comment{}
 		err = stmp.Scan(&c.ID, &c.Content, &c.PostID, &c.UserID, &c.Time, &c.Like, &c.Dislike)
 		if err != nil {
 			log.Println(err.Error())
 		}
 		c.CreatedTime = c.Time.Format("2006 Jan _2 15:04:05")
-
 		DB.QueryRow("SELECT full_name FROM users WHERE id = ?", c.UserID).Scan(&c.Author)
+		//
+			replyComment, _ := DB.Query("SELECT * FROM replyComment WHERE comment_id =?", c.ID)
+		
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer replyComment.Close()
+		
+			for replyComment.Next() {
+				rc := Comment{}
+				err = replyComment.Scan(&rc.ID, &rc.Content, &rc.PostID, &rc.CommentID, &rc.FromWhom, &rc.ToWhom, &rc.Time)
+				if err != nil {
+					log.Println(err.Error())
+				}
+				rc.CreatedTime = rc.Time.Format("2006 Jan _2 15:04:05")
+				DB.QueryRow("SELECT full_name FROM users WHERE id = ?", rc.FromWhom).Scan(&rc.Author)
+				//write answer by comment
+				c.RepliesComments = append(c.RepliesComments, rc)
+			}
 		comments = append(comments, c)
 	}
 
-	// get replieComment  Db, where commentId = c.ID
-	coommnetID
-
-	test, _ := DB.Query("SELECT * FROM replyComment WHERE comment_id =?", coommnetID)
-
-	for test.Next() {
-		c := Comment{}
-
-		err = test.Scan(&c.ID, &c.Content, &c.PostID, &c.CommentID, &c.FromWhom, &c.ToWhom, &c.Time)
-		if err != nil {
-			log.Println(err.Error())
-		}
-		tests = append(tests, c)
-	}
-
-	fmt.Println(tests)
-
-	var replies []Comment
-
-	//truy -> inside Array
-	replyComment, err := DB.Query("SELECT * FROM replyComment WHERE comment_id =?", ReplyCommentID)
-	fmt.Println(ReplyCommentID, "IDpost")
 	if err != nil {
-		log.Fatal(err)
+		return  comments, p, err
 	}
-	defer replyComment.Close()
-
-	for replyComment.Next() {
-		c := Comment{}
-
-		err = replyComment.Scan(&c.ID, &c.Content, &c.PostID, &c.CommentID, &c.FromWhom, &c.ToWhom, &c.Time)
-		if err != nil {
-			log.Println(err.Error())
-		}
-		// r, _ := strconv.Atoi(ReplyCommentID)
-		// c.ReplyID = r
-		c.CreatedTime = c.Time.Format("2006 Jan _2 15:04:05")
-
-		DB.QueryRow("SELECT full_name FROM users WHERE id = ?", c.FromWhom).Scan(&c.Author)
-		replies = append(replies, c)
-	}
-
-	if err != nil {
-		return replies, comments, p, err
-	}
-	return replies, comments, p, nil
+	return  comments, p, nil
 }
 
 //CreateBridge create post  -> post_id + category
