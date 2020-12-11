@@ -36,6 +36,10 @@
             </span>
         </div>
     </div>
+    //
+    {{if eq .ReplyID .ID }}
+    <p>GG</p>
+    {{end}}
 
     <form class="" action="/answer/comment?commentID={{.ID}}" method="POST">
         <textarea name="answer" id="" cols="66" rows="6"></textarea>
@@ -45,4 +49,5 @@
 
 </div>
 {{end}}
+
 {{end}}

@@ -21,7 +21,7 @@ import (
 var (
 	DB   *sql.DB
 	err  error
-	temp = template.Must(template.ParseFiles("./view/header.html", "view/update_comment.html", "view/activity.html", "view/disliked.html", "view/category_post.html", "view/favorites.html", "view/404page.html", "view/update_post.html", "view/created_post.html", "view/comment_user.html", "view/profile_update.html", "view/search.html", "view/another_user.html", "view/profile.html", "view/signin.html", "view/signup.html", "view/filter.html", "view/post.html", "view/comment_post.html", "view/create_post.html", "view/footer.html", "view/index.html"))
+	temp = template.Must(template.ParseFiles("./view/header.html", "./view/reply_comment.html", "view/update_comment.html", "view/activity.html", "view/disliked.html", "view/category_post.html", "view/favorites.html", "view/404page.html", "view/update_post.html", "view/created_post.html", "view/comment_user.html", "view/profile_update.html", "view/search.html", "view/another_user.html", "view/profile.html", "view/signin.html", "view/signup.html", "view/filter.html", "view/post.html", "view/comment_post.html", "view/create_post.html", "view/footer.html", "view/index.html"))
 
 	GoogleConfig = &oauth2.Config{
 		RedirectURL:  "http://localhost:6969/googleUserInfo",
@@ -326,16 +326,16 @@ func SetVoteNotify(table string, toWhom, fromWhom, objID int, voteLD bool) {
 	}
 	if table == "post" && toWhom != 0 {
 
-		_, err = DB.Exec("INSERT INTO notify( post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)", objID, fromWhom, voteState, time.Now(), toWhom, 0)
-		if err != nil {
-			fmt.Println(err)
-		}
-		voteNotifyPrepare, err := DB.Prepare(`INSERT INTO  notify( post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)` )
+		// _, err = DB.Exec("INSERT INTO notify( post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)", objID, fromWhom, voteState, time.Now(), toWhom, 0)
+		// if err != nil {
+		// 	fmt.Println(err)
+		// }
+		voteNotifyPrepare, err := DB.Prepare(`INSERT INTO  notify( post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)`)
 		if err != nil {
 			log.Println(err)
 		}
 		defer voteNotifyPrepare.Close()
-		_, err = voteNotifyPrepare.Exec(objID, fromWhom, voteState, time.Now(), toWhom, 0) 
+		_, err = voteNotifyPrepare.Exec(objID, fromWhom, voteState, time.Now(), toWhom, 0)
 		if err != nil {
 			log.Println(err)
 		}
@@ -345,12 +345,12 @@ func SetVoteNotify(table string, toWhom, fromWhom, objID int, voteLD bool) {
 
 		fmt.Println(objID, fromWhom, toWhom, "notify Set Vote comment")
 
-		voteNotifyPrepare, err := DB.Prepare(`INSERT INTO notify( post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)` )
+		voteNotifyPrepare, err := DB.Prepare(`INSERT INTO notify( post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)`)
 		if err != nil {
 			log.Println(err)
 		}
 		defer voteNotifyPrepare.Close()
-		_, err = voteNotifyPrepare.Exec( 0, fromWhom, voteState, time.Now(), toWhom, objID) 
+		_, err = voteNotifyPrepare.Exec(0, fromWhom, voteState, time.Now(), toWhom, objID)
 		if err != nil {
 			log.Println(err)
 		}
@@ -360,12 +360,12 @@ func SetVoteNotify(table string, toWhom, fromWhom, objID int, voteLD bool) {
 //SetCommentNotify func by PostID
 func SetCommentNotify(pid, fromWhom, toWhom int, lid int64) {
 
-	voteNotifyPrepare, err := DB.Prepare(`INSERT INTO notify(post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)` )
+	voteNotifyPrepare, err := DB.Prepare(`INSERT INTO notify(post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		log.Println(err)
 	}
 	defer voteNotifyPrepare.Close()
-	_, err = voteNotifyPrepare.Exec( pid, fromWhom, 0, time.Now(), toWhom, lid) 
+	_, err = voteNotifyPrepare.Exec(pid, fromWhom, 0, time.Now(), toWhom, lid)
 	if err != nil {
 		log.Println(err)
 	}

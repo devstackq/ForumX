@@ -91,7 +91,6 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-
 			if person.Type == "default" {
 				util.AuthType = "default"
 				u := models.User{
@@ -133,10 +132,8 @@ func GoogleUserData(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
-	//email,name
 	googleData := models.User{}
 	json.Unmarshal(content, &googleData)
-
 	SigninSideService(w, r, googleData)
 }
 
@@ -179,7 +176,6 @@ func GithubUserData(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
@@ -195,15 +191,11 @@ func GithubUserData(w http.ResponseWriter, r *http.Request) {
 
 	githubSession := structure.Session{}
 	gitUserData := models.User{}
-
 	json.Unmarshal(responseBody, &githubSession)
 	fmt.Println(githubSession, "github token")
-
 	util.Token = githubSession.AccessToken
 	json.Unmarshal(GetGithubData(githubSession.AccessToken), &gitUserData)
-
 	SigninSideService(w, r, gitUserData)
-
 }
 
 func GetGithubData(token string) []byte {
@@ -249,4 +241,3 @@ func SigninSideService(w http.ResponseWriter, r *http.Request, u models.User) {
 }
 
 //alnikolaevich, Auth
-//Yenlik29, 4ubak, YeldarMl, saulem - Adv Feat

@@ -1,0 +1,11 @@
+{{define "reply_comment"}}
+
+{{range .}}
+<br/>
+{{.Content}}
+{{.CreatedTime}}
+reply your comment : {{.Author}}
+{{.ReplyID}}
+<br/>
+{{end}}
+{{end}}

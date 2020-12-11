@@ -19,42 +19,43 @@ import (
 
 //global variable for package models
 var (
-	err                          error
-	DB                           *sql.DB
-	rows                         *sql.Rows
-	post                         Post
-	comment                      Comment
-	msg                          = structure.API.Message
-	pageNum                      = 1
+	err            error
+	DB             *sql.DB
+	rows           *sql.Rows
+	post           Post
+	comment        Comment
+	msg            = structure.API.Message
+	pageNum        = 1
+	ReplyCommentID string
 )
 
 //Posts struct
 type Post struct {
-	ID            int `json:"id"`
-	Title         string `json:"title"`
-	Content       string `json:"content"`
-	CreatorID     int `json:"creatorId"`
-	CreatedTime   time.Time `json:"createdTime"`
-	Endpoint      string `json:"endpoint"`
-	FullName      string `json:"fullName"`
-	Image         []byte `json:"image"`
-	ImageHTML     string `json:"imageHtml"`
-	PostIDEdit    int `json:"postEditId"`
-	AuthorForPost int `json:"authorPost"`
-	Like          int `json:"like"`
-	Dislike       int `json:"dislike"`
-	SVG           bool `json:"svg"`
-	PBGID         int `json:"pbgId"`
-	PBGPostID     int `json:"pbgPostId"`
-	PBGCategory   string `json:"pbgCategory"`
-	FileS         multipart.File `json:"fileS"`
-	FileI         multipart.File `json:"fileB"`
+	ID            int               `json:"id"`
+	Title         string            `json:"title"`
+	Content       string            `json:"content"`
+	CreatorID     int               `json:"creatorId"`
+	CreatedTime   time.Time         `json:"createdTime"`
+	Endpoint      string            `json:"endpoint"`
+	FullName      string            `json:"fullName"`
+	Image         []byte            `json:"image"`
+	ImageHTML     string            `json:"imageHtml"`
+	PostIDEdit    int               `json:"postEditId"`
+	AuthorForPost int               `json:"authorPost"`
+	Like          int               `json:"like"`
+	Dislike       int               `json:"dislike"`
+	SVG           bool              `json:"svg"`
+	PBGID         int               `json:"pbgId"`
+	PBGPostID     int               `json:"pbgPostId"`
+	PBGCategory   string            `json:"pbgCategory"`
+	FileS         multipart.File    `json:"fileS"`
+	FileI         multipart.File    `json:"fileB"`
 	Session       structure.Session `json:"session"`
-	Categories    []string `json:"categories"`
-	Temp          string `json:"temp"`
-	IsPhoto       bool `json:"isPhoto"`
-	Time          string `json:"time"`
-	CountPost     int `json:"countPost"`
+	Categories    []string          `json:"categories"`
+	Temp          string            `json:"temp"`
+	IsPhoto       bool              `json:"isPhoto"`
+	Time          string            `json:"time"`
+	CountPost     int               `json:"countPost"`
 }
 
 //PostCategory struct
@@ -169,7 +170,6 @@ func (p *Post) UpdatePost() error {
 //DeletePost function, delete rows, notify, voteState, comment, by postId
 func (p *Post) DeletePost() error {
 
-
 	_, err = DB.Exec("DELETE FROM comments  WHERE post_id =?", p.ID)
 	if err != nil {
 		return err
@@ -223,12 +223,12 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 	//check empty values
 	if util.CheckLetter(p.Title) && util.CheckLetter(p.Content) {
 
-		createPostPrepare, err := DB.Prepare(`INSERT INTO posts (title, content, creator_id, created_time, image) VALUES ( ?,?, ?, ?, ?)` )
+		createPostPrepare, err := DB.Prepare(`INSERT INTO posts (title, content, creator_id, created_time, image) VALUES ( ?,?, ?, ?, ?)`)
 		if err != nil {
 			log.Println(err)
 		}
 		defer createPostPrepare.Close()
-		createPostExec, err := createPostPrepare.Exec(p.Title, p.Content, p.Session.UserID, time.Now(), fileBytes) 
+		createPostExec, err := createPostPrepare.Exec(p.Title, p.Content, p.Session.UserID, time.Now(), fileBytes)
 		if err != nil {
 			log.Println(err)
 		}
@@ -275,8 +275,8 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//GetPostById function take from all post, only post by id, then write p struct Post
-func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
+//GetPostByID function take from all post, only post by id, then write p struct Post
+func (post *Post) GetPostByID(r *http.Request) ([]Comment, []Comment, Post, error) {
 
 	p := Post{}
 	DB.QueryRow("SELECT * FROM posts WHERE id = ?", post.ID).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreatedTime, &p.Image, &p.Like, &p.Dislike)
@@ -302,6 +302,7 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 	//write each fields inside Comment struct -> then  append Array Comments
 	var comments []Comment
 
+	var tests []Comment
 	for stmp.Next() {
 
 		c := Comment{}
@@ -315,24 +316,66 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 		comments = append(comments, c)
 	}
 
-	if err != nil {
-		return nil, p, err
+	// get replieComment  Db, where commentId = c.ID
+	coommnetID
+
+	test, _ := DB.Query("SELECT * FROM replyComment WHERE comment_id =?", coommnetID)
+
+	for test.Next() {
+		c := Comment{}
+
+		err = test.Scan(&c.ID, &c.Content, &c.PostID, &c.CommentID, &c.FromWhom, &c.ToWhom, &c.Time)
+		if err != nil {
+			log.Println(err.Error())
+		}
+		tests = append(tests, c)
 	}
-	return comments, p, nil
+
+	fmt.Println(tests)
+
+	var replies []Comment
+
+	//truy -> inside Array
+	replyComment, err := DB.Query("SELECT * FROM replyComment WHERE comment_id =?", ReplyCommentID)
+	fmt.Println(ReplyCommentID, "IDpost")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer replyComment.Close()
+
+	for replyComment.Next() {
+		c := Comment{}
+
+		err = replyComment.Scan(&c.ID, &c.Content, &c.PostID, &c.CommentID, &c.FromWhom, &c.ToWhom, &c.Time)
+		if err != nil {
+			log.Println(err.Error())
+		}
+		// r, _ := strconv.Atoi(ReplyCommentID)
+		// c.ReplyID = r
+		c.CreatedTime = c.Time.Format("2006 Jan _2 15:04:05")
+
+		DB.QueryRow("SELECT full_name FROM users WHERE id = ?", c.FromWhom).Scan(&c.Author)
+		replies = append(replies, c)
+	}
+
+	if err != nil {
+		return replies, comments, p, err
+	}
+	return replies, comments, p, nil
 }
 
 //CreateBridge create post  -> post_id + category
 func (pcb *PostCategory) CreateBridge() {
 
-		createBridgePrepare, err := DB.Prepare(`INSERT INTO post_cat_bridge (post_id, category) VALUES (?, ?)` )
-		if err != nil {
-			log.Println(err)
-		}
-		defer createBridgePrepare.Close()
-		_, err = createBridgePrepare.Exec(pcb.PostID, pcb.Category) 
-		if err != nil {
-			log.Println(err)
-		}
+	createBridgePrepare, err := DB.Prepare(`INSERT INTO post_cat_bridge (post_id, category) VALUES (?, ?)`)
+	if err != nil {
+		log.Println(err)
+	}
+	defer createBridgePrepare.Close()
+	_, err = createBridgePrepare.Exec(pcb.PostID, pcb.Category)
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 //Search post by contain title
