@@ -60,7 +60,7 @@ func GetPostByID(w http.ResponseWriter, r *http.Request) {
 
 		id, _ := strconv.Atoi(r.FormValue("id"))
 		pid := models.Post{ID: id}
-		comments, post, err := pid.GetPostByID(r)
+		repliesComment, comments, post, err := pid.GetPostByID(r)
 
 		if err != nil {
 			log.Println(err)
@@ -68,6 +68,7 @@ func GetPostByID(w http.ResponseWriter, r *http.Request) {
 		util.DisplayTemplate(w, "header", util.IsAuth(r))
 		util.DisplayTemplate(w, "posts", post)
 		util.DisplayTemplate(w, "comment_post", comments)
+		util.DisplayTemplate(w, "reply_comment", repliesComment)
 	}
 }
 

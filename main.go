@@ -10,6 +10,9 @@ func main() {
 	config.Init()
 	controllers.Init()
 }
+
+//each comment By Id-> show comments
+//query - out -> models
 //try todo  answer -> to another comment
 // interest func - adv feat -> search, pagination
 

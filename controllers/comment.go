@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/devstackq/ForumX/models"
 	util "github.com/devstackq/ForumX/utils"
@@ -82,6 +83,7 @@ func UpdateComment(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//DeleteComment dsa
 func DeleteComment(w http.ResponseWriter, r *http.Request) {
 
 	if util.URLChecker(w, r, "/delete/comment") {
@@ -107,16 +109,27 @@ func AnswerComment(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-	answer := r.FormValue("answer")
-	cid := r.FormValue("commentID")
-	pid := r.FormValue("pid")
+		answer := r.FormValue("answer")
+		cid := r.FormValue("commentID")
+		pid := r.FormValue("pid")
 
-	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
-	var toWhom int
-	DB.QueryRow("SELECT creator_id FROM comments WHERE id = ?", cid).Scan(&toWhom)
+		models.ReplyCommentID = cid
 
-	fmt.Println(pid, "pid", cid, "cid", answer, "ans", s.UserID, "uid", toWhom)
+		DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
+		var toWhom int
+		DB.QueryRow("SELECT creator_id FROM comments WHERE id = ?", cid).Scan(&toWhom)
 
-	//receive data from Client, -> insert Db, show client under Comment
+		//fmt.Println(pid, "pid", cid, "cid", answer, "ans", s.UserID, "uid", toWhom)
+
+		replyCommentPrepare, err := DB.Prepare(`INSERT INTO  replyComment(content, post_id, comment_id, fromWho, toWhom, created_time) VALUES(?, ?, ?, ?, ?, ?)`)
+		if err != nil {
+			log.Println(err)
+		}
+		defer replyCommentPrepare.Close()
+		_, err = replyCommentPrepare.Exec(answer, pid, cid, s.UserID, toWhom, time.Now())
+		if err != nil {
+			log.Println(err)
+		}
+		//receive data from Client, -> insert Db, show client under Comment
 	}
-} 
+}
