@@ -38,33 +38,42 @@
         </div>
         <button id="btn-reply" onclick=" showAnswerComment()">Reply</button>
     </div>
-    {{range .RepliesComments}}
-    <br />
-
-    <div class="answer-container">
-        Answer your author Comment ID comment : {{.Author}}
-        {{.Content}}
-        {{.CreatedTime}}
-        //show/hidden by ID
-
-        <button id="btn-reply-answer" onclick="showAnswerForm({{.ID}})">Reply</button>
-
-        <form class="answer-form" id="answerFormId" action="/reply/answer/comment?answerID={{.ID}}" method="POST">
-            <textarea name="answer" id="" cols="66" rows="6"></textarea>
-            <input type="hidden" name="pid" value="{{.PostID}}">
-            <input type="hidden" name="cid" value="{{.CommentID}}">
-            <input type="submit" value="send" />
-        </form>
-    </div>
-    <br />
-
-    {{end}}
     <form class="answer-form visible-form" id="answerCommentFormId" action="/answer/comment?commentID={{.ID}}"
         method="POST">
         <textarea name="answer" id="" cols="66" rows="6"></textarea>
         <input type="hidden" name="pid" value="{{.PostID}}">
         <input type="submit" value="send" />
     </form>
+
+    {{range .RepliesComments}}
+    <br />
+
+    <div class="answer-comment-container">
+        Answer your author Comment ID comment : {{.Author}}
+        <a href="linkuserprofile" /> {{.Author}}</a>
+        {{.Content}}
+        {{.CreatedTime}}
+        //show/hidden by ID
+
+        {{range .RepliesAnswer}}
+        <div class="answer-container">
+            <a href="linkuserprofile" /> {{.Author}}</a>
+            {{.Content}}
+            {{.CreatedTime}}
+        </div>
+        {{end}}
+
+        <button id="btn-reply-answer" onclick="showAnswerForm({{.ID}})">Reply</button>
+
+        <form class="answer-form" id="answerFormId" action="/reply/answer/comment?answerID={{.ID}}" method="POST">
+            <textarea name="answer" id="" cols="66" rows="6"></textarea>
+            <input type="hidden" name="pid" value="{{.PostID}}">
+            <input type="hidden" name="cid" value="{{.ReplyID}}">
+            <input type="submit" value="send" />
+        </form>
+    </div>
+    <br />
+    {{end}}
 </div>
 {{end}}
 

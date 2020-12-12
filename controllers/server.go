@@ -27,7 +27,7 @@ func Init() {
 	http.HandleFunc("/edit/comment", UpdateComment)
 	http.HandleFunc("/delete/comment", DeleteComment)
 	http.HandleFunc("/answer/comment", AnswerComment)
-	http.HandleFunc("/reply/answer/comment", replyAnswer)
+	http.HandleFunc("/reply/answer/comment", ReplyAnswer)
 
 	http.HandleFunc("/votes", VotesPost)
 	http.HandleFunc("/votes/comment", VotesComment)
