@@ -308,25 +308,48 @@ func (post *Post) GetPostByID(r *http.Request) ( []Comment, Post, error) {
 		}
 		c.CreatedTime = c.Time.Format("2006 Jan _2 15:04:05")
 		DB.QueryRow("SELECT full_name FROM users WHERE id = ?", c.UserID).Scan(&c.Author)
-		//
-			replyComment, _ := DB.Query("SELECT * FROM replyComment WHERE comment_id =?", c.ID)
-		
+		// answer Comment
+			replyComment, err := DB.Query("SELECT * FROM replyComment WHERE comment_id =?", c.ID)
 			if err != nil {
 				log.Fatal(err)
 			}
 			defer replyComment.Close()
-		
+			rc := Comment{}
+
 			for replyComment.Next() {
-				rc := Comment{}
-				err = replyComment.Scan(&rc.ID, &rc.Content, &rc.PostID, &rc.CommentID, &rc.FromWhom, &rc.ToWhom, &rc.Time)
+			
+				err = replyComment.Scan(&rc.ID, &rc.Content, &rc.PostID, &rc.ReplyID, &rc.FromWhom, &rc.ToWhom, &rc.Time)
 				if err != nil {
 					log.Println(err.Error())
 				}
 				rc.CreatedTime = rc.Time.Format("2006 Jan _2 15:04:05")
 				DB.QueryRow("SELECT full_name FROM users WHERE id = ?", rc.FromWhom).Scan(&rc.Author)
 				//write answer by comment
+					// answer answer
+					fmt.Println(rc.ID)
+					replyAnswer, err := DB.Query("SELECT * FROM replyAnswer WHERE reply_comment_id =?", rc.ID)
+					if err != nil {
+						log.Fatal(err)
+					}
+					defer replyAnswer.Close()
+
+					for replyAnswer.Next() {
+						ra := Comment{}
+						err = replyAnswer.Scan(&ra.ID, &ra.Content, &ra.PostID, &ra.ReplyID, &ra.FromWhom, &ra.ToWhom, &ra.Time)
+						if err != nil {
+							log.Println(err.Error())
+						}
+
+						ra.CreatedTime = ra.Time.Format("2006 Jan _2 15:04:05")
+						DB.QueryRow("SELECT full_name FROM users WHERE id = ?", ra.FromWhom).Scan(&ra.Author)
+						//write answer by comment answer
+						rc.RepliesAnswer = append(rc.RepliesAnswer, ra)
+					}
+				//
+
 				c.RepliesComments = append(c.RepliesComments, rc)
 			}
+
 		comments = append(comments, c)
 	}
 

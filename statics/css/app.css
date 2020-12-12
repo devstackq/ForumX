@@ -879,9 +879,17 @@ a.dislike {
 .answer-container {
   padding: 10px;
   border: 1px solid red;
+  background: steelblue;
+  margin-left: 20px;
+  width: 96%;
+}
+
+.answer-comment-container {
+  padding: 10px;
+  border: 1px solid red;
   background: tomato;
   margin-left: 20px;
-  width: 90%;
+  width: 96%;
 }
 
 .visible-answer-form {

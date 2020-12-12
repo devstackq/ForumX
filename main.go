@@ -11,7 +11,6 @@ func main() {
 	controllers.Init()
 }
 
-
 //redirect -> lost answer comment || lost answer answer
 //global variable
 // 	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
@@ -19,6 +18,7 @@ func main() {
 		// DB.QueryRow("SELECT creator_id FROM comments WHERE id = ?", cid).Scan(&toWhom)
 
 //toggle - windows under comment JS
+//answer - COmments -> by userNickname -> ?
 
 //each comment By Id-> show comments
 //query - out -> models

@@ -99,7 +99,7 @@ func DeleteComment(w http.ResponseWriter, r *http.Request) {
 }
 
 
-func replyAnswer(w http.ResponseWriter, r *http.Request) {
+func ReplyAnswer(w http.ResponseWriter, r *http.Request) {
 	
 	if util.URLChecker(w, r, "/reply/answer/comment") {
 
@@ -116,13 +116,19 @@ func replyAnswer(w http.ResponseWriter, r *http.Request) {
 
 		DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
 		var toWhom int
-		DB.QueryRow("SELECT creator_id FROM comments WHERE id = ?", cid).Scan(&toWhom)
+		DB.QueryRow("SELECT fromWho FROM replyComment WHERE id = ?", cid).Scan(&toWhom)
 
-		fmt.Println(content, asnwerID, pid, toWhom, cid)
-
+		replyAnswerPrepare, err := DB.Prepare(`INSERT INTO  replyAnswer(content, post_id, reply_comment_id, fromWho, toWhom, created_time) VALUES(?, ?, ?, ?, ?, ?)`)
+		if err != nil {
+			log.Println(err)
+		}
+		defer replyAnswerPrepare.Close()
+		_, err = replyAnswerPrepare.Exec(content, pid, asnwerID, s.UserID, toWhom, time.Now())
+		if err != nil {
+			log.Println(err)
+		}
 		//save Db, Connect -> under Answer COmment struct []Comment ->
 		// like AnswerCOmment -> send Client -> show Answer answers
-
 	}
 }
 //AnswerComment func
