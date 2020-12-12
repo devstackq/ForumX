@@ -876,10 +876,14 @@ a.dislike {
   color: #000;
   text-decoration: none;
 }
-.answer {
+.answer-container {
   padding: 10px;
   border: 1px solid red;
+  background: tomato;
+  margin-left: 20px;
+  width: 90%;
 }
-.answer-form {
+
+.visible-answer-form {
   display: none;
 }

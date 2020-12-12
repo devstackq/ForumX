@@ -4,7 +4,8 @@
 
 {{range .}}
 {{$id = .PostID}}
-<div class="comment-wrapperz">
+<div onLoad="showAnswerForm();" class="comment-wrapperz">
+
     <div class="comment-underpost">
 
         <div class="comment-wrapper-1">
@@ -35,19 +36,31 @@
                 {{.Dislike}}
             </span>
         </div>
-        <button onclick="showAnswerForm()">Reply</button>
+        <button id="btn-reply" onclick=" showAnswerComment()">Reply</button>
     </div>
-    //toggle button
     {{range .RepliesComments}}
     <br />
-    <div class="answer">
+
+    <div class="answer-container">
         Answer your author Comment ID comment : {{.Author}}
         {{.Content}}
         {{.CreatedTime}}
+        //show/hidden by ID
+
+        <button id="btn-reply-answer" onclick="showAnswerForm({{.ID}})">Reply</button>
+
+        <form class="answer-form" id="answerFormId" action="/reply/answer/comment?answerID={{.ID}}" method="POST">
+            <textarea name="answer" id="" cols="66" rows="6"></textarea>
+            <input type="hidden" name="pid" value="{{.PostID}}">
+            <input type="hidden" name="cid" value="{{.CommentID}}">
+            <input type="submit" value="send" />
+        </form>
     </div>
     <br />
+
     {{end}}
-    <form class="answer-form" id="answerFormId" action="/answer/comment?commentID={{.ID}}" method="POST">
+    <form class="answer-form visible-form" id="answerCommentFormId" action="/answer/comment?commentID={{.ID}}"
+        method="POST">
         <textarea name="answer" id="" cols="66" rows="6"></textarea>
         <input type="hidden" name="pid" value="{{.PostID}}">
         <input type="submit" value="send" />
