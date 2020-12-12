@@ -98,6 +98,33 @@ func DeleteComment(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/profile", 302)
 }
 
+
+func replyAnswer(w http.ResponseWriter, r *http.Request) {
+	
+	if util.URLChecker(w, r, "/reply/answer/comment") {
+
+		access, s := util.IsCookie(w, r)
+		if !access {
+			http.Redirect(w, r, "/signin", 200)
+			return
+		}
+
+		content := r.FormValue("answer")
+		asnwerID := r.FormValue("answerID")
+		pid := r.FormValue("pid")
+		cid := r.FormValue("cid")
+
+		DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
+		var toWhom int
+		DB.QueryRow("SELECT creator_id FROM comments WHERE id = ?", cid).Scan(&toWhom)
+
+		fmt.Println(content, asnwerID, pid, toWhom, cid)
+
+		//save Db, Connect -> under Answer COmment struct []Comment ->
+		// like AnswerCOmment -> send Client -> show Answer answers
+
+	}
+}
 //AnswerComment func
 func AnswerComment(w http.ResponseWriter, r *http.Request) {
 
@@ -130,6 +157,7 @@ func AnswerComment(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err)
 		}
+		http.Redirect(w, r, "/post?id="+pid, 302)
 		//receive data from Client, -> insert Db, show client under Comment
 	}
 }
