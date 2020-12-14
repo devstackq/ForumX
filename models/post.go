@@ -19,14 +19,13 @@ import (
 
 //global variable for package models
 var (
-	err            error
-	DB             *sql.DB
-	rows           *sql.Rows
-	post           Post
-	comment        Comment
-	msg            = structure.API.Message
-	pageNum        = 1
-	ReplyCommentID string
+	err     error
+	DB      *sql.DB
+	rows    *sql.Rows
+	post    Post
+	comment Comment
+	msg     = structure.API.Message
+	pageNum = 1
 )
 
 //Posts struct
@@ -276,7 +275,7 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 }
 
 //GetPostByID function take from all post, only post by id, then write p struct Post
-func (post *Post) GetPostByID(r *http.Request) ( []Comment, Post, error) {
+func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 
 	p := Post{}
 	DB.QueryRow("SELECT * FROM posts WHERE id = ?", post.ID).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreatedTime, &p.Image, &p.Like, &p.Dislike)
@@ -301,62 +300,68 @@ func (post *Post) GetPostByID(r *http.Request) ( []Comment, Post, error) {
 	var comments []Comment
 
 	for stmp.Next() {
+		//get each comment Post -> by Id, -> get each replyComment by comment_id -> get replyAnswer by reply_com_id
 		c := Comment{}
 		err = stmp.Scan(&c.ID, &c.Content, &c.PostID, &c.UserID, &c.Time, &c.Like, &c.Dislike)
 		if err != nil {
 			log.Println(err.Error())
 		}
+		fmt.Println("/", c.ID, "com")
+
 		c.CreatedTime = c.Time.Format("2006 Jan _2 15:04:05")
 		DB.QueryRow("SELECT full_name FROM users WHERE id = ?", c.UserID).Scan(&c.Author)
 		// answer Comment
-			replyComment, err := DB.Query("SELECT * FROM replyComment WHERE comment_id =?", c.ID)
+		replyCommentQuery, err := DB.Query("SELECT * FROM replyComment WHERE comment_id = ?", c.ID)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer replyCommentQuery.Close()
+		replyComment := Comment{}
+
+		for replyCommentQuery.Next() {
+
+			err = replyCommentQuery.Scan(&replyComment.ID, &replyComment.Content, &replyComment.PostID, &replyComment.ReplyID, &replyComment.FromWhom, &replyComment.ToWhom, &replyComment.Time)
+			if err != nil {
+				log.Println(err.Error())
+			}
+			fmt.Println("/", replyComment.ID, "ReplCom ID")
+
+			replyComment.CreatedTime = replyComment.Time.Format("2006 Jan _2 15:04:05")
+			DB.QueryRow("SELECT full_name FROM users WHERE id = ?", replyComment.FromWhom).Scan(&replyComment.Author)
+			//write answer by comment - answer answer
+
+			replyAnswerQuery, err := DB.Query("SELECT * FROM replyAnswer WHERE reply_comment_id = ?", replyComment.ID)
 			if err != nil {
 				log.Fatal(err)
 			}
-			defer replyComment.Close()
-			rc := Comment{}
+			defer replyAnswerQuery.Close()
+			replyAnswer := Comment{}
 
-			for replyComment.Next() {
-			
-				err = replyComment.Scan(&rc.ID, &rc.Content, &rc.PostID, &rc.ReplyID, &rc.FromWhom, &rc.ToWhom, &rc.Time)
+			for replyAnswerQuery.Next() {
+
+				err = replyAnswerQuery.Scan(&replyAnswer.ID, &replyAnswer.Content, &replyAnswer.PostID, &replyAnswer.ReplyID, &replyAnswer.FromWhom, &replyAnswer.ToWhom, &replyAnswer.Time)
 				if err != nil {
 					log.Println(err.Error())
 				}
-				rc.CreatedTime = rc.Time.Format("2006 Jan _2 15:04:05")
-				DB.QueryRow("SELECT full_name FROM users WHERE id = ?", rc.FromWhom).Scan(&rc.Author)
-				//write answer by comment
-					// answer answer
-					fmt.Println(rc.ID)
-					replyAnswer, err := DB.Query("SELECT * FROM replyAnswer WHERE reply_comment_id =?", rc.ID)
-					if err != nil {
-						log.Fatal(err)
-					}
-					defer replyAnswer.Close()
+				fmt.Println(replyAnswer.ID, "Repl answ id", replyAnswer.ReplyID, "REpID")
+				//fmt.Println(replyAnswer.ID, "answ id", replyAnswer.ReplyID, "ans Id", replyComment.ID, "reply com ID|")
+				replyAnswer.CreatedTime = replyAnswer.Time.Format("2006 Jan _2 15:04:05")
+				DB.QueryRow("SELECT full_name FROM users WHERE id = ?", replyAnswer.FromWhom).Scan(&replyAnswer.Author)
+				//write answer by comment answer
 
-					for replyAnswer.Next() {
-						ra := Comment{}
-						err = replyAnswer.Scan(&ra.ID, &ra.Content, &ra.PostID, &ra.ReplyID, &ra.FromWhom, &ra.ToWhom, &ra.Time)
-						if err != nil {
-							log.Println(err.Error())
-						}
-
-						ra.CreatedTime = ra.Time.Format("2006 Jan _2 15:04:05")
-						DB.QueryRow("SELECT full_name FROM users WHERE id = ?", ra.FromWhom).Scan(&ra.Author)
-						//write answer by comment answer
-						rc.RepliesAnswer = append(rc.RepliesAnswer, ra)
-					}
-				//
-
-				c.RepliesComments = append(c.RepliesComments, rc)
+				//if replyAnswer.ID == replyComment.ID {
+				replyComment.RepliesAnswer = append(replyComment.RepliesAnswer, replyAnswer)
+				//}
 			}
-
+			c.RepliesComments = append(c.RepliesComments, replyComment)
+		}
 		comments = append(comments, c)
 	}
 
 	if err != nil {
-		return  comments, p, err
+		return comments, p, err
 	}
-	return  comments, p, nil
+	return comments, p, nil
 }
 
 //CreateBridge create post  -> post_id + category
