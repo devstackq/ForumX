@@ -9,22 +9,22 @@ import (
 
 //Comment ID -> foreign key -> postID
 type Comment struct {
-	ID          int       `json:"id"`
-	Content     string    `json:"content"`
-	PostID      int       `json:"postId"`
-	UserID      int       `json:"userId"`
-	Author      string    `json:"author"`
-	Like        int       `json:"like"`
-	Dislike     int       `json:"dislike"`
-	TitlePost   string    `json:"titlePost"`
-	Time        time.Time `json:"time"`
-	CreatedTime string    `json:"createdTime"`
-	ToWhom      int       `json:"toWhom"`
-	FromWhom    int       `json:"fromWhom"`
-	CommentID   int       `json:"commentId"`
-	ReplyID     int       `json:"replyId"`
+	ID              int       `json:"id"`
+	Content         string    `json:"content"`
+	PostID          int       `json:"postId"`
+	UserID          int       `json:"userId"`
+	Author          string    `json:"author"`
+	Like            int       `json:"like"`
+	Dislike         int       `json:"dislike"`
+	TitlePost       string    `json:"titlePost"`
+	Time            time.Time `json:"time"`
+	CreatedTime     string    `json:"createdTime"`
+	ToWhom          int       `json:"toWhom"`
+	FromWhom        int       `json:"fromWhom"`
+	CommentID       int       `json:"commentId"`
+	ReplyID         int       `json:"replyId"`
 	RepliesComments []Comment
-	RepliesAnswer []Comment
+	RepliesAnswer   []Comment
 }
 
 //LeaveComment for post by id

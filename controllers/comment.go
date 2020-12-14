@@ -98,9 +98,8 @@ func DeleteComment(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/profile", 302)
 }
 
-
 func ReplyAnswer(w http.ResponseWriter, r *http.Request) {
-	
+
 	if util.URLChecker(w, r, "/reply/answer/comment") {
 
 		access, s := util.IsCookie(w, r)
@@ -117,8 +116,10 @@ func ReplyAnswer(w http.ResponseWriter, r *http.Request) {
 		DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
 		var toWhom int
 		DB.QueryRow("SELECT fromWho FROM replyComment WHERE id = ?", cid).Scan(&toWhom)
+		//	DB.QueryRow("select ")
+		fmt.Println(content, asnwerID, pid, cid, "LKS", toWhom)
 
-		replyAnswerPrepare, err := DB.Prepare(`INSERT INTO  replyAnswer(content, post_id, reply_comment_id, fromWho, toWhom, created_time) VALUES(?, ?, ?, ?, ?, ?)`)
+		replyAnswerPrepare, err := DB.Prepare(`INSERT INTO replyAnswer(content, post_id, reply_comment_id, fromWho, toWhom, created_time) VALUES(?, ?, ?, ?, ?, ?)`)
 		if err != nil {
 			log.Println(err)
 		}
@@ -127,10 +128,10 @@ func ReplyAnswer(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err)
 		}
-		//save Db, Connect -> under Answer COmment struct []Comment ->
-		// like AnswerCOmment -> send Client -> show Answer answers
+		http.Redirect(w, r, "/post?id="+pid, 302)
 	}
 }
+
 //AnswerComment func
 func AnswerComment(w http.ResponseWriter, r *http.Request) {
 
@@ -142,17 +143,13 @@ func AnswerComment(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		answer := r.FormValue("answer")
+		answer := r.FormValue("answerComment")
 		cid := r.FormValue("commentID")
-		pid := r.FormValue("pid")
-
-		models.ReplyCommentID = cid
+		pid := r.FormValue("postId")
 
 		DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
 		var toWhom int
 		DB.QueryRow("SELECT creator_id FROM comments WHERE id = ?", cid).Scan(&toWhom)
-
-		//fmt.Println(pid, "pid", cid, "cid", answer, "ans", s.UserID, "uid", toWhom)
 
 		replyCommentPrepare, err := DB.Prepare(`INSERT INTO  replyComment(content, post_id, comment_id, fromWho, toWhom, created_time) VALUES(?, ?, ?, ?, ?, ?)`)
 		if err != nil {
@@ -164,6 +161,5 @@ func AnswerComment(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		http.Redirect(w, r, "/post?id="+pid, 302)
-		//receive data from Client, -> insert Db, show client under Comment
 	}
 }
