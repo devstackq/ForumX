@@ -301,61 +301,16 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 
 	for stmp.Next() {
 		//get each comment Post -> by Id, -> get each replyComment by comment_id -> get replyAnswer by reply_com_id
-		c := Comment{}
-		err = stmp.Scan(&c.ID, &c.Content, &c.PostID, &c.UserID, &c.Time, &c.Like, &c.Dislike)
+		comment := Comment{}
+		err = stmp.Scan(&comment.ID, &comment.Content, &comment.PostID, &comment.UserID, &comment.Time, &comment.Like, &comment.Dislike)
 		if err != nil {
 			log.Println(err.Error())
 		}
-		fmt.Println("/", c.ID, "com")
+		fmt.Println("/", comment.ID, "com")
 
-		c.CreatedTime = c.Time.Format("2006 Jan _2 15:04:05")
-		DB.QueryRow("SELECT full_name FROM users WHERE id = ?", c.UserID).Scan(&c.Author)
-		// answer Comment
-		replyCommentQuery, err := DB.Query("SELECT * FROM replyComment WHERE comment_id = ?", c.ID)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer replyCommentQuery.Close()
-		replyComment := Comment{}
-
-		for replyCommentQuery.Next() {
-
-			err = replyCommentQuery.Scan(&replyComment.ID, &replyComment.Content, &replyComment.PostID, &replyComment.ReplyID, &replyComment.FromWhom, &replyComment.ToWhom, &replyComment.Time)
-			if err != nil {
-				log.Println(err.Error())
-			}
-			fmt.Println("/", replyComment.ID, "ReplCom ID")
-
-			replyComment.CreatedTime = replyComment.Time.Format("2006 Jan _2 15:04:05")
-			DB.QueryRow("SELECT full_name FROM users WHERE id = ?", replyComment.FromWhom).Scan(&replyComment.Author)
-			//write answer by comment - answer answer
-
-			replyAnswerQuery, err := DB.Query("SELECT * FROM replyAnswer WHERE reply_comment_id = ?", replyComment.ID)
-			if err != nil {
-				log.Fatal(err)
-			}
-			defer replyAnswerQuery.Close()
-			replyAnswer := Comment{}
-
-			for replyAnswerQuery.Next() {
-
-				err = replyAnswerQuery.Scan(&replyAnswer.ID, &replyAnswer.Content, &replyAnswer.PostID, &replyAnswer.ReplyID, &replyAnswer.FromWhom, &replyAnswer.ToWhom, &replyAnswer.Time)
-				if err != nil {
-					log.Println(err.Error())
-				}
-				fmt.Println(replyAnswer.ID, "Repl answ id", replyAnswer.ReplyID, "REpID")
-				//fmt.Println(replyAnswer.ID, "answ id", replyAnswer.ReplyID, "ans Id", replyComment.ID, "reply com ID|")
-				replyAnswer.CreatedTime = replyAnswer.Time.Format("2006 Jan _2 15:04:05")
-				DB.QueryRow("SELECT full_name FROM users WHERE id = ?", replyAnswer.FromWhom).Scan(&replyAnswer.Author)
-				//write answer by comment answer
-
-				//if replyAnswer.ID == replyComment.ID {
-				replyComment.RepliesAnswer = append(replyComment.RepliesAnswer, replyAnswer)
-				//}
-			}
-			c.RepliesComments = append(c.RepliesComments, replyComment)
-		}
-		comments = append(comments, c)
+		comment.CreatedTime = comment.Time.Format("2006 Jan _2 15:04:05")
+		DB.QueryRow("SELECT full_name FROM users WHERE id = ?", comment.UserID).Scan(&comment.Author)
+		comments = append(comments, comment)
 	}
 
 	if err != nil {

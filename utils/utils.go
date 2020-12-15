@@ -21,7 +21,7 @@ import (
 var (
 	DB   *sql.DB
 	err  error
-	temp = template.Must(template.ParseFiles("./view/header.html",  "view/update_comment.html", "view/activity.html", "view/disliked.html", "view/category_post.html", "view/favorites.html", "view/404page.html", "view/update_post.html", "view/created_post.html", "view/comment_user.html", "view/profile_update.html", "view/search.html", "view/another_user.html", "view/profile.html", "view/signin.html", "view/signup.html", "view/filter.html", "view/post.html", "view/comment_post.html", "view/create_post.html", "view/footer.html", "view/index.html"))
+	temp = template.Must(template.ParseFiles("./view/header.html", "view/update_comment.html", "view/activity.html", "view/disliked.html", "view/category_post.html", "view/favorites.html", "view/404page.html", "view/update_post.html", "view/created_post.html", "view/comment_user.html", "view/profile_update.html", "view/search.html", "view/another_user.html", "view/profile.html", "view/signin.html", "view/signup.html", "view/filter.html", "view/post.html", "view/comment_post.html", "view/create_post.html", "view/footer.html", "view/index.html"))
 
 	GoogleConfig = &oauth2.Config{
 		RedirectURL:  "http://localhost:6969/googleUserInfo",
@@ -358,7 +358,7 @@ func SetVoteNotify(table string, toWhom, fromWhom, objID int, voteLD bool) {
 }
 
 //SetCommentNotify func by PostID
-func SetCommentNotify(pid, fromWhom, toWhom int, lid int64) {
+func SetCommentNotify(pid string, fromWhom, toWhom int, lid int64) {
 
 	voteNotifyPrepare, err := DB.Prepare(`INSERT INTO notify(post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)`)
 	if err != nil {
