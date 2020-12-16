@@ -11,7 +11,7 @@ func main() {
 	config.Init()
 	controllers.Init()
 }
-
+//comment system step 3.1
 // 1 table create RepliesComment, FK(reply_id) References comments(id) -> Comment -> []ReplyComments
 // form inside Client(answer comment )
 // Client - form Comment, form each Comments inside comment -> ReplyForm todo

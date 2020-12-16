@@ -1,13 +1,12 @@
 package config
 
 import (
-	"database/sql"
-	"fmt"
-	"log"
-
 	"ForumX/controllers"
 	"ForumX/models"
 	"ForumX/utils"
+	"database/sql"
+	"fmt"
+	"log"
 )
 
 //Init Db

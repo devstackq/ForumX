@@ -1,5 +1,4 @@
 module ForumX
-
 go 1.15
 
 require (
