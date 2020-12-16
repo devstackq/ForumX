@@ -20,9 +20,9 @@
 # EXPOSE 6969
 # ENTRYPOINT ["/app/forumx"]
 
-FROM golang:latest 
-RUN mkdir /app 
+FROM golang:latest
+RUN mkdir /app
 ADD . /app/ 
-WORKDIR /app 
-RUN go build -o main . 
+WORKDIR /app
+RUN go build -o main .
 CMD ["/app/main"]

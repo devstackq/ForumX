@@ -1,6 +1,7 @@
-package util
+package utils
 
 import (
+	"ForumX/general"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -13,7 +14,6 @@ import (
 	"time"
 	"unicode"
 
-	structure "github.com/devstackq/ForumX/general"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -53,11 +53,11 @@ func IsAuth(r *http.Request) API {
 }
 
 //IsCookie check user cookie client and DB session value, if true -> give access
-func IsCookie(w http.ResponseWriter, r *http.Request) (bool, structure.Session) {
+func IsCookie(w http.ResponseWriter, r *http.Request) (bool, general.Session) {
 
 	var flag, cookieHave bool
 	cookie, _ := r.Cookie("_cookie")
-	s := structure.Session{}
+	s := general.Session{}
 
 	if IsAuth(r).Authenticated {
 		cookieHave = true
@@ -68,7 +68,7 @@ func IsCookie(w http.ResponseWriter, r *http.Request) (bool, structure.Session) 
 	} else {
 		//get client cookie
 		//set local struct -> cookie value
-		s := structure.Session{UUID: cookie.Value}
+		s := general.Session{UUID: cookie.Value}
 		var tmp string
 		// get userid by Client sessionId
 		err = DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).
@@ -124,7 +124,7 @@ func IsCookieExpiration(t time.Time, cookie *http.Cookie, w http.ResponseWriter,
 
 	for _, cookie := range r.Cookies() {
 		if cookie.Name == "_cookie" {
-			s := structure.Session{UUID: cookie.Value}
+			s := general.Session{UUID: cookie.Value}
 			//get ssesion id, by local struct uuid
 			DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).
 				Scan(&s.ID)
@@ -182,7 +182,7 @@ func AuthError(w http.ResponseWriter, r *http.Request, err error, text string, a
 		}
 	} else {
 		if err != nil {
-			msg := structure.API.Message
+			msg := general.API.Message
 			msg = text
 
 			w.WriteHeader(http.StatusUnauthorized)

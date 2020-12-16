@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	structure "github.com/devstackq/ForumX/general"
-	util "github.com/devstackq/ForumX/utils"
+	"ForumX/general"
+	"ForumX/utils"
 )
 
 //Users struct
@@ -55,7 +55,7 @@ type Notify struct {
 func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie) ([]Post, []Post, []Post, []Comment, User, error) {
 
 	//time.AfterFunc(10, checkCookieLife(cookie, w, r)) try check every 30 min cookie
-	s := structure.Session{UUID: cookie.Value}
+	s := general.Session{UUID: cookie.Value}
 	u := User{}
 	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
 
@@ -119,7 +119,7 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 func GetUserActivities(w http.ResponseWriter, r *http.Request) (result []Notify) {
 
 	cookie, _ := r.Cookie("_cookie")
-	s := structure.Session{UUID: cookie.Value}
+	s := general.Session{UUID: cookie.Value}
 	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
 
 	var notifies []Notify
@@ -249,7 +249,7 @@ func (u *User) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-	util.DeleteCookie(w)
+	utils.DeleteCookie(w)
 }
 
 func VotedPosts(voteType string, uid int) (result []Post) {

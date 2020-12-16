@@ -1,10 +1,9 @@
 package models
 
 import (
+	"ForumX/utils"
 	"log"
 	"time"
-
-	util "github.com/devstackq/ForumX/utils"
 )
 
 //Comment ID -> foreign key -> postID
@@ -22,8 +21,11 @@ type Comment struct {
 	ToWhom      int       `json:"toWhom"`
 	FromWhom    int       `json:"fromWhom"`
 	ReplyID     int       `json:"replyId"`
-	//RepliesComments []ReplyComment
+	Parent int `json:"parent"`
+	Children []*Comment `json:"children"`
+	RepliesComments []Comment
 }
+
 
 //LeaveComment for post by id
 func (c *Comment) LeaveComment() (int64, error) {
@@ -47,7 +49,7 @@ func (c *Comment) LeaveComment() (int64, error) {
 	if err != nil {
 		log.Println(err)
 	}
-	util.SetCommentNotify(c.PostID, c.UserID, c.ToWhom, lid)
+	utils.SetCommentNotify(c.PostID, c.UserID, c.ToWhom, lid)
 	return lid, nil
 }
 

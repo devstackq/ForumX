@@ -1,18 +1,17 @@
 package controllers
 
 import (
+	"ForumX/models"
+	"ForumX/utils"
 	"net/http"
-
-	"github.com/devstackq/ForumX/models"
-	util "github.com/devstackq/ForumX/utils"
 )
 
 //VotesPost func Post
 func VotesPost(w http.ResponseWriter, r *http.Request) {
 
-	if util.URLChecker(w, r, "/votes") {
+	if utils.URLChecker(w, r, "/votes") {
 
-		access, s := util.IsCookie(w, r)
+		access, s := utils.IsCookie(w, r)
 		if !access {
 			return
 		}
@@ -37,9 +36,9 @@ func VotesPost(w http.ResponseWriter, r *http.Request) {
 //VotesComment function
 func VotesComment(w http.ResponseWriter, r *http.Request) {
 
-	if util.URLChecker(w, r, "/votes/comment") {
+	if utils.URLChecker(w, r, "/votes/comment") {
 
-		access, s := util.IsCookie(w, r)
+		access, s := utils.IsCookie(w, r)
 		if !access {
 			return
 		}

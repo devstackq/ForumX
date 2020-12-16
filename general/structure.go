@@ -1,4 +1,4 @@
-package structure
+package general
 
 //general structure -> for child packages use
 type Session struct {

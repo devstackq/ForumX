@@ -1,13 +1,12 @@
 package models
 
 import (
+	"ForumX/general"
+	"ForumX/utils"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
-
-	structure "github.com/devstackq/ForumX/general"
-	util "github.com/devstackq/ForumX/utils"
 )
 
 //Votes struct
@@ -24,7 +23,7 @@ type Votes struct {
 }
 
 //VoteDislike func
-func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s structure.Session) {
+func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s general.Session) {
 
 	vote := Votes{}
 	field := any + "_id"
@@ -58,7 +57,7 @@ func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s struc
 		if err != nil {
 			log.Println(err)
 		}
-		util.SetVoteNotify(any, vote.CreatorID, s.UserID, objID, false)
+		utils.SetVoteNotify(any, vote.CreatorID, s.UserID, objID, false)
 
 	} else {
 		err = DB.QueryRow("SELECT count_like FROM "+table+" WHERE id=?", id).Scan(&vote.OldLike)
@@ -84,7 +83,7 @@ func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s struc
 				log.Println(err)
 			}
 			//remove notify table
-			util.UpdateVoteNotify(any, vote.CreatorID, s.UserID, objID, 0)
+			utils.UpdateVoteNotify(any, vote.CreatorID, s.UserID, objID, 0)
 			fmt.Println("case 2 like 0, dis 1")
 		}
 
@@ -106,7 +105,7 @@ func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s struc
 			if err != nil {
 				log.Println(err)
 			}
-			util.UpdateVoteNotify(any, vote.CreatorID, s.UserID, objID, 2)
+			utils.UpdateVoteNotify(any, vote.CreatorID, s.UserID, objID, 2)
 		}
 
 		if vote.LikeState == 0 && vote.DislikeState == 0 {
@@ -120,13 +119,13 @@ func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s struc
 			if err != nil {
 				log.Println(err)
 			}
-			util.UpdateVoteNotify(any, vote.CreatorID, s.UserID, objID, 2)
+			utils.UpdateVoteNotify(any, vote.CreatorID, s.UserID, objID, 2)
 		}
 	}	
 }
 
 //VoteLike func
-func VoteLike(w http.ResponseWriter, r *http.Request, id, any string, s structure.Session) {
+func VoteLike(w http.ResponseWriter, r *http.Request, id, any string, s general.Session) {
 
 	vote := Votes{}
 	field := any + "_id"
@@ -163,7 +162,7 @@ func VoteLike(w http.ResponseWriter, r *http.Request, id, any string, s structur
 		if err != nil {
 			log.Println(err)
 		}
-		util.SetVoteNotify(any, vote.CreatorID, s.UserID, pid, true)
+		utils.SetVoteNotify(any, vote.CreatorID, s.UserID, pid, true)
 
 	} else {
 		//if post -> liked or Disliked -> get CountLike & Dislike current Post, and get LikeState & dislike State
@@ -194,7 +193,7 @@ func VoteLike(w http.ResponseWriter, r *http.Request, id, any string, s structur
 				log.Println(err)
 			}
 
-			util.UpdateVoteNotify(any, vote.CreatorID, s.UserID, pid, 0)
+			utils.UpdateVoteNotify(any, vote.CreatorID, s.UserID, pid, 0)
 
 		}
 		//set dislike -> to like
@@ -213,7 +212,7 @@ func VoteLike(w http.ResponseWriter, r *http.Request, id, any string, s structur
 			}
 
 			//add like notify &  remove DislikeNotify
-			util.UpdateVoteNotify(any, vote.CreatorID, s.UserID, pid, 1)
+			utils.UpdateVoteNotify(any, vote.CreatorID, s.UserID, pid, 1)
 		}
 		//set like,
 		if vote.LikeState == 0 && vote.DislikeState == 0 {
@@ -228,7 +227,7 @@ func VoteLike(w http.ResponseWriter, r *http.Request, id, any string, s structur
 			if err != nil {
 				log.Println(err)
 			}
-			util.UpdateVoteNotify(any, vote.CreatorID, s.UserID, pid, 1)
+			utils.UpdateVoteNotify(any, vote.CreatorID, s.UserID, pid, 1)
 		}
 	}
 }

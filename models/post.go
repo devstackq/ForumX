@@ -1,6 +1,8 @@
 package models
 
 import (
+	"ForumX/general"
+	"ForumX/utils"
 	"bytes"
 	"database/sql"
 	"encoding/base64"
@@ -12,9 +14,6 @@ import (
 	"os"
 	"strconv"
 	"time"
-
-	structure "github.com/devstackq/ForumX/general"
-	util "github.com/devstackq/ForumX/utils"
 )
 
 //global variable for package models
@@ -24,7 +23,7 @@ var (
 	rows    *sql.Rows
 	post    Post
 	comment Comment
-	msg     = structure.API.Message
+	msg     = general.API.Message
 	pageNum = 1
 )
 
@@ -49,7 +48,7 @@ type Post struct {
 	PBGCategory   string            `json:"pbgCategory"`
 	FileS         multipart.File    `json:"fileS"`
 	FileI         multipart.File    `json:"fileB"`
-	Session       structure.Session `json:"session"`
+	Session       general.Session `json:"session"`
 	Categories    []string          `json:"categories"`
 	Temp          string            `json:"temp"`
 	IsPhoto       bool              `json:"isPhoto"`
@@ -209,8 +208,8 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 			}
 			fileBytes, err = ioutil.ReadAll(p.FileI)
 		} else {
-			util.DisplayTemplate(w, "header", util.IsAuth(r))
-			util.DisplayTemplate(w, "create", "Large file, more than 20mb")
+			utils.DisplayTemplate(w, "header", utils.IsAuth(r))
+			utils.DisplayTemplate(w, "create", "Large file, more than 20mb")
 		}
 	} else {
 		//set empty photo post
@@ -220,7 +219,7 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", p.Session.UUID).Scan(&p.Session.UserID)
 
 	//check empty values
-	if util.CheckLetter(p.Title) && util.CheckLetter(p.Content) {
+	if utils.CheckLetter(p.Title) && utils.CheckLetter(p.Content) {
 
 		createPostPrepare, err := DB.Prepare(`INSERT INTO posts (title, content, creator_id, created_time, image) VALUES ( ?,?, ?, ?, ?)`)
 		if err != nil {
@@ -269,8 +268,8 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	} else {
 		msg = "Empty title or content"
-		util.DisplayTemplate(w, "header", util.IsAuth(r))
-		util.DisplayTemplate(w, "create_post", &msg)
+		utils.DisplayTemplate(w, "header", utils.IsAuth(r))
+		utils.DisplayTemplate(w, "create_post", &msg)
 	}
 }
 
@@ -306,10 +305,30 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 		if err != nil {
 			log.Println(err.Error())
 		}
-		fmt.Println("/", comment.ID, "com")
+		//fmt.Println("/", comment.ID, "com")
 
 		comment.CreatedTime = comment.Time.Format("2006 Jan _2 15:04:05")
 		DB.QueryRow("SELECT full_name FROM users WHERE id = ?", comment.UserID).Scan(&comment.Author)
+
+		replyCommentQuery, err := DB.Query("SELECT * FROM replyComment WHERE comment_id =?", comment.ID)
+		//many reply - 1 comment, by ID
+		replyComment := Comment{}
+		for replyCommentQuery.Next() {
+
+			err = replyCommentQuery.Scan(&replyComment.ID, &replyComment.Content, &replyComment.PostID, &replyComment.ReplyID, &replyComment.FromWhom, &replyComment.ToWhom, &replyComment.Time)
+			if err != nil {
+				log.Println(err.Error())
+			}
+			//fmt.Println("/", replyComment.ID, "ReplCom ID")
+
+			replyComment.CreatedTime = replyComment.Time.Format("2006 Jan _2 15:04:05")
+			DB.QueryRow("SELECT full_name FROM users WHERE id = ?", replyComment.FromWhom).Scan(&replyComment.Author)
+			//write answer by comment - answer answer
+			comment.RepliesComments = append(comment.RepliesComments, replyComment)
+
+			//append comment - 1 comment -> 
+			// write query - get list answer -> by 
+		}
 		comments = append(comments, comment)
 	}
 

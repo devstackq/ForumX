@@ -1,34 +1,33 @@
 package controllers
 
 import (
+	"ForumX/models"
+	"ForumX/utils"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
-
-	"github.com/devstackq/ForumX/models"
-	util "github.com/devstackq/ForumX/utils"
 )
 
 //LeaveComment function
 func LeaveComment(w http.ResponseWriter, r *http.Request) {
 
-	if util.URLChecker(w, r, "/comment") {
+	if utils.URLChecker(w, r, "/comment") {
 
 		if r.Method == "POST" {
 
 			pid := r.FormValue("curr")
 			commentInput := r.FormValue("comment-text")
 
-			access, s := util.IsCookie(w, r)
+			access, s := utils.IsCookie(w, r)
 			if !access {
 				return
 			}
 
 			DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
 
-			if util.CheckLetter(commentInput) {
+			if utils.CheckLetter(commentInput) {
 
 				comment := models.Comment{
 					Content: commentInput,
@@ -50,9 +49,9 @@ func LeaveComment(w http.ResponseWriter, r *http.Request) {
 //UpdateComment func
 func UpdateComment(w http.ResponseWriter, r *http.Request) {
 
-	if util.URLChecker(w, r, "/edit/comment") {
+	if utils.URLChecker(w, r, "/edit/comment") {
 
-		access, _ := util.IsCookie(w, r)
+		access, _ := utils.IsCookie(w, r)
 		if !access {
 			http.Redirect(w, r, "/signin", 200)
 			return
@@ -66,9 +65,9 @@ func UpdateComment(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				fmt.Println(err)
 			}
-			util.DisplayTemplate(w, "header", util.IsAuth(r))
+			utils.DisplayTemplate(w, "header", utils.IsAuth(r))
 			fmt.Println(comment, "FF")
-			util.DisplayTemplate(w, "update_comment", comment)
+			utils.DisplayTemplate(w, "update_comment", comment)
 		}
 		if r.Method == "POST" {
 
@@ -86,9 +85,9 @@ func UpdateComment(w http.ResponseWriter, r *http.Request) {
 //DeleteComment dsa
 func DeleteComment(w http.ResponseWriter, r *http.Request) {
 
-	if util.URLChecker(w, r, "/delete/comment") {
+	if utils.URLChecker(w, r, "/delete/comment") {
 
-		access, _ := util.IsCookie(w, r)
+		access, _ := utils.IsCookie(w, r)
 		if !access {
 			http.Redirect(w, r, "/signin", 200)
 			return
@@ -101,24 +100,24 @@ func DeleteComment(w http.ResponseWriter, r *http.Request) {
 //AnswerComment func
 func AnswerComment(w http.ResponseWriter, r *http.Request) {
 
-	if util.URLChecker(w, r, "/answer/comment") {
+	if utils.URLChecker(w, r, "/answer/comment") {
 
-		access, s := util.IsCookie(w, r)
+		access, s := utils.IsCookie(w, r)
 		if !access {
 			http.Redirect(w, r, "/signin", 200)
 			return
 		}
 
 		answer := r.FormValue("answerComment")
-		currentCommentId := r.FormValue("commentID")
+		currentCommentID := r.FormValue("commentID")
 		pid := r.FormValue("postId")
 		var toWhom int
-		var lastInsertCommentId int64
+		var lastInsertCommentID int64
 
 		DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
-		DB.QueryRow("SELECT creator_id FROM comments WHERE id = ?", currentCommentId).Scan(&toWhom)
+		DB.QueryRow("SELECT creator_id FROM comments WHERE id = ?", currentCommentID).Scan(&toWhom)
 
-		if util.CheckLetter(answer) {
+		if utils.CheckLetter(answer) {
 
 			comment := models.Comment{
 				Content: answer,
@@ -126,13 +125,13 @@ func AnswerComment(w http.ResponseWriter, r *http.Request) {
 				UserID:  s.UserID,
 			}
 
-			lastInsertCommentId, err = comment.LeaveComment()
+			lastInsertCommentID, err = comment.LeaveComment()
 
 			if err != nil {
 				log.Println(err.Error())
 			}
 		}
-		fmt.Println(s.UserID, toWhom, answer, currentCommentId, "last inserted comment ID", lastInsertCommentId)
+		fmt.Println(s.UserID, toWhom, answer, currentCommentID, "last inserted comment ID", lastInsertCommentID)
 
 		//if have flag -> answered bool, -> show Naswer by comment
 		// || comments -> table RepliesComments - child each  Comment
@@ -142,7 +141,7 @@ func AnswerComment(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		defer replyCommentPrepare.Close()
-		_, err = replyCommentPrepare.Exec(pid, currentCommentId, lastInsertCommentId, s.UserID, toWhom, time.Now())
+		_, err = replyCommentPrepare.Exec(pid, currentCommentID, lastInsertCommentID, s.UserID, toWhom, time.Now())
 		if err != nil {
 			log.Println(err)
 		}

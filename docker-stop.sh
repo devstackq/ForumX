@@ -1,2 +1,2 @@
     #!/bin/bash
-    docker rm --force forum
+    docker rm --force forumx

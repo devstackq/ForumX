@@ -1,13 +1,13 @@
 package models
 
 import (
+	"ForumX/general"
+	"ForumX/utils"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
-	structure "github.com/devstackq/ForumX/general"
-	util "github.com/devstackq/ForumX/utils"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -17,7 +17,7 @@ func (u *User) Signup(w http.ResponseWriter, r *http.Request) {
 
 	users := []User{}
 	var hashPwd []byte
-	if util.AuthType == "default" {
+	if utils.AuthType == "default" {
 		hashPwd, err = bcrypt.GenerateFromPassword([]byte(u.Password), 8)
 		if err != nil {
 			log.Println(err)
@@ -44,7 +44,7 @@ func (u *User) Signup(w http.ResponseWriter, r *http.Request) {
 	for _, v := range users {
 		if v.Email == u.Email {
 			msg = "Not unique email lel"
-			util.DisplayTemplate(w, "signup", &msg)
+			utils.DisplayTemplate(w, "signup", &msg)
 			log.Println(err)
 		}
 	}
@@ -68,29 +68,29 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 	var err error
 	err = u.Scan(&user.ID)
 	
-	if util.AuthType == "default" {
+	if utils.AuthType == "default" {
 		u := DB.QueryRow("SELECT id, password FROM users WHERE email=?", uStr.Email)
 		//check pwd, if not correct, error
 		err = u.Scan(&user.ID, &user.Password)
 
 		if err != nil {
-			util.AuthError(w, r, err, "user not found", util.AuthType)
+			utils.AuthError(w, r, err, "user not found", utils.AuthType)
 			return
 		}
 
 		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(uStr.Password))
 		if err != nil {
-			util.AuthError(w, r, err, "password incorrect", util.AuthType)
+			utils.AuthError(w, r, err, "password incorrect", utils.AuthType)
 			return
 		}
 	}
 	//get user by Id, and write session struct
-	s := structure.Session{
+	s := general.Session{
 		UserID: user.ID,
 	}
 	uuid := uuid.Must(uuid.NewV4(), err).String()
 	if err != nil {
-		util.AuthError(w, r, err, "uuid trouble", util.AuthType)
+		utils.AuthError(w, r, err, "uuid trouble", utils.AuthType)
 		return
 	}
 	//create uuid and set uid DB table session by userid,
@@ -104,14 +104,14 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 
 
 	if err != nil {
-		util.AuthError(w, r, err, "the user is already in the system", util.AuthType)
+		utils.AuthError(w, r, err, "the user is already in the system", utils.AuthType)
 		//get ssesion id, by local struct uuid
 		return
 	}
 	// get user in info by session Id
 	err = DB.QueryRow("SELECT id, uuid FROM session WHERE user_id = ?", s.UserID).Scan(&s.ID, &s.UUID)
 	if err != nil {
-		util.AuthError(w, r, err, "not find user from session", util.AuthType)
+		utils.AuthError(w, r, err, "not find user from session", utils.AuthType)
 		return
 	}
 
@@ -124,8 +124,8 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: false,
 	}
 	http.SetCookie(w, &cookie)
-	util.AuthError(w, r, nil, "success", util.AuthType)
-	fmt.Println(util.AuthType, "auth type")
+	utils.AuthError(w, r, nil, "success", utils.AuthType)
+	fmt.Println(utils.AuthType, "auth type")
 }
 
 //Logout function
@@ -136,7 +136,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err, "cookie err")
 	}
 	//add cookie -> fields uuid
-	s := structure.Session{UUID: cookie.Value}
+	s := general.Session{UUID: cookie.Value}
 	//get ssesion id, by local struct uuid
 	DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).
 		Scan(&s.ID)
@@ -148,10 +148,10 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 	// then delete cookie from client
-	util.DeleteCookie(w)
+	utils.DeleteCookie(w)
 
-	if util.AuthType == "google" {
-		_, err = http.Get("https://accounts.google.com/o/oauth2/revoke?token=" + util.Token)
+	if utils.AuthType == "google" {
+		_, err = http.Get("https://accounts.google.com/o/oauth2/revoke?token=" + utils.Token)
 		if err != nil {
 			log.Println(err)
 		}

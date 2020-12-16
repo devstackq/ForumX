@@ -1,6 +1,9 @@
 package controllers
 
 import (
+	"ForumX/general"
+	"ForumX/models"
+	"ForumX/utils"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -9,11 +12,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/devstackq/ForumX/models"
-	util "github.com/devstackq/ForumX/utils"
 	"golang.org/x/oauth2"
-
-	structure "github.com/devstackq/ForumX/general"
 )
 
 var (
@@ -24,10 +23,10 @@ var (
 //Signup system function
 func Signup(w http.ResponseWriter, r *http.Request) {
 
-	if util.URLChecker(w, r, "/signup") {
+	if utils.URLChecker(w, r, "/signup") {
 
 		if r.Method == "GET" {
-			util.DisplayTemplate(w, "signup", &auth)
+			utils.DisplayTemplate(w, "signup", &auth)
 		}
 
 		if r.Method == "POST" {
@@ -36,9 +35,9 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Println(err)
 			}
-			iB := util.FileByte(r, "user")
+			iB := utils.FileByte(r, "user")
 			//checkerEmail & password
-			if util.IsEmailValid(r.FormValue("email")) {
+			if utils.IsEmailValid(r.FormValue("email")) {
 
 				fullName := r.FormValue("fullname")
 				if fullName == "" {
@@ -47,9 +46,9 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 				if intAge == 0 {
 					intAge = 16
 				}
-				util.AuthType = r.FormValue("authType")
+				utils.AuthType = r.FormValue("authType")
 
-				if util.IsPasswordValid(r.FormValue("password")) {
+				if utils.IsPasswordValid(r.FormValue("password")) {
 					u := models.User{
 						FullName: fullName,
 						Email:    r.FormValue("email"),
@@ -63,11 +62,11 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 					http.Redirect(w, r, "/signin", 302)
 				} else {
 					msg := "Password must be 8 symbols, 1 big, 1 special character, example: 9Password!"
-					util.DisplayTemplate(w, "signup", &msg)
+					utils.DisplayTemplate(w, "signup", &msg)
 				}
 			} else {
 				msg := "Incorrect email address, example god@mail.com"
-				util.DisplayTemplate(w, "signup", &msg)
+				utils.DisplayTemplate(w, "signup", &msg)
 			}
 		}
 	}
@@ -76,10 +75,10 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 //Signin system function
 func Signin(w http.ResponseWriter, r *http.Request) {
 
-	if util.URLChecker(w, r, "/signin") {
+	if utils.URLChecker(w, r, "/signin") {
 
 		if r.Method == "GET" {
-			util.DisplayTemplate(w, "signin", &msg)
+			utils.DisplayTemplate(w, "signin", &msg)
 		}
 
 		if r.Method == "POST" {
@@ -92,7 +91,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			if person.Type == "default" {
-				util.AuthType = "default"
+				utils.AuthType = "default"
 				u := models.User{
 					Email:    person.Email,
 					Password: person.Password,
@@ -106,7 +105,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 // Logout system function
 func Logout(w http.ResponseWriter, r *http.Request) {
 
-	if util.URLChecker(w, r, "/logout") {
+	if utils.URLChecker(w, r, "/logout") {
 		if r.Method == "GET" {
 			models.Logout(w, r)
 			http.Redirect(w, r, "/", 302)
@@ -116,16 +115,16 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 
 //GoogleLogin func
 func GoogleSignin(w http.ResponseWriter, r *http.Request) {
-	url := util.GoogleConfig.AuthCodeURL(oAuthState)
+	url := utils.GoogleConfig.AuthCodeURL(oAuthState)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
 
 //GoogleUserData func
 func GoogleUserData(w http.ResponseWriter, r *http.Request) {
 
-	util.AuthType = "google"
+	utils.AuthType = "google"
 	content, err := getUserInfo(r.FormValue("state"), r.FormValue("code"))
-	util.Code = r.FormValue("code")
+	utils.Code = r.FormValue("code")
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -143,11 +142,11 @@ func getUserInfo(state, code string) ([]byte, error) {
 		return nil, fmt.Errorf("invalid oauth state")
 	}
 
-	token, err := util.GoogleConfig.Exchange(oauth2.NoContext, code)
+	token, err := utils.GoogleConfig.Exchange(oauth2.NoContext, code)
 	if err != nil {
 		return nil, fmt.Errorf("code exchange failed: %s", err.Error())
 	}
-	util.Token = token.AccessToken
+	utils.Token = token.AccessToken
 
 	response, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + token.AccessToken)
 	if err != nil {
@@ -189,18 +188,18 @@ func GithubUserData(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	githubSession := structure.Session{}
+	githubSession := general.Session{}
 	gitUserData := models.User{}
 	json.Unmarshal(responseBody, &githubSession)
 	fmt.Println(githubSession, "github token")
-	util.Token = githubSession.AccessToken
+	utils.Token = githubSession.AccessToken
 	json.Unmarshal(GetGithubData(githubSession.AccessToken), &gitUserData)
 	SigninSideService(w, r, gitUserData)
 }
 
 func GetGithubData(token string) []byte {
 
-	util.AuthType = "github"
+	utils.AuthType = "github"
 
 	req, err := http.NewRequest("GET", "https://api.github.com/user", nil)
 	if err != nil {
@@ -219,7 +218,7 @@ func GetGithubData(token string) []byte {
 }
 func SigninSideService(w http.ResponseWriter, r *http.Request, u models.User) {
 
-	if util.IsRegistered(w, r, u.Email) {
+	if utils.IsRegistered(w, r, u.Email) {
 		u := models.User{
 			Email:    u.Email,
 			FullName: u.Name,
@@ -233,7 +232,7 @@ func SigninSideService(w http.ResponseWriter, r *http.Request, u models.User) {
 			Age:      16,
 			Sex:      "Male",
 			City:     u.Location,
-			Image:    util.FileByte(r, "user"),
+			Image:    utils.FileByte(r, "user"),
 		}
 		u.Signup(w, r)
 		u.Signin(w, r)

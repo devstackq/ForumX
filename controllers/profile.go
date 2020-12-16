@@ -1,24 +1,23 @@
 package controllers
 
 import (
+	"ForumX/models"
+	"ForumX/utils"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
-
-	"github.com/devstackq/ForumX/models"
-	util "github.com/devstackq/ForumX/utils"
 )
 
 //GetUserProfile  current -> user page
 func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 
-	if util.URLChecker(w, r, "/profile") {
+	if utils.URLChecker(w, r, "/profile") {
 
 		if r.Method == "GET" {
-			access, _ := util.IsCookie(w, r)
+			access, _ := utils.IsCookie(w, r)
 			if !access {
 				http.Redirect(w, r, "/signin", 200)
 				return
@@ -30,17 +29,17 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 				log.Println(err)
 			}
 			//check if current cookie equal - cookie
-			util.DisplayTemplate(w, "header", util.IsAuth(r))
-			util.DisplayTemplate(w, "profile", user)
-			util.DisplayTemplate(w, "created_post", posts)
-			util.DisplayTemplate(w, "favorited_post", likedPost)
-			util.DisplayTemplate(w, "disliked_post", dislikedPost)
-			util.DisplayTemplate(w, "comment_user", comments)
+			utils.DisplayTemplate(w, "header", utils.IsAuth(r))
+			utils.DisplayTemplate(w, "profile", user)
+			utils.DisplayTemplate(w, "created_post", posts)
+			utils.DisplayTemplate(w, "favorited_post", likedPost)
+			utils.DisplayTemplate(w, "disliked_post", dislikedPost)
+			utils.DisplayTemplate(w, "comment_user", comments)
 
 			//delete coookie db
 			go func() {
 				for now := range time.Tick(299 * time.Minute) {
-					util.IsCookieExpiration(now, cookie, w, r)
+					utils.IsCookieExpiration(now, cookie, w, r)
 					//next logout each 300 min
 					time.Sleep(299 * time.Minute)
 				}
@@ -52,7 +51,7 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 //GetAnotherProfile  other user page
 func GetAnotherProfile(w http.ResponseWriter, r *http.Request) {
 
-	if util.URLChecker(w, r, "/user/id/") {
+	if utils.URLChecker(w, r, "/user/id/") {
 
 		if r.Method == "POST" {
 
@@ -62,9 +61,9 @@ func GetAnotherProfile(w http.ResponseWriter, r *http.Request) {
 				log.Println(err)
 			}
 
-			util.DisplayTemplate(w, "header", util.IsAuth(r))
-			util.DisplayTemplate(w, "another_user", user)
-			util.DisplayTemplate(w, "created_post", posts)
+			utils.DisplayTemplate(w, "header", utils.IsAuth(r))
+			utils.DisplayTemplate(w, "another_user", user)
+			utils.DisplayTemplate(w, "created_post", posts)
 		}
 	}
 }
@@ -72,9 +71,9 @@ func GetAnotherProfile(w http.ResponseWriter, r *http.Request) {
 //GetUserActivities func
 func GetUserActivities(w http.ResponseWriter, r *http.Request) {
 
-	if util.URLChecker(w, r, "/activity") {
+	if utils.URLChecker(w, r, "/activity") {
 
-		access, _ := util.IsCookie(w, r)
+		access, _ := utils.IsCookie(w, r)
 		if !access {
 			http.Redirect(w, r, "/signin", 302)
 			return
@@ -84,10 +83,10 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err)
 		}
-		util.DisplayTemplate(w, "header", util.IsAuth(r))
+		utils.DisplayTemplate(w, "header", utils.IsAuth(r))
 
 		if notifies != nil {
-			util.DisplayTemplate(w, "activity", notifies)
+			utils.DisplayTemplate(w, "activity", notifies)
 		}
 	}
 }
@@ -95,16 +94,16 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request) {
 //UpdateProfile function
 func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
-	if util.URLChecker(w, r, "/edit/user") {
+	if utils.URLChecker(w, r, "/edit/user") {
 
 		if r.Method == "GET" {
-			util.DisplayTemplate(w, "header", util.IsAuth(r))
-			util.DisplayTemplate(w, "profile_update", "")
+			utils.DisplayTemplate(w, "header", utils.IsAuth(r))
+			utils.DisplayTemplate(w, "profile_update", "")
 		}
 
 		if r.Method == "POST" {
 
-			access, s := util.IsCookie(w, r)
+			access, s := utils.IsCookie(w, r)
 			if !access {
 				return
 			}
@@ -119,7 +118,7 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 				Age:      is,
 				Sex:      r.FormValue("sex"),
 				City:     r.FormValue("city"),
-				Image:    util.FileByte(r, "user"),
+				Image:    utils.FileByte(r, "user"),
 				ID:       s.UserID,
 			}
 
@@ -135,11 +134,11 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 func DeleteAccount(w http.ResponseWriter, r *http.Request) {
 
-	if util.URLChecker(w, r, "/delete/account") {
+	if utils.URLChecker(w, r, "/delete/account") {
 
 		if r.Method == "POST" {
 
-			access, _ := util.IsCookie(w, r)
+			access, _ := utils.IsCookie(w, r)
 			if !access {
 				return
 			}

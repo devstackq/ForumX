@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/devstackq/ForumX/controllers"
-	"github.com/devstackq/ForumX/models"
-	util "github.com/devstackq/ForumX/utils"
+	"ForumX/controllers"
+	"ForumX/models"
+	"ForumX/utils"
 )
 
 //Init Db
@@ -26,7 +26,8 @@ func Init() {
 	user, err := db.Prepare(`CREATE TABLE IF NOT EXISTS "users"("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "full_name"	TEXT NOT NULL, "email"	TEXT NOT NULL UNIQUE, "password" TEXT, "isAdmin" INTEGER DEFAULT 0, "age" INTEGER, "sex" TEXT, "created_time"	datetime, "city" TEXT, "image"	BLOB NOT NULL)`)
 	voteState, err := db.Prepare(`CREATE TABLE IF NOT EXISTS voteState(id INTEGER PRIMARY KEY AUTOINCREMENT,  user_id INTEGER , post_id INTEGER, comment_id INTEGER,   like_state INTEGER  DEFAULT 0, dislike_state INTEGER  DEFAULT 0, unique(post_id, user_id), FOREIGN KEY(comment_id) REFERENCES comments(id), FOREIGN KEY(post_id) REFERENCES posts(id)  )`)
 	notify, err := db.Prepare(`CREATE TABLE IF NOT EXISTS notify(id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER,  current_user_id INTEGER, voteState INTEGER DEFAULT 0, created_time datetime, to_whom INTEGER, comment_id INTEGER, FOREIGN KEY(comment_id) REFERENCES comments(id), FOREIGN KEY(post_id) REFERENCES posts(id) )`)
-	commentBridge, err := db.Prepare(`CREATE TABLE IF NOT EXISTS commentBridge(id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER, comment_id INTEGER, reply_comment_id INTEGER, fromWhoId INTEGER, toWhoId INTEGER, created_time datetime,  CONSTRAINT fk_key_com FOREIGN KEY(comment_id) REFERENCES comments(id), CONSTRAINT fk_key_repl FOREIGN KEY(reply_comment_id) REFERENCES comments(id), CONSTRAINT fk_key_user_com FOREIGN KEY(toWhoId) REFERENCES users(id), CONSTRAINT fk_key_users_com FOREIGN KEY(fromWhoId) REFERENCES users(id), FOREIGN KEY(post_id) REFERENCES posts(id) )`)
+	replyComment, err := db.Prepare(`CREATE TABLE IF NOT EXISTS replyComment(id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT, post_id INTEGER, comment_id INTEGER, fromWhoId INTEGER, toWhomId INTEGER,  created_time datetime, FOREIGN KEY(comment_id) REFERENCES comments(id),  FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE )`)
+	commentBridge, err := db.Prepare(`CREATE TABLE IF NOT EXISTS replyCommentBridge(id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER, reply_comment_id INTEGER, comment_id INTEGER, fromWhoId INTEGER, toWhoId INTEGER, created_time datetime,  CONSTRAINT fk_key_com FOREIGN KEY(comment_id) REFERENCES comments(id), CONSTRAINT fk_key_repl FOREIGN KEY(reply_comment_id) REFERENCES comments(id), CONSTRAINT fk_key_user_com FOREIGN KEY(toWhoId) REFERENCES users(id), CONSTRAINT fk_key_users_com FOREIGN KEY(fromWhoId) REFERENCES users(id), FOREIGN KEY(post_id) REFERENCES posts(id) )`)
 
 	if err != nil {
 		log.Println(err)
@@ -40,10 +41,11 @@ func Init() {
 	voteState.Exec()
 	notify.Exec()
 	commentBridge.Exec()
+	replyComment.Exec()
 
 	//add connection - controllers/models & utils
 	controllers.DB = db
 	models.DB = db
-	util.DB = db
+	utils.DB = db
 	fmt.Println("Сукцесс коннект")
 }
