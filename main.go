@@ -15,8 +15,8 @@ func main() {
 // 1 table create RepliesComment, FK(reply_id) References comments(id) -> Comment -> []ReplyComments
 // form inside Client(answer comment )
 // Client - form Comment, form each Comments inside comment -> ReplyForm todo
-// //----------------------
 
+//----------------------
 // comment table - comment noraml & comment under reply comment,
 // reply table, uid, comment id, content, , comment id,
 // insert into - 43 com -  setParentID, 12,

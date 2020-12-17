@@ -326,16 +326,12 @@ func SetVoteNotify(table string, toWhom, fromWhom, objID int, voteLD bool) {
 	}
 	if table == "post" && toWhom != 0 {
 
-		// _, err = DB.Exec("INSERT INTO notify( post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)", objID, fromWhom, voteState, time.Now(), toWhom, 0)
-		// if err != nil {
-		// 	fmt.Println(err)
-		// }
-		voteNotifyPrepare, err := DB.Prepare(`INSERT INTO  notify( post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)`)
+		voteNotifyPreparePost, err := DB.Prepare(`INSERT INTO  notify( post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)`)
 		if err != nil {
 			log.Println(err)
 		}
-		defer voteNotifyPrepare.Close()
-		_, err = voteNotifyPrepare.Exec(objID, fromWhom, voteState, time.Now(), toWhom, 0)
+		defer voteNotifyPreparePost.Close()
+		_, err = voteNotifyPreparePost.Exec(objID, fromWhom, voteState, time.Now(), toWhom, 0)
 		if err != nil {
 			log.Println(err)
 		}
