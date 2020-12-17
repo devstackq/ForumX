@@ -52,11 +52,11 @@ func (u *User) Signup(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-	defer userPrepare.Close()
 	_, err = userPrepare.Exec(u.FullName, u.Email, hashPwd, u.Age, u.Sex, time.Now(), u.City, u.Image) 
 	if err != nil {
 		log.Println(err)
 	}
+	defer userPrepare.Close()
 }
 
 //Signin function
@@ -99,9 +99,8 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-	defer userPrepare.Close()
 	_, err = userPrepare.Exec(uuid, s.UserID) 
-
+	defer userPrepare.Close()
 
 	if err != nil {
 		utils.AuthError(w, r, err, "the user is already in the system", utils.AuthType)

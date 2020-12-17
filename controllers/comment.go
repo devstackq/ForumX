@@ -140,11 +140,12 @@ func AnswerComment(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err)
 		}
-		defer replyCommentPrepare.Close()
 		_, err = replyCommentPrepare.Exec(pid, currentCommentID, lastInsertCommentID, s.UserID, toWhom, time.Now())
 		if err != nil {
 			log.Println(err)
 		}
+		defer replyCommentPrepare.Close()
+
 		http.Redirect(w, r, "/post?id="+pid, 302)
 	}
 }

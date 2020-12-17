@@ -34,12 +34,13 @@ func (c *Comment) LeaveComment() (int64, error) {
 	if err != nil {
 		log.Println(err)
 	}
-	defer commentPrepare.Close()
 	commentExec, err := commentPrepare.Exec(c.Content, c.PostID, c.UserID, time.Now())
 	if err != nil {
 		log.Println(err)
 		return 0, err
 	}
+	defer commentPrepare.Close()
+
 	//commet content
 	err = DB.QueryRow("SELECT creator_id FROM posts WHERE id=?", c.PostID).Scan(&c.ToWhom)
 	if err != nil {

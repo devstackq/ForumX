@@ -225,11 +225,11 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err)
 		}
-		defer createPostPrepare.Close()
 		createPostExec, err := createPostPrepare.Exec(p.Title, p.Content, p.Session.UserID, time.Now(), fileBytes)
 		if err != nil {
 			log.Println(err)
 		}
+		defer createPostPrepare.Close()
 
 		last, err := createPostExec.LastInsertId()
 
@@ -345,11 +345,12 @@ func (pcb *PostCategory) CreateBridge() {
 	if err != nil {
 		log.Println(err)
 	}
-	defer createBridgePrepare.Close()
 	_, err = createBridgePrepare.Exec(pcb.PostID, pcb.Category)
 	if err != nil {
 		log.Println(err)
 	}
+	defer createBridgePrepare.Close()
+
 }
 
 //Search post by contain title

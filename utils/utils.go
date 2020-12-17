@@ -324,18 +324,19 @@ func SetVoteNotify(table string, toWhom, fromWhom, objID int, voteLD bool) {
 	if voteLD {
 		voteState = 1
 	}
+	//putch(some fields), put(all fields), 
 	if table == "post" && toWhom != 0 {
-
-		voteNotifyPreparePost, err := DB.Prepare(`INSERT INTO  notify( post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)`)
+		
+		voteNotifyPreparePost, err := DB.Prepare(`INSERT INTO notify(post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)`)
 		if err != nil {
 			log.Println(err)
 		}
-		defer voteNotifyPreparePost.Close()
 		_, err = voteNotifyPreparePost.Exec(objID, fromWhom, voteState, time.Now(), toWhom, 0)
 		if err != nil {
-			log.Println(err)
+			log.Println(err, "Exec notify err")
 		}
-		fmt.Println(table, objID, fromWhom, toWhom, "notify Set Like/Dislike")
+		fmt.Println(table, objID, fromWhom, toWhom, "notify Set Like/Dislike POST")
+		defer voteNotifyPreparePost.Close()
 
 	} else if table == "comment" && toWhom != 0 {
 
@@ -345,11 +346,11 @@ func SetVoteNotify(table string, toWhom, fromWhom, objID int, voteLD bool) {
 		if err != nil {
 			log.Println(err)
 		}
-		defer voteNotifyPrepare.Close()
 		_, err = voteNotifyPrepare.Exec(0, fromWhom, voteState, time.Now(), toWhom, objID)
 		if err != nil {
 			log.Println(err)
 		}
+		defer voteNotifyPrepare.Close()
 	}
 }
 
@@ -360,9 +361,9 @@ func SetCommentNotify(pid string, fromWhom, toWhom int, lid int64) {
 	if err != nil {
 		log.Println(err)
 	}
-	defer voteNotifyPrepare.Close()
 	_, err = voteNotifyPrepare.Exec(pid, fromWhom, 0, time.Now(), toWhom, lid)
 	if err != nil {
 		log.Println(err)
 	}
+	defer voteNotifyPrepare.Close()
 }

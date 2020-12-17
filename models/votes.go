@@ -42,11 +42,11 @@ func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s gener
 		if err != nil {
 			log.Println(err)
 		}
-		defer votePrepare.Close()
 		_, err = votePrepare.Exec(id, s.UserID, 1, 0) 
 		if err != nil {
 			log.Println(err)
 		}
+		defer votePrepare.Close()
 
 		err = DB.QueryRow("SELECT count_dislike FROM "+table+" WHERE id=?", id).Scan(&vote.OldDislike)
 		if err != nil {
@@ -144,15 +144,16 @@ func VoteLike(w http.ResponseWriter, r *http.Request, id, any string, s general.
 	if vote.ID == 0 {
 		fmt.Println(vote.ID, s.UserID, "start", id, table, "table", "init Like field", field)
 
-		votePrepare, err := DB.Prepare(`INSERT INTO voteState(`+field+`, user_id, like_state, dislike_state) VALUES( ?, ?, ?,?)` )
+		votePrepare, err := DB.Prepare("INSERT INTO voteState("+field+", user_id, like_state, dislike_state) VALUES( ?, ?, ?,?)" )
 		if err != nil {
 			log.Println(err)
 		}
-		defer votePrepare.Close()
+		fmt.Println(id, s.UserID)
 		_, err = votePrepare.Exec(id, s.UserID, 1, 0) 
 		if err != nil {
 			log.Println(err)
 		}
+		defer votePrepare.Close()
 		
 		err = DB.QueryRow("SELECT count_like FROM "+table+" WHERE id=?", id).Scan(&vote.OldLike)
 		if err != nil {
