@@ -13,7 +13,7 @@ import (
 )
 
 //Signup func
-func (u *User) Signup(w http.ResponseWriter, r *http.Request) {
+func (u User) Signup(w http.ResponseWriter, r *http.Request) {
 
 	users := []User{}
 	var hashPwd []byte

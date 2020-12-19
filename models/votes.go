@@ -83,7 +83,11 @@ func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s gener
 				log.Println(err)
 			}
 			//remove notify table
-			utils.UpdateVoteNotify(any, vote.CreatorID, s.UserID, objID, 0)
+				//research Pointer -> Struct, and Method Struct
+			us:= User{}
+
+			us.UpdateNotify(any, vote.CreatorID, s.UserID, objID, 0)
+			//utils.UpdateVoteNotify(any, vote.CreatorID, s.UserID, objID, 0)
 			fmt.Println("case 2 like 0, dis 1")
 		}
 
@@ -229,6 +233,26 @@ func VoteLike(w http.ResponseWriter, r *http.Request, id, any string, s general.
 				log.Println(err)
 			}
 			utils.UpdateVoteNotify(any, vote.CreatorID, s.UserID, pid, 1)
+		}
+	}
+}
+//difference ? default func  utils.UpdateVoteNotify
+func (u User) UpdateNotify(table string, toWhom, fromWhom, objID, voteType int) {
+	fmt.Println(voteType, "TYPE", table)
+
+	if table == "post" && toWhom != 0 {
+		_, err = DB.Exec("UPDATE notify SET voteState=? WHERE comment_id=? AND post_id =? AND current_user_id=?  AND to_whom=?", voteType, 0, objID, fromWhom, toWhom)
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(objID, fromWhom, toWhom, "update  Like/Dislike Post")
+
+	} else if table == "comment" && toWhom != 0 {
+
+		fmt.Println(objID, fromWhom, toWhom, "notify Update Vote Comment")
+		_, err = DB.Exec("UPDATE notify SET voteState=? WHERE post_id=? AND  comment_id=? AND current_user_id=?  AND to_whom=?", voteType, 0, objID, fromWhom, toWhom)
+		if err != nil {
+			fmt.Println(err)
 		}
 	}
 }

@@ -3,6 +3,8 @@ package main
 import (
 	"ForumX/config"
 	"ForumX/controllers"
+	"fmt"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -10,7 +12,14 @@ import (
 func main() {
 	config.Init()
 	controllers.Init()
+	time.Sleep( 10 * time.Second)
+	fmt.Println("timer 10 sec")
+	
+	try -> func use with Interface
+	difference ? default func  utils.UpdateVoteNotify
 }
+// eaxmple reply system https://codewithawa.com/posts/creating-a-comment-and-reply-system-php-and-mysql
+
 //comment system step 3.1
 // 1 table create RepliesComment, FK(reply_id) References comments(id) -> Comment -> []ReplyComments
 // form inside Client(answer comment )

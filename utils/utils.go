@@ -295,6 +295,7 @@ func IsRegistered(w http.ResponseWriter, r *http.Request, email string) bool {
 	return false
 }
 
+
 //UpdateVoteNotify func
 func UpdateVoteNotify(table string, toWhom, fromWhom, objID, voteType int) {
 

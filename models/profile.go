@@ -238,7 +238,7 @@ func (u *User) UpdateProfile() error {
 }
 
 //DeleteAccount then dlogut - delete cookie, delete lsot comment, session Db, voteState
-func (u *User) DeleteAccount(w http.ResponseWriter, r *http.Request) {
+func (u User) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 
 	_, err = DB.Exec("DELETE FROM  session  WHERE user_id=?", u.ID)
 	_, err = DB.Exec("DELETE FROM  voteState  WHERE user_id=?", u.ID)
