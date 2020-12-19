@@ -57,6 +57,7 @@ func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s gener
 		if err != nil {
 			log.Println(err)
 		}
+		
 		utils.SetVoteNotify(any, vote.CreatorID, s.UserID, objID, false)
 
 	} else {
@@ -84,9 +85,9 @@ func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s gener
 			}
 			//remove notify table
 				//research Pointer -> Struct, and Method Struct
-			us:= User{}
+			v:= Votes{}
 
-			us.UpdateNotify(any, vote.CreatorID, s.UserID, objID, 0)
+			v.UpdateNotify(any, vote.CreatorID, s.UserID, objID, 0)
 			//utils.UpdateVoteNotify(any, vote.CreatorID, s.UserID, objID, 0)
 			fmt.Println("case 2 like 0, dis 1")
 		}
@@ -109,7 +110,11 @@ func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s gener
 			if err != nil {
 				log.Println(err)
 			}
-			utils.UpdateVoteNotify(any, vote.CreatorID, s.UserID, objID, 2)
+			
+			v:= Votes{}
+
+			v.UpdateNotify(any, vote.CreatorID, s.UserID, objID, 2)
+			//utils.UpdateVoteNotify(any, vote.CreatorID, s.UserID, objID, 2)
 		}
 
 		if vote.LikeState == 0 && vote.DislikeState == 0 {
@@ -123,7 +128,10 @@ func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s gener
 			if err != nil {
 				log.Println(err)
 			}
-			utils.UpdateVoteNotify(any, vote.CreatorID, s.UserID, objID, 2)
+			v:= Votes{}
+
+			v.UpdateNotify(any, vote.CreatorID, s.UserID, objID, 2)
+			//utils.UpdateVoteNotify(any, vote.CreatorID, s.UserID, objID, 2)
 		}
 	}	
 }
@@ -237,8 +245,7 @@ func VoteLike(w http.ResponseWriter, r *http.Request, id, any string, s general.
 	}
 }
 //difference ? default func  utils.UpdateVoteNotify
-func (u User) UpdateNotify(table string, toWhom, fromWhom, objID, voteType int) {
-	fmt.Println(voteType, "TYPE", table)
+func (v *Votes) UpdateNotify(table string, toWhom, fromWhom, objID, voteType int) {
 
 	if table == "post" && toWhom != 0 {
 		_, err = DB.Exec("UPDATE notify SET voteState=? WHERE comment_id=? AND post_id =? AND current_user_id=?  AND to_whom=?", voteType, 0, objID, fromWhom, toWhom)
