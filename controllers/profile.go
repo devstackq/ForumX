@@ -36,12 +36,14 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 			utils.DisplayTemplate(w, "disliked_post", dislikedPost)
 			utils.DisplayTemplate(w, "comment_user", comments)
 
-			//delete coookie db
+			fmt.Println(w, "wr")
+			//delete coookie db, 10 min
 			go func() {
-				for now := range time.Tick(299 * time.Minute) {
-					utils.IsCookieExpiration(now, cookie, w, r)
-					//next logout each 300 min
-					time.Sleep(299 * time.Minute)
+				for range time.Tick(19 * time.Second) {
+					utils.IsCookieExpiration(w, r)
+					fmt.Println("del cookie in DB")
+					//time.Sleep(1 * time.Minute)
+					break
 				}
 			}()
 		}

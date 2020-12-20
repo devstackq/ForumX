@@ -120,22 +120,22 @@ func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 }
 
 //IsCookieExpiration if cookie time = 0, delete session and cookie client
-func IsCookieExpiration(t time.Time, cookie *http.Cookie, w http.ResponseWriter, r *http.Request) {
+func IsCookieExpiration(w http.ResponseWriter, r *http.Request) {
 
-	for _, cookie := range r.Cookies() {
-		if cookie.Name == "_cookie" {
-			s := general.Session{UUID: cookie.Value}
-			//get ssesion id, by local struct uuid
-			DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).
-				Scan(&s.ID)
+	fmt.Println(w, "writer state")
+	cookie, _ := r.Cookie("_cookie")
 
-			_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
-
-			// then delete cookie from client
-			DeleteCookie(w)
-			http.Redirect(w, r, "/", 200)
-			return
-		}
+	if cookie.Name == "_cookie" {
+		fmt.Println(cookie.Value, cookie.Expires, "delete in Bd")
+		s := general.Session{UUID: cookie.Value}
+		//get ssesion id, by local struct uuid
+		DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).
+			Scan(&s.ID)
+		_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
+		DeleteCookie(w)
+		http.Redirect(w, r, "/signin", 302)
+		// then delete cookie from client
+		//	return
 	}
 }
 
@@ -295,7 +295,6 @@ func IsRegistered(w http.ResponseWriter, r *http.Request, email string) bool {
 	return false
 }
 
-
 //UpdateVoteNotify func
 func UpdateVoteNotify(table string, toWhom, fromWhom, objID, voteType int) {
 
@@ -325,9 +324,9 @@ func SetVoteNotify(table string, toWhom, fromWhom, objID int, voteLD bool) {
 	if voteLD {
 		voteState = 1
 	}
-	//putch(some fields), put(all fields), 
+	//putch(some fields), put(all fields),
 	if table == "post" && toWhom != 0 {
-		
+
 		voteNotifyPreparePost, err := DB.Prepare(`INSERT INTO notify(post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)`)
 		if err != nil {
 			log.Println(err)

@@ -48,11 +48,11 @@ func (u User) Signup(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 	}
-	userPrepare, err := DB.Prepare(`INSERT INTO users(full_name, email, password, age, sex, created_time, city, image) VALUES(?,?,?,?,?,?,?,?)` )
+	userPrepare, err := DB.Prepare(`INSERT INTO users(full_name, email, password, age, sex, created_time, city, image) VALUES(?,?,?,?,?,?,?,?)`)
 	if err != nil {
 		log.Println(err)
 	}
-	_, err = userPrepare.Exec(u.FullName, u.Email, hashPwd, u.Age, u.Sex, time.Now(), u.City, u.Image) 
+	_, err = userPrepare.Exec(u.FullName, u.Email, hashPwd, u.Age, u.Sex, time.Now(), u.City, u.Image)
 	if err != nil {
 		log.Println(err)
 	}
@@ -67,7 +67,7 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 	var user User
 	var err error
 	err = u.Scan(&user.ID)
-	
+
 	if utils.AuthType == "default" {
 		u := DB.QueryRow("SELECT id, password FROM users WHERE email=?", uStr.Email)
 		//check pwd, if not correct, error
@@ -95,11 +95,11 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 	}
 	//create uuid and set uid DB table session by userid,
 
-	userPrepare, err := DB.Prepare(`INSERT INTO session(uuid, user_id) VALUES (?, ?)` )
+	userPrepare, err := DB.Prepare(`INSERT INTO session(uuid, user_id) VALUES (?, ?)`)
 	if err != nil {
 		log.Println(err)
 	}
-	_, err = userPrepare.Exec(uuid, s.UserID) 
+	_, err = userPrepare.Exec(uuid, s.UserID)
 	defer userPrepare.Close()
 
 	if err != nil {
@@ -119,7 +119,7 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 		Name:     "_cookie",
 		Value:    s.UUID,
 		Path:     "/",
-		Expires:  time.Now().Add(300 * time.Minute),
+		Expires:  time.Now().Add(20 * time.Second),
 		HttpOnly: false,
 	}
 	http.SetCookie(w, &cookie)
@@ -130,6 +130,7 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 //Logout function
 func Logout(w http.ResponseWriter, r *http.Request) {
 
+	fmt.Println(w, "wr logour")
 	cookie, err := r.Cookie("_cookie")
 	if err != nil {
 		fmt.Println(err, "cookie err")

@@ -48,19 +48,19 @@ func (p *person) updatePerson(args ...interface{}) {
 	} else {
 		//comapre type, then set value - variable
 
-	// 	for _, arg := range args {
-	// 		if reflect.DeepEqual(arg.(string), arg) {
-	// 			if arg.(string) != "" {
-	// 				p.name = arg.(string)
-	// 			}
-	// 		} else if reflect.DeepEqual(arg.(int), arg) {{
-	// 			if arg.(int) > 0 {
-	// 				p.age = arg.(int)
-	// 			}
-	// 		}
-	// 	}
-	// }
-}
+		// 	for _, arg := range args {
+		// 		if reflect.DeepEqual(arg.(string), arg) {
+		// 			if arg.(string) != "" {
+		// 				p.name = arg.(string)
+		// 			}
+		// 		} else if reflect.DeepEqual(arg.(int), arg) {{
+		// 			if arg.(int) > 0 {
+		// 				p.age = arg.(int)
+		// 			}
+		// 		}
+		// 	}
+		// }
+	}
 
 	// if data.(string){
 	// //if  (string) == reflect.TypeOf(data) {
@@ -103,9 +103,7 @@ func main() {
 	//перегрузка методов, через struct, и interface
 	//Lester.updatePerson( "Soma", 32)
 	Lester.updatePerson(32)
-
 	Lester.updatePerson("Jonny")
-
 	fmt.Println(Lester)
 
 	config.Init()
@@ -113,13 +111,24 @@ func main() {
 	time.Sleep(10 * time.Second)
 	fmt.Println("timer 10 sec")
 
-	перегрузку методов
-	use constructor
-	use anonim func
-	use gorutine
-	try -> func use with Interface
+	//logout system, when login another browser, create new Token
+	//category -> create table, and relations
+	//create post button -> вынести  main page
+	//2 field password
+	//author id  activity page - show
+	// edit comment/.post -> add Edited message in Post
+	//delete cookie & when time Expires 0, and redirect, cook life 20min
 
-	Andrei - узнать конкаренси, паралелизм, как работает в каих случаях использовать
+	//login current User (logged), if have session in Db, drop Session and cookie, and create new cookie and save Db & cookie
+
+	// перегрузку методов
+	// use constructor
+	// use anonim func
+	// use gorutine
+	// try -> func use with Interface
+	// architect like - Zhassymov Gt Search
+
+	// Andrei - узнать конкаренси, паралелизм, как работает в каих случаях использовать
 }
 
 // eaxmple reply system https://codewithawa.com/posts/creating-a-comment-and-reply-system-php-and-mysql
