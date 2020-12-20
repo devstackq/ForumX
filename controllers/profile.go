@@ -39,7 +39,7 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(w, "wr")
 			//delete coookie db, 10 min
 			go func() {
-				for range time.Tick(19 * time.Second) {
+				for range time.Tick(19 * time.Minute) {
 					utils.IsCookieExpiration(w, r)
 					fmt.Println("del cookie in DB")
 					//time.Sleep(1 * time.Minute)

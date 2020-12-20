@@ -160,31 +160,30 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request) (result []Notify)
 		n.VoteState = v.VoteState
 		n.UID = v.UserLostID
 
+		fmt.Println(n.UserLost, "ds")
+		
 		if v.VoteState == 1 && v.PostID != 0 {
 			n.PID = v.PostID
-			fmt.Println("user: ", n.UserLost, " lost liked your post : ", n.PostTitle, " in ", v.CreatedTime, "")
+			fmt.Println("user: ", n.UserLost, " liked your post : ", n.PostTitle, " in ", v.CreatedTime, "")
 		}
 		if v.VoteState == 2 && v.PostID != 0 {
 			n.PID = v.PostID
-			fmt.Println("user: ", n.UserLost, " lost Dislike your post : ", n.PostTitle, " in ", v.CreatedTime, "")
+			fmt.Println("user: ", n.UserLost, " Dislike your post : ", n.PostTitle, " in ", v.CreatedTime, "")
 		}
 		if v.VoteState == 1 && v.CommentID != 0 {
-			// if n.CommentTitle == "" {
-			// 	return
-			// }
 			n.CID = v.CommentID
 			n.PostTitle = n.CommentTitle
-			fmt.Println("user: ", n.UserLost, " lost liked your Comment : ", n.CommentTitle, " in ", v.CreatedTime, "")
+			fmt.Println("user: ", n.UserLost, " liked u Comment : ", n.CommentTitle, " in ", v.CreatedTime, "")
 		}
 		
 		if v.VoteState == 2 && v.CommentID != 0 {
 			n.CID = v.CommentID
 			n.PostTitle = n.CommentTitle
-			fmt.Println("user: ", n.UserLost, " lost Dislike your Comment!!!: ", n.CommentTitle, " in ", v.CreatedTime, "", n.CID, n.CIDPID)
+			fmt.Println("user: ", n.UserLost, " Dislike u Comment!: ", n.CommentTitle, " in ", v.CreatedTime, "", n.CID, n.CIDPID)
 		}
 		//comment lost case
 		if v.VoteState == 0 && v.CommentID != 0 {
-			fmt.Println("user: ", n.UserLost, " lost Comment u Post: ", n.CommentTitle, " in ", v.CreatedTime)
+			fmt.Println("user: ", n.UserLost, " Comment u Post: ", n.CommentTitle, " in ", v.CreatedTime)
 			n.CLID = v.PostID
 			n.PostTitle = n.CommentTitle
 		}

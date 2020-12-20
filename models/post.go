@@ -221,7 +221,7 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 	//check empty values
 	if utils.CheckLetter(p.Title) && utils.CheckLetter(p.Content) {
 
-		createPostPrepare, err := DB.Prepare(`INSERT INTO posts (title, content, creator_id, created_time, image) VALUES ( ?,?, ?, ?, ?)`)
+		createPostPrepare, err := DB.Prepare(`INSERT INTO posts(title, content, creator_id, created_time, image) VALUES(?,?,?,?,?)`)
 		if err != nil {
 			log.Println(err)
 		}
@@ -277,8 +277,12 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 
 	p := Post{}
-	DB.QueryRow("SELECT * FROM posts WHERE id = ?", post.ID).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreatedTime, &p.Image, &p.Like, &p.Dislike)
-
+	
+	err = DB.QueryRow("SELECT id, title, content, creator_id,  created_time, image, count_like, count_dislike FROM posts WHERE id = ?", post.ID).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreatedTime, &p.Image, &p.Like, &p.Dislike)
+	log.Println(post.ID, "id")
+	if err != nil {
+		log.Println(err)
+	}
 	//[]byte -> encode string, client render img base64
 	//check svg || jpg,png
 	if len(p.Image) > 0 {

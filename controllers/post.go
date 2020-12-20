@@ -59,8 +59,7 @@ func GetPostByID(w http.ResponseWriter, r *http.Request) {
 
 		id, _ := strconv.Atoi(r.FormValue("id"))
 		pid := models.Post{ID: id}
-		 comments, post, err := pid.GetPostByID(r)
-
+		comments, post, err := pid.GetPostByID(r)
 		if err != nil {
 			log.Println(err)
 		}

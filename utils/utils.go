@@ -367,3 +367,32 @@ func SetCommentNotify(pid string, fromWhom, toWhom int, lid int64) {
 	}
 	defer voteNotifyPrepare.Close()
 }
+
+func CreateCategories() {
+
+	categories := []string{"science", "love", "sapid"}
+	count := 0
+
+	// DB.QueryRow(`SELECT COUNT(*) FROM category`).Scan(&count)
+	// if err != nil {
+	// 	log.Println(err)
+	// }
+	// err = q.QueryRow().Scan(&count)
+	// if err != nil {
+	// 	log.Println(err, "erora")
+	// }
+	fmt.Println(count)
+
+	for i := 0; i < 2; i++ {
+		categoryPrepare, err := DB.Prepare(`INSERT INTO category(name) VALUES(?)`)
+		if err != nil {
+			log.Println(err)
+		}
+		
+		_, err = categoryPrepare.Exec(categories[i])
+		if err != nil {
+			log.Println(err)
+		}
+		defer categoryPrepare.Close()
+}
+}

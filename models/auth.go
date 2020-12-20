@@ -119,7 +119,7 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 		Name:     "_cookie",
 		Value:    s.UUID,
 		Path:     "/",
-		Expires:  time.Now().Add(20 * time.Second),
+		Expires:  time.Now().Add(20 * time.Minute),
 		HttpOnly: false,
 	}
 	http.SetCookie(w, &cookie)

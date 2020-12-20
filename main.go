@@ -5,7 +5,6 @@ import (
 	"ForumX/controllers"
 	"fmt"
 	"log"
-	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -108,13 +107,13 @@ func main() {
 
 	config.Init()
 	controllers.Init()
-	time.Sleep(10 * time.Second)
-	fmt.Println("timer 10 sec")
+	// time.Sleep(10 * time.Second)
+	// fmt.Println("timer 10 sec")
 
 	//logout system, when login another browser, create new Token
-	//category -> create table, and relations
-	//create post button -> вынести  main page
-	//2 field password
+	category -> refactor relations
+	//create post button -> вынести  В main page
+	//2 field password CLient side
 	//author id  activity page - show
 	// edit comment/.post -> add Edited message in Post
 	//delete cookie & when time Expires 0, and redirect, cook life 20min
