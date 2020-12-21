@@ -9,7 +9,7 @@ import (
 //VotesPost func Post
 func VotesPost(w http.ResponseWriter, r *http.Request) {
 
-	if utils.URLChecker(w, r, "/votes") {
+	if utils.URLChecker(w, r, "/votes/post") {
 
 		access, s := utils.IsCookie(w, r)
 		if !access {

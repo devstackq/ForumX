@@ -25,11 +25,9 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/signup") {
 
-		//	utils.CheckMethod("GET", "signup", auth, w, utils.DisplayTemplate(w, "signup", auth))
-		fmt.Println("her -1")
-		utils.CheckMethod(r.Method, "signup", auth, w, func(writer http.ResponseWriter) {
+		utils.CheckMethod(r.Method, "signup", auth, w, func(http.ResponseWriter) {
+			//write id 9493
 			//if r.Method == "POST" {
-			fmt.Println("her0")
 			intAge, err := strconv.Atoi(r.FormValue("age"))
 			if err != nil {
 				log.Println(err)
@@ -61,23 +59,22 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 							Password: r.FormValue("password"),
 						}
 						fmt.Println("her1")
-						u.Signup(writer, r)
-						http.Redirect(writer, r, "/signin", 302)
+						u.Signup(w, r)
+						http.Redirect(w, r, "/signin", 302)
 					} else {
 						msg := "Incorrect password: must be 8 symbols, 1 big, 1 special character, example: 9Password!"
-						utils.DisplayTemplate(writer, "signup", &msg)
+						utils.DisplayTemplate(w, "signup", &msg)
 					}
 				} else {
 					msg := "Password fields: not match epta"
-					utils.DisplayTemplate(writer, "signup", &msg)
+					utils.DisplayTemplate(w, "signup", &msg)
 				}
 			} else {
 				msg := "Incorrect email address: example god@mail.kz"
-				utils.DisplayTemplate(writer, "signup", &msg)
+				utils.DisplayTemplate(w, "signup", &msg)
 			}
 			//}
 		})
-
 	}
 }
 

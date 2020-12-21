@@ -53,7 +53,7 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 //GetAnotherProfile  other user page
 func GetAnotherProfile(w http.ResponseWriter, r *http.Request) {
 
-	if utils.URLChecker(w, r, "/user/id/") {
+	if utils.URLChecker(w, r, "/user/id") {
 
 		if r.Method == "POST" {
 

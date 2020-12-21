@@ -3,14 +3,19 @@ package main
 import (
 	"ForumX/config"
 	"ForumX/controllers"
+	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
-
+	run(world)
+	run(hello)
 	config.Init()
 	controllers.Init()
+
+	mux server -> add cookie, method check todo
+	//category - table, nickname auth, url post/id=?, add 2 password form, createbutton in main page
 
 	//logout system, when login another browser, create new Token
 	//mod Name -> change github/devstackq/...
@@ -30,6 +35,18 @@ func main() {
 	// architect like - Zhassymov Gt Search
 	//500 status - check
 	// docker check
+}
+//example anonim func
+func hello() {
+	fmt.Println("Hello")
+}
+
+func world() {
+	fmt.Println("World!")
+}
+
+func run(f func()) {
+	f()
 }
 
 // eaxmple reply system https://codewithawa.com/posts/creating-a-comment-and-reply-system-php-and-mysql

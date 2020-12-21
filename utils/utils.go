@@ -54,7 +54,9 @@ func IsAuth(r *http.Request) API {
 }
 
 //IsCookie check user cookie client and DB session value, if true -> give access
-func IsCookie(w http.ResponseWriter, r *http.Request) (bool, general.Session) {
+func IsCookie(w http.ResponseWriter, r *http.Request) (bool, general.Session ) {
+	
+	//return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 	var flag, cookieHave bool
 	cookie, _ := r.Cookie("_cookie")
@@ -97,7 +99,6 @@ func IsCookie(w http.ResponseWriter, r *http.Request) (bool, general.Session) {
 
 //CheckLetter correct letter
 func CheckLetter(value string) bool {
-
 	for _, v := range value {
 		if v >= 97 && v <= 122 || v >= 65 && v <= 90 || v >= 32 && v <= 64 || v > 128 {
 			return true
@@ -106,14 +107,22 @@ func CheckLetter(value string) bool {
 	return false
 }
 
-calback methods continue
+//calback methods continue
+func TestCallback(arr []int, count int, flag bool, sortX func([]int) ){
+	fmt.Print(arr, "arr", count)
+	if count > 5 && flag{
+		 sortX(arr)
+	}else {
+		//1 call func example
+		fmt.Println("не сооттветствуют данные")
+	}
+}
+
 func CheckMethod(method string, tmpl string, isAuth bool, w http.ResponseWriter, f func(http.ResponseWriter)) {
 
 	if method == "GET" {
 		DisplayTemplate(w, tmpl, isAuth)
-		fmt.Println("her -2")
 	} else {
-		fmt.Println("her -3")
 		f(w)
 	}
 }
