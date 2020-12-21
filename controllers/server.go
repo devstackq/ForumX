@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -47,5 +48,6 @@ func Init() {
 	http.HandleFunc("/githubSignin", GithubSignin)
 	http.HandleFunc("/githubUserInfo", GithubUserData)
 	// http.HandleFunc("/chat", routing.StartChat)
+	fmt.Println("Listening port: 6969")
 	log.Fatal(http.ListenAndServe(":6969", nil))
 }

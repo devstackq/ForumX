@@ -10,6 +10,8 @@
     <div class="user-info">
       <label for="">Name:</label>
       <td> {{.FullName}}</td> <br>
+       <label for="">Nickname:</label>
+      <td> {{.Username}}</td> <br>
       <label for="">Email:</label>
       <td> {{.Email}}</td> <br>
       <label for="">Age:</label>
@@ -25,20 +27,15 @@
   <div class="profile-link-container">
     <a class="link-profile edit-btn" href="/edit/user?uid={{.ID}}">Edit profile</a>
     <a class="link-profile delete-btn" onclick="areYouSure({{.ID}} )">Delete account</a>
-    <a class="link-profile create-btn" href="/create/post">Create post</a>
   </div>
 <br/>
 
 <a class = "link-profile activity-btn"  href="/activity" >Activities </a>
 </div>
 
-
 <script>
-
   const areYouSure = (id) => {
-
     if (confirm("Are u sure epta?")) {
-
       fetch('http://localhost:6969/delete/account', {
         mode: 'cors',
         method: 'post',
@@ -49,12 +46,9 @@
             window.location.replace("http://localhost:6969/")
           }
         })
-
     } else {
       console.log("You pressed Cancel!");
     }
   }
-
 </script>
-
 {{end}}

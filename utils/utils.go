@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 	"unicode"
 
@@ -105,9 +106,21 @@ func CheckLetter(value string) bool {
 	return false
 }
 
+calback methods continue
+func CheckMethod(method string, tmpl string, isAuth bool, w http.ResponseWriter, f func(http.ResponseWriter)) {
+
+	if method == "GET" {
+		DisplayTemplate(w, tmpl, isAuth)
+		fmt.Println("her -2")
+	} else {
+		fmt.Println("her -3")
+		f(w)
+	}
+}
+
 //DisplayTemplate function
 func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
-
+	fmt.Println(tmpl, data, "RR")
 	err = temp.ExecuteTemplate(w, tmpl, data)
 
 	if err != nil {
@@ -205,8 +218,12 @@ func URLChecker(w http.ResponseWriter, r *http.Request, url string) bool {
 
 //IsEmailValid function
 func IsEmailValid(email string) bool {
+	e := strings.Split(email, "@")
 	Re := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-	return Re.MatchString(email)
+	if e[1] == "mail.kz" && Re.MatchString(email) {
+		return true
+	}
+	return false
 }
 
 //IsPasswordValid function
@@ -269,28 +286,46 @@ func IsImage(r *http.Request) []byte {
 }
 
 //IsRegistered func
-func IsRegistered(w http.ResponseWriter, r *http.Request, email string) bool {
+func IsRegistered(w http.ResponseWriter, r *http.Request, data string) bool {
+
+	s := strings.Split(data, "@")
+	field := "username"
+
+	if len(s) == 2 {
+		field = "email"
+	}
+	fmt.Println(data, field)
 	//check email by unique, if have same email
-	checkEmail, err := DB.Query("SELECT email FROM users")
+	count := 0
+	err = DB.QueryRow("SELECT count(*) FROM users").Scan(&count)
 	if err != nil {
 		log.Println(err)
 	}
-	var users []string
-	for checkEmail.Next() {
-		var emailDB string
-		err = checkEmail.Scan(&emailDB)
+	if count > 0 {
+
+		checkUser, err := DB.Query("SELECT " + field + " FROM users")
 		if err != nil {
-			log.Println(err.Error())
-		}
-		users = append(users, emailDB)
-	}
-
-	for _, v := range users {
-
-		if v == email {
 			log.Println(err)
-			return true
 		}
+		var users []string
+		for checkUser.Next() {
+			var emailDB string
+			err = checkUser.Scan(&emailDB)
+			if err != nil {
+				log.Println(err.Error())
+			}
+			users = append(users, emailDB)
+		}
+
+		for _, v := range users {
+			fmt.Println(v, data, field)
+			if v == data {
+				log.Println(err)
+				return true
+			}
+		}
+	} else {
+		return true
 	}
 	return false
 }
@@ -366,33 +401,4 @@ func SetCommentNotify(pid string, fromWhom, toWhom int, lid int64) {
 		log.Println(err)
 	}
 	defer voteNotifyPrepare.Close()
-}
-
-func CreateCategories() {
-
-	categories := []string{"science", "love", "sapid"}
-	count := 0
-
-	// DB.QueryRow(`SELECT COUNT(*) FROM category`).Scan(&count)
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-	// err = q.QueryRow().Scan(&count)
-	// if err != nil {
-	// 	log.Println(err, "erora")
-	// }
-	fmt.Println(count)
-
-	for i := 0; i < 2; i++ {
-		categoryPrepare, err := DB.Prepare(`INSERT INTO category(name) VALUES(?)`)
-		if err != nil {
-			log.Println(err)
-		}
-		
-		_, err = categoryPrepare.Exec(categories[i])
-		if err != nil {
-			log.Println(err)
-		}
-		defer categoryPrepare.Close()
-}
 }

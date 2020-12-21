@@ -13,39 +13,40 @@ import (
 
 //Users struct
 type User struct {
-	ID          int `json:"id"`
-	FullName    string `json:"fullName"`
-	Email       string `json:"email"`
-	Password    string `json:"password"`
-	IsAdmin     bool   `json:"isAdmin"`
-	Age         int    `json:"age"`
-	Sex         string `json:"sex"`
+	ID          int       `json:"id"`
+	FullName    string    `json:"fullName"`
+	Email       string    `json:"email"`
+	Password    string    `json:"password"`
+	IsAdmin     bool      `json:"isAdmin"`
+	Age         int       `json:"age"`
+	Sex         string    `json:"sex"`
 	CreatedTime time.Time `json:"createdTime"`
-	City        string `json:"city"`
-	Image       []byte `json:"image"`
-	ImageHTML   string `json:"imageHtml"`
-	Role        string `json:"role"`
-	SVG         bool   `json:"svg"`
-	Type        string `json:"type"`
-	Temp        string `json:"temp"`
-	Name        string `json:"name"`
-	Location    string `json:"location"`
+	City        string    `json:"city"`
+	Image       []byte    `json:"image"`
+	ImageHTML   string    `json:"imageHtml"`
+	Role        string    `json:"role"`
+	SVG         bool      `json:"svg"`
+	Type        string    `json:"type"`
+	Temp        string    `json:"temp"`
+	Name        string    `json:"name"`
+	Location    string    `json:"location"`
+	Username    string    `json:"username"`
 }
 
 //Notify struct
 type Notify struct {
-	UID          int `json:"uid"`
-	PID          int `json:"pid"`
-	CID          int `json:"cid"`
-	CLID         int `json:"clid"`
-	ID           int `json:"id"`
-	CIDPID       int `json:"cidpid"`
-	PostID       int `json:"postId"`
-	CommentID    int `json:"commentId"`
-	UserLostID   int `json:"userLostId"`
-	VoteState    int `json:"voteState"`
+	UID          int    `json:"uid"`
+	PID          int    `json:"pid"`
+	CID          int    `json:"cid"`
+	CLID         int    `json:"clid"`
+	ID           int    `json:"id"`
+	CIDPID       int    `json:"cidpid"`
+	PostID       int    `json:"postId"`
+	CommentID    int    `json:"commentId"`
+	UserLostID   int    `json:"userLostId"`
+	VoteState    int    `json:"voteState"`
 	CreatedTime  string `json:"createdTime"`
-	ToWhom       int `json:"toWhom"`
+	ToWhom       int    `json:"toWhom"`
 	PostTitle    string `json:"postTitle"`
 	UserLost     string `json:"userLost"`
 	CommentTitle string `json:"commentTitle"`
@@ -62,7 +63,7 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 	liked := VotedPosts("like_state", s.UserID)
 	disliked := VotedPosts("dislike_state", s.UserID)
 
-	err = DB.QueryRow("SELECT id, full_name, email, isAdmin, age, sex, created_time, city, image  FROM users WHERE id = ?", s.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
+	err = DB.QueryRow("SELECT id, full_name, email, username, isAdmin, age, sex, created_time, city, image  FROM users WHERE id = ?", s.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.Username, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
 	//Age, sex, picture, city, date ?
 	if err != nil {
 		log.Println(err)
@@ -161,7 +162,7 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request) (result []Notify)
 		n.UID = v.UserLostID
 
 		fmt.Println(n.UserLost, "ds")
-		
+
 		if v.VoteState == 1 && v.PostID != 0 {
 			n.PID = v.PostID
 			fmt.Println("user: ", n.UserLost, " liked your post : ", n.PostTitle, " in ", v.CreatedTime, "")
@@ -175,7 +176,7 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request) (result []Notify)
 			n.PostTitle = n.CommentTitle
 			fmt.Println("user: ", n.UserLost, " liked u Comment : ", n.CommentTitle, " in ", v.CreatedTime, "")
 		}
-		
+
 		if v.VoteState == 2 && v.CommentID != 0 {
 			n.CID = v.CommentID
 			n.PostTitle = n.CommentTitle

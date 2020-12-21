@@ -25,12 +25,11 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/signup") {
 
-		if r.Method == "GET" {
-			utils.DisplayTemplate(w, "signup", &auth)
-		}
-
-		if r.Method == "POST" {
-
+		//	utils.CheckMethod("GET", "signup", auth, w, utils.DisplayTemplate(w, "signup", auth))
+		fmt.Println("her -1")
+		utils.CheckMethod(r.Method, "signup", auth, w, func(writer http.ResponseWriter) {
+			//if r.Method == "POST" {
+			fmt.Println("her0")
 			intAge, err := strconv.Atoi(r.FormValue("age"))
 			if err != nil {
 				log.Println(err)
@@ -47,28 +46,38 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 					intAge = 16
 				}
 				utils.AuthType = r.FormValue("authType")
+				pwd, _ := r.Form["password"]
 
-				if utils.IsPasswordValid(r.FormValue("password")) {
-					u := models.User{
-						FullName: fullName,
-						Email:    r.FormValue("email"),
-						Age:      intAge,
-						Sex:      r.FormValue("sex"),
-						City:     r.FormValue("city"),
-						Image:    iB,
-						Password: r.FormValue("password"),
+				if pwd[0] == pwd[1] {
+					if utils.IsPasswordValid(r.FormValue("password")) {
+						u := models.User{
+							FullName: fullName,
+							Email:    r.FormValue("email"),
+							Username: r.FormValue("username"),
+							Age:      intAge,
+							Sex:      r.FormValue("sex"),
+							City:     r.FormValue("city"),
+							Image:    iB,
+							Password: r.FormValue("password"),
+						}
+						fmt.Println("her1")
+						u.Signup(writer, r)
+						http.Redirect(writer, r, "/signin", 302)
+					} else {
+						msg := "Incorrect password: must be 8 symbols, 1 big, 1 special character, example: 9Password!"
+						utils.DisplayTemplate(writer, "signup", &msg)
 					}
-					u.Signup(w, r)
-					http.Redirect(w, r, "/signin", 302)
 				} else {
-					msg := "Password must be 8 symbols, 1 big, 1 special character, example: 9Password!"
-					utils.DisplayTemplate(w, "signup", &msg)
+					msg := "Password fields: not match epta"
+					utils.DisplayTemplate(writer, "signup", &msg)
 				}
 			} else {
-				msg := "Incorrect email address, example god@mail.com"
-				utils.DisplayTemplate(w, "signup", &msg)
+				msg := "Incorrect email address: example god@mail.kz"
+				utils.DisplayTemplate(writer, "signup", &msg)
 			}
-		}
+			//}
+		})
+
 	}
 }
 
@@ -94,6 +103,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 				utils.AuthType = "default"
 				u := models.User{
 					Email:    person.Email,
+					Username: person.Username,
 					Password: person.Password,
 				}
 				u.Signin(w, r)

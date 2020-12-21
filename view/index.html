@@ -1,6 +1,9 @@
 {{define "index"}}
 
 <div class="main">
+
+    <a id="create_post" class="link-profile create-btn" href="/create/post">Create post</a>
+
     {{template "search"}} {{template "filter_post" }} 
     
     {{ range $key, $value := . }}
@@ -34,8 +37,21 @@
         <input type="hidden" name="next" value="next">
         <input class="" type="submit" value="next">
     </form>
-
 </div>
+
 {{template "footer" }}
 
 {{end}}
+
+<script>
+window.onload = async  function() {
+  console.log("windwos onload")
+      let response = await fetch('http://localhost:6969/', {
+        mode: 'cors',
+        method: 'get',
+        })
+      let data = await response.json()
+    console.log(data, "D")
+}
+//fecth query, check, if auth True, show button, by id #create_post
+</script>

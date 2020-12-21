@@ -38,11 +38,23 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	//s := utils.IsAuth(r)
 	utils.DisplayTemplate(w, "header", utils.IsAuth(r))
 
 	if endpoint == "/" {
+		// if s.Authenticated {
+		// 	general.API.Authenticated = true
+		// 	w.WriteHeader(http.StatusOK)
+		// 	m, _ := json.Marshal(general.API)
+		// 	w.Write(m)
+		// 	// msg := []byte(fmt.Sprintf("<h3 id='category'> %s </h3>", general.API))
+		// 	// w.Header().Set("Content-Type", "application/json")
+		// 	// w.Write(msg)
+		// } else {
+		//utils.DisplayTemplate(w, "index", general.API)
 		utils.DisplayTemplate(w, "index", posts)
+
+		//utils.DisplayTemplate(w, "index", posts)
 	} else {
 		//send category value
 		msg := []byte(fmt.Sprintf("<h3 id='category'> %s </h3>", category))
@@ -57,16 +69,27 @@ func GetPostByID(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/post") {
 
-		id, _ := strconv.Atoi(r.FormValue("id"))
-		pid := models.Post{ID: id}
-		comments, post, err := pid.GetPostByID(r)
+		count := 0
+		err = DB.QueryRow("SELECT count(*) FROM posts").Scan(&count)
 		if err != nil {
 			log.Println(err)
 		}
-		utils.DisplayTemplate(w, "header", utils.IsAuth(r))
-		utils.DisplayTemplate(w, "posts", post)
-		utils.DisplayTemplate(w, "comment_post", comments)
-		//utils.DisplayTemplate(w, "reply_comment", repliesComment)
+
+		id, _ := strconv.Atoi(r.FormValue("id"))
+
+		if id > 0 && id <= count {
+			pid := models.Post{ID: id}
+			comments, post, err := pid.GetPostByID(r)
+			if err != nil {
+				log.Println(err)
+			}
+			utils.DisplayTemplate(w, "header", utils.IsAuth(r))
+			utils.DisplayTemplate(w, "posts", post)
+			utils.DisplayTemplate(w, "comment_post", comments)
+			//utils.DisplayTemplate(w, "reply_comment", repliesComment)
+		} else {
+			utils.DisplayTemplate(w, "404page", http.StatusBadRequest)
+		}
 	}
 }
 

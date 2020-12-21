@@ -15,7 +15,6 @@ import (
 //Signup func
 func (u User) Signup(w http.ResponseWriter, r *http.Request) {
 
-	users := []User{}
 	var hashPwd []byte
 	if utils.AuthType == "default" {
 		hashPwd, err = bcrypt.GenerateFromPassword([]byte(u.Password), 8)
@@ -23,61 +22,68 @@ func (u User) Signup(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 	}
-	//check email by unique, if have same email
-	checkEmail, err := DB.Query("SELECT email FROM users")
-	if err != nil {
-		log.Println(err)
-	}
+	fmt.Println("her2")
+	userCheck := utils.IsRegistered(w, r, u.Email)
+	emailCheck := utils.IsRegistered(w, r, u.Username)
 
-	for checkEmail.Next() {
-		user := User{}
-		var email string
-		err = checkEmail.Scan(&email)
+	if emailCheck == userCheck {
+		userPrepare, err := DB.Prepare(`INSERT INTO users(full_name, email, username, password, age, sex, created_time, city, image) VALUES(?,?,?,?,?,?,?,?,?)`)
 		if err != nil {
-			log.Println(err.Error())
-		}
-
-		user.Email = email
-		users = append(users, user)
-	}
-
-	for _, v := range users {
-		if v.Email == u.Email {
-			msg = "Not unique email lel"
-			utils.DisplayTemplate(w, "signup", &msg)
 			log.Println(err)
 		}
+		_, err = userPrepare.Exec(u.FullName, u.Email, u.Username, hashPwd, u.Age, u.Sex, time.Now(), u.City, u.Image)
+		if err != nil {
+			log.Println(err)
+		}
+		defer userPrepare.Close()
+	} else {
+		if emailCheck == false {
+			msg = "Not unique email"
+		} else if userCheck == false {
+			msg = "Not unique username"
+		} else {
+			msg = "Not unique email && username"
+		}
+		utils.DisplayTemplate(w, "signup", &msg)
 	}
-	userPrepare, err := DB.Prepare(`INSERT INTO users(full_name, email, password, age, sex, created_time, city, image) VALUES(?,?,?,?,?,?,?,?)`)
-	if err != nil {
-		log.Println(err)
-	}
-	_, err = userPrepare.Exec(u.FullName, u.Email, hashPwd, u.Age, u.Sex, time.Now(), u.City, u.Image)
-	if err != nil {
-		log.Println(err)
-	}
-	defer userPrepare.Close()
+
 }
 
-//Signin function
+//Signin function dsds
 func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 
-	u := DB.QueryRow("SELECT id FROM users WHERE email=?", uStr.Email)
+	var isUserOrEmail bool
 
+	if uStr.Username != "" {
+		isUserOrEmail = true
+	} else if uStr.Email != "" {
+		isUserOrEmail = false
+	}
 	var user User
+
+	err = DB.QueryRow("SELECT id FROM users WHERE email=?", uStr.Email).Scan(&user.ID)
+	if err != nil {
+		log.Println(err)
+	}
 	var err error
-	err = u.Scan(&user.ID)
 
 	if utils.AuthType == "default" {
-		u := DB.QueryRow("SELECT id, password FROM users WHERE email=?", uStr.Email)
-		//check pwd, if not correct, error
-		err = u.Scan(&user.ID, &user.Password)
-
-		if err != nil {
-			utils.AuthError(w, r, err, "user not found", utils.AuthType)
-			return
+		if !isUserOrEmail {
+			err = DB.QueryRow("SELECT id, password FROM users WHERE email=?", uStr.Email).Scan(&user.ID, &user.Password)
+			log.Println("err email")
+			if err != nil {
+				utils.AuthError(w, r, err, "user by Email not found", utils.AuthType)
+				return
+			}
+		} else if isUserOrEmail {
+			err = DB.QueryRow("SELECT id, password FROM users WHERE username=?", uStr.Username).Scan(&user.ID, &user.Password)
+			log.Println("errr username")
+			if err != nil {
+				utils.AuthError(w, r, err, "user by Username not found", utils.AuthType)
+				return
+			}
 		}
-
+		//check pwd, if not correct, error
 		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(uStr.Password))
 		if err != nil {
 			utils.AuthError(w, r, err, "password incorrect", utils.AuthType)

@@ -5,7 +5,7 @@
         <h3 class="signin-label">Login system</h3>
         <form onsubmit="event.preventDefault()">
             <div id=" authWrapperId">
-                <input id="email" type="email" name="email" placeholder="email" required="poli nil mlya">
+                <input id="name" type="text" name="email" placeholder="email || username" required>
                 <input id="password" type="password" name="password" placeholder="password" required>
                 <input onclick="defAuthSendData()" type="submit" value="Login">
         </form>
@@ -27,24 +27,10 @@
         name: '',
         image: null,
         email: '',
+        username: '',
         password: '',
         type: ''
     };
-
-    function signOut() {
-        var auth2 = gapi.auth2.getAuthInstance();
-        auth2.signOut().then(function () {
-            console.log('User signed out.');
-        });
-    }
-    const gSignin = (type) => {
-        user.type = type
-        fetch('http://localhost:6969/signin', {
-            method: 'POST',
-            body: JSON.stringify(user)
-        })
-        window.location.replace("http://localhost:6969/profile")
-    }
 
     function sendGoogleData(user) {
 
@@ -83,15 +69,24 @@
     }
 
     function defAuthSendData() {
-
-        let email = document.getElementById("email").value;
+       // let email = document.getElementById("email").value;
+        let name = document.getElementById("name").value;
         let password = document.getElementById("password").value;
-
-        user.email = email,
+        let s = name.split("@")
+        let email = ""
+        let username = ""
+        console.log(s, "split user")
+        if (s.length > 1) {
+            email = name
+        }else {
+            username = name
+        }
+            user.email = email,
             user.password = password,
+            user.username = username,
             user.type = "default"
 
-        if (user.email != '' && user.password != '') {
+        if (user.email != '' && user.password != '' || user.username && user.password) {
             //async fetch query
             async function getUserAsync() {
                 let response = await fetch('http://localhost:6969/signin', {

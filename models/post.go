@@ -29,31 +29,32 @@ var (
 
 //Posts struct
 type Post struct {
-	ID            int               `json:"id"`
-	Title         string            `json:"title"`
-	Content       string            `json:"content"`
-	CreatorID     int               `json:"creatorId"`
-	CreatedTime   time.Time         `json:"createdTime"`
-	Endpoint      string            `json:"endpoint"`
-	FullName      string            `json:"fullName"`
-	Image         []byte            `json:"image"`
-	ImageHTML     string            `json:"imageHtml"`
-	PostIDEdit    int               `json:"postEditId"`
-	AuthorForPost int               `json:"authorPost"`
-	Like          int               `json:"like"`
-	Dislike       int               `json:"dislike"`
-	SVG           bool              `json:"svg"`
-	PBGID         int               `json:"pbgId"`
-	PBGPostID     int               `json:"pbgPostId"`
-	PBGCategory   string            `json:"pbgCategory"`
-	FileS         multipart.File    `json:"fileS"`
-	FileI         multipart.File    `json:"fileB"`
+	ID            int             `json:"id"`
+	Title         string          `json:"title"`
+	Content       string          `json:"content"`
+	CreatorID     int             `json:"creatorId"`
+	CreatedTime   time.Time       `json:"createdTime"`
+	Endpoint      string          `json:"endpoint"`
+	FullName      string          `json:"fullName"`
+	Image         []byte          `json:"image"`
+	ImageHTML     string          `json:"imageHtml"`
+	PostIDEdit    int             `json:"postEditId"`
+	AuthorForPost int             `json:"authorPost"`
+	Like          int             `json:"like"`
+	Dislike       int             `json:"dislike"`
+	SVG           bool            `json:"svg"`
+	PBGID         int             `json:"pbgId"`
+	PBGPostID     int             `json:"pbgPostId"`
+	PBGCategory   string          `json:"pbgCategory"`
+	FileS         multipart.File  `json:"fileS"`
+	FileI         multipart.File  `json:"fileB"`
 	Session       general.Session `json:"session"`
-	Categories    []string          `json:"categories"`
-	Temp          string            `json:"temp"`
-	IsPhoto       bool              `json:"isPhoto"`
-	Time          string            `json:"time"`
-	CountPost     int               `json:"countPost"`
+	Categories    []string        `json:"categories"`
+	Temp          string          `json:"temp"`
+	IsPhoto       bool            `json:"isPhoto"`
+	Time          string          `json:"time"`
+	CountPost     int             `json:"countPost"`
+	Authenticated bool            `json:"isAuth"`
 }
 
 //PostCategory struct
@@ -87,7 +88,6 @@ func (f *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string,
 
 	limit := 4
 	offset := limit * (pageNum - 1)
-
 	switch r.URL.Path {
 	case "/":
 		leftJoin = false
@@ -102,26 +102,25 @@ func (f *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string,
 			rows, err = DB.Query("SELECT * FROM posts  ORDER BY count_dislike DESC LIMIT 8")
 		} else if f.Category != "" {
 			leftJoin = true
-			rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category=? ORDER  BY created_time  DESC LIMIT 8", f.Category)
+			rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category_id=? ORDER  BY created_time  DESC LIMIT 8", f.Category)
 		} else {
 			rows, err = DB.Query("SELECT * FROM posts ORDER BY created_time DESC LIMIT ? OFFSET ?", limit, offset)
 		}
-
 	case "/science":
 		leftJoin = true
 		post.Temp = "Science"
 		post.Endpoint = "/science"
-		rows, err = DB.Query("SELECT * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category=?  ORDER  BY created_time  DESC LIMIT 5", "science")
+		rows, err = DB.Query("SELECT * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category_id=?  ORDER  BY created_time  DESC LIMIT 5", 1)
 	case "/love":
 		leftJoin = true
 		post.Temp = "Love"
 		post.Endpoint = "/love"
-		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category=?   ORDER  BY created_time  DESC LIMIT 5", "love")
+		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category_id=?   ORDER  BY created_time  DESC LIMIT 5", 2)
 	case "/sapid":
 		leftJoin = true
 		post.Temp = "Sapid"
 		post.Endpoint = "/sapid"
-		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category=?  ORDER  BY created_time  DESC LIMIT 5", "sapid")
+		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category_id=?  ORDER  BY created_time  DESC LIMIT 5", 3)
 	}
 
 	defer rows.Close()
@@ -138,7 +137,6 @@ func (f *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string,
 			if err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreatedTime, &post.Image, &post.Like, &post.Dislike); err != nil {
 				fmt.Println(err)
 			}
-			//fmt.Print(post.ID)
 		}
 
 		if err != nil {
@@ -237,16 +235,15 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		pcb := PostCategory{}
-
+		//set def category
 		if len(p.Categories) == 0 {
-
 			pcb = PostCategory{
 				PostID:   last,
-				Category: "sapid",
+				Category: "3",
 			}
 			pcb.CreateBridge()
-		} else if len(p.Categories) == 1 {
 
+		} else if len(p.Categories) == 1 {
 			pcb = PostCategory{
 				PostID:   last,
 				Category: p.Categories[0],
@@ -277,9 +274,7 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 
 	p := Post{}
-	
-	err = DB.QueryRow("SELECT id, title, content, creator_id,  created_time, image, count_like, count_dislike FROM posts WHERE id = ?", post.ID).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreatedTime, &p.Image, &p.Like, &p.Dislike)
-	log.Println(post.ID, "id")
+	err = DB.QueryRow("SELECT * FROM posts WHERE id = ?", post.ID).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreatedTime, &p.Image, &p.Like, &p.Dislike)
 	if err != nil {
 		log.Println(err)
 	}
@@ -330,8 +325,8 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 			//write answer by comment - answer answer
 			comment.RepliesComments = append(comment.RepliesComments, replyComment)
 
-			//append comment - 1 comment -> 
-			// write query - get list answer -> by 
+			//append comment - 1 comment ->
+			// write query - get list answer -> by
 		}
 		comments = append(comments, comment)
 	}
@@ -342,10 +337,10 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 	return comments, p, nil
 }
 
-//CreateBridge create post  -> post_id + category
+//CreateBridge create post  -> post_id relation category
 func (pcb *PostCategory) CreateBridge() {
 
-	createBridgePrepare, err := DB.Prepare(`INSERT INTO post_cat_bridge (post_id, category) VALUES (?, ?)`)
+	createBridgePrepare, err := DB.Prepare(`INSERT INTO post_cat_bridge(post_id, category_id) VALUES (?,?)`)
 	if err != nil {
 		log.Println(err)
 	}
