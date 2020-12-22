@@ -11,11 +11,6 @@ func VotesPost(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/votes/post") {
 
-		access, s := utils.IsCookie(w, r)
-		if !access {
-			return
-		}
-
 		pid := r.URL.Query().Get("id")
 		lukas := r.FormValue("like")
 		dislike := r.FormValue("dislike")
@@ -23,13 +18,13 @@ func VotesPost(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "POST" {
 
 			if lukas == "1" {
-				models.VoteLike(w, r, pid, "post", s)
+				models.VoteLike(w, r, pid, "post", session)
 			}
 			if dislike == "1" {
-				models.VoteDislike(w, r, pid, "post", s)
+				models.VoteDislike(w, r, pid, "post", session)
 			}
 		}
-		http.Redirect(w, r, "post?id="+pid, 302)
+		http.Redirect(w, r, "/post?id="+pid, 302)
 	}
 }
 
@@ -38,21 +33,16 @@ func VotesComment(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/votes/comment") {
 
-		access, s := utils.IsCookie(w, r)
-		if !access {
-			return
-		}
-
 		commentID := r.URL.Query().Get("commentID")
 		commentDis := r.FormValue("commentDislike")
 		commentLike := r.FormValue("commentLike")
 
 		if r.Method == "POST" {
 			if commentLike == "1" {
-				models.VoteLike(w, r, commentID, "comment", s)
+				models.VoteLike(w, r, commentID, "comment", session)
 			}
 			if commentDis == "1" {
-				models.VoteDislike(w, r, commentID, "comment", s)
+				models.VoteDislike(w, r, commentID, "comment", session)
 			}
 			http.Redirect(w, r, "/post?id="+r.FormValue("pidc"), 302)
 		}

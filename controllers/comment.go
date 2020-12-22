@@ -20,19 +20,12 @@ func LeaveComment(w http.ResponseWriter, r *http.Request) {
 			pid := r.FormValue("curr")
 			commentInput := r.FormValue("comment-text")
 
-			access, s := utils.IsCookie(w, r)
-			if !access {
-				return
-			}
-
-			DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
-
 			if utils.CheckLetter(commentInput) {
 
 				comment := models.Comment{
 					Content: commentInput,
 					PostID:  pid,
-					UserID:  s.UserID,
+					UserID:  session.UserID,
 				}
 
 				_, err = comment.LeaveComment()
@@ -51,11 +44,6 @@ func UpdateComment(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/edit/comment") {
 
-		access, _ := utils.IsCookie(w, r)
-		if !access {
-			http.Redirect(w, r, "/signin", 200)
-			return
-		}
 		cid, _ := strconv.Atoi(r.FormValue("id"))
 
 		if r.Method == "GET" {
@@ -86,12 +74,6 @@ func UpdateComment(w http.ResponseWriter, r *http.Request) {
 func DeleteComment(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/delete/comment") {
-
-		access, _ := utils.IsCookie(w, r)
-		if !access {
-			http.Redirect(w, r, "/signin", 200)
-			return
-		}
 		models.DeleteComment(r.FormValue("id"))
 	}
 	http.Redirect(w, r, "/profile", 302)
@@ -102,19 +84,12 @@ func AnswerComment(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/answer/comment") {
 
-		access, s := utils.IsCookie(w, r)
-		if !access {
-			http.Redirect(w, r, "/signin", 200)
-			return
-		}
-
 		answer := r.FormValue("answerComment")
 		currentCommentID := r.FormValue("commentID")
 		pid := r.FormValue("postId")
 		var toWhom int
 		var lastInsertCommentID int64
 
-		DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
 		DB.QueryRow("SELECT creator_id FROM comments WHERE id = ?", currentCommentID).Scan(&toWhom)
 
 		if utils.CheckLetter(answer) {
@@ -122,7 +97,7 @@ func AnswerComment(w http.ResponseWriter, r *http.Request) {
 			comment := models.Comment{
 				Content: answer,
 				PostID:  pid,
-				UserID:  s.UserID,
+				UserID:  session.UserID,
 			}
 
 			lastInsertCommentID, err = comment.LeaveComment()
@@ -131,7 +106,7 @@ func AnswerComment(w http.ResponseWriter, r *http.Request) {
 				log.Println(err.Error())
 			}
 		}
-		fmt.Println(s.UserID, toWhom, answer, currentCommentID, "last inserted comment ID", lastInsertCommentID)
+		fmt.Println(toWhom, answer, currentCommentID, "last inserted comment ID", lastInsertCommentID)
 
 		//if have flag -> answered bool, -> show Naswer by comment
 		// || comments -> table RepliesComments - child each  Comment
@@ -140,7 +115,7 @@ func AnswerComment(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err)
 		}
-		_, err = replyCommentPrepare.Exec(pid, currentCommentID, lastInsertCommentID, s.UserID, toWhom, time.Now())
+		_, err = replyCommentPrepare.Exec(pid, currentCommentID, lastInsertCommentID, session.UserID, toWhom, time.Now())
 		if err != nil {
 			log.Println(err)
 		}

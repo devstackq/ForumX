@@ -17,17 +17,16 @@ import (
 
 var (
 	//GoogleConfig *oauth2.Config
-	oAuthState = "pseudo-random"
+	oAuthState    = "pseudo-random"
+	session       = general.Session{}
+	CookieBrowser string
 )
 
 //Signup system function
 func Signup(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/signup") {
-
-		utils.CheckMethod(r.Method, "signup", auth, w, func(http.ResponseWriter) {
-			//write id 9493
-			//if r.Method == "POST" {
+		utils.CheckMethod(r.Method, "signup", auth, "", w, func(http.ResponseWriter) {
 			intAge, err := strconv.Atoi(r.FormValue("age"))
 			if err != nil {
 				log.Println(err)
@@ -45,7 +44,6 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 				}
 				utils.AuthType = r.FormValue("authType")
 				pwd, _ := r.Form["password"]
-
 				if pwd[0] == pwd[1] {
 					if utils.IsPasswordValid(r.FormValue("password")) {
 						u := models.User{
@@ -58,7 +56,6 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 							Image:    iB,
 							Password: r.FormValue("password"),
 						}
-						fmt.Println("her1")
 						u.Signup(w, r)
 						http.Redirect(w, r, "/signin", 302)
 					} else {
@@ -83,11 +80,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/signin") {
 
-		if r.Method == "GET" {
-			utils.DisplayTemplate(w, "signin", &msg)
-		}
-
-		if r.Method == "POST" {
+		utils.CheckMethod(r.Method, "signin", auth, msg, w, func(http.ResponseWriter) {
 
 			var person models.User
 			err := json.NewDecoder(r.Body).Decode(&person)
@@ -105,7 +98,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 				}
 				u.Signin(w, r)
 			}
-		}
+		})
 	}
 }
 
@@ -114,7 +107,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/logout") {
 		if r.Method == "GET" {
-			models.Logout(w, r)
+			models.Logout(w, r, CookieBrowser)
 			http.Redirect(w, r, "/", 302)
 		}
 	}
@@ -236,6 +229,7 @@ func SigninSideService(w http.ResponseWriter, r *http.Request, u models.User) {
 		u := models.User{
 			Email:    u.Email,
 			FullName: u.Name,
+			Username: u.Name,
 			Age:      16,
 			Sex:      "Male",
 			City:     u.Location,
@@ -245,5 +239,3 @@ func SigninSideService(w http.ResponseWriter, r *http.Request, u models.User) {
 		u.Signin(w, r)
 	}
 }
-
-//alnikolaevich, Auth

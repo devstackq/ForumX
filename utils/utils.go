@@ -54,25 +54,23 @@ func IsAuth(r *http.Request) API {
 }
 
 //IsCookie check user cookie client and DB session value, if true -> give access
-func IsCookie(w http.ResponseWriter, r *http.Request) (bool, general.Session ) {
-	
-	//return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func IsCookie(w http.ResponseWriter, r *http.Request, cookie string) (bool, general.Session) {
 
 	var flag, cookieHave bool
-	cookie, _ := r.Cookie("_cookie")
-	s := general.Session{}
 
 	if IsAuth(r).Authenticated {
 		cookieHave = true
 	}
+	s := general.Session{UUID: cookie}
+
 	if !cookieHave {
 		http.Redirect(w, r, "/signin", 302)
-
 	} else {
+		var tmp string
 		//get client cookie
 		//set local struct -> cookie value
-		s := general.Session{UUID: cookie.Value}
-		var tmp string
+		//write from session - userId
+
 		// get userid by Client sessionId
 		err = DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).
 			Scan(&s.UserID)
@@ -81,19 +79,19 @@ func IsCookie(w http.ResponseWriter, r *http.Request) (bool, general.Session ) {
 			log.Println(err)
 		}
 		err = DB.QueryRow("SELECT uuid FROM session WHERE user_id = ?", s.UserID).Scan(&tmp)
+
 		if err != nil {
 			log.Println(err)
 		}
 		//check local and DB session
-		if cookie.Value == tmp {
+		if cookie == tmp {
 			flag = true
 		}
 	}
 	if flag {
-		s.UUID = cookie.Value
+		s.UUID = cookie
 		return flag, s
 	}
-
 	return flag, s
 }
 
@@ -108,19 +106,22 @@ func CheckLetter(value string) bool {
 }
 
 //calback methods continue
-func TestCallback(arr []int, count int, flag bool, sortX func([]int) ){
+func TestCallback(arr []int, count int, flag bool, sortX func([]int)) {
 	fmt.Print(arr, "arr", count)
-	if count > 5 && flag{
-		 sortX(arr)
-	}else {
+	if count > 5 && flag {
+		sortX(arr)
+	} else {
 		//1 call func example
 		fmt.Println("не сооттветствуют данные")
 	}
 }
 
-func CheckMethod(method string, tmpl string, isAuth bool, w http.ResponseWriter, f func(http.ResponseWriter)) {
+func CheckMethod(method string, tmpl string, isAuth bool, msg string, w http.ResponseWriter, f func(http.ResponseWriter)) {
 
-	if method == "GET" {
+	if tmpl == "signin" && method == "GET" {
+		DisplayTemplate(w, tmpl, msg)
+		fmt.Println("signin get")
+	} else if method == "GET" && tmpl == "signup" {
 		DisplayTemplate(w, tmpl, isAuth)
 	} else {
 		f(w)
@@ -129,9 +130,7 @@ func CheckMethod(method string, tmpl string, isAuth bool, w http.ResponseWriter,
 
 //DisplayTemplate function
 func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
-	fmt.Println(tmpl, data, "RR")
 	err = temp.ExecuteTemplate(w, tmpl, data)
-
 	if err != nil {
 		fmt.Println(err, "exec ERR")
 		http.Error(w, err.Error(),
@@ -144,11 +143,10 @@ func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 //IsCookieExpiration if cookie time = 0, delete session and cookie client
 func IsCookieExpiration(w http.ResponseWriter, r *http.Request) {
 
-	fmt.Println(w, "writer state")
 	cookie, _ := r.Cookie("_cookie")
 
 	if cookie.Name == "_cookie" {
-		fmt.Println(cookie.Value, cookie.Expires, "delete in Bd")
+		fmt.Println("delete in Db cookie")
 		s := general.Session{UUID: cookie.Value}
 		//get ssesion id, by local struct uuid
 		DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).
@@ -303,7 +301,7 @@ func IsRegistered(w http.ResponseWriter, r *http.Request, data string) bool {
 	if len(s) == 2 {
 		field = "email"
 	}
-	fmt.Println(data, field)
+	//fmt.Println(data, field)
 	//check email by unique, if have same email
 	count := 0
 	err = DB.QueryRow("SELECT count(*) FROM users").Scan(&count)
@@ -334,7 +332,7 @@ func IsRegistered(w http.ResponseWriter, r *http.Request, data string) bool {
 			}
 		}
 	} else {
-		return true
+		return false
 	}
 	return false
 }

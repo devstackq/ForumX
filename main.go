@@ -14,7 +14,18 @@ func main() {
 	config.Init()
 	controllers.Init()
 
-	mux server -> add cookie, method check todo
+	// func main start, UserID, global Variable Вынести при запуске сервера и заполнить Uid, maybe middleware,
+	//|| controllers -> send UserID -> to Model
+	// google logour not work -> timeout and logour - not delete Session
+	//func args, refactor,(cookie delete)
+
+	//session delete in Db fix
+	//func -> route, globalVariable -> userID
+
+	// add valid Input data, and logger -> Middleware
+	//save copokie - local - Map[string]string
+
+	// todo another Func add	CheckMethod
 	//category - table, nickname auth, url post/id=?, add 2 password form, createbutton in main page
 
 	//logout system, when login another browser, create new Token
@@ -36,6 +47,7 @@ func main() {
 	//500 status - check
 	// docker check
 }
+
 //example anonim func
 func hello() {
 	fmt.Println("Hello")
@@ -68,7 +80,6 @@ func run(f func()) {
 
 //show/hidden by ID -> comment Field textarea
 //global variable
-// 	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
 // var toWhom int
 // DB.QueryRow("SELECT creator_id FROM comments WHERE id = ?", cid).Scan(&toWhom)
 

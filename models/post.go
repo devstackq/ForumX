@@ -214,7 +214,7 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 		fileBytes = []byte{0, 0}
 	}
 
-	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", p.Session.UUID).Scan(&p.Session.UserID)
+	//DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", p.Session.UUID).Scan(&p.Session.UserID)
 
 	//check empty values
 	if utils.CheckLetter(p.Title) && utils.CheckLetter(p.Content) {
@@ -260,9 +260,7 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 				pcb.CreateBridge()
 			}
 		}
-
 		http.Redirect(w, r, "/post?id="+strconv.Itoa(int(last)), 302)
-
 	} else {
 		msg = "Empty title or content"
 		utils.DisplayTemplate(w, "header", utils.IsAuth(r))

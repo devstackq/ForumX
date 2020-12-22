@@ -16,14 +16,14 @@
 
     <div class="like-wrapper">
 
-        <form action="/votes?id={{.ID}}" method="POST">
+        <form action="/votes/post?id={{.ID}}" method="POST">
             <input type="hidden" name="like" value="1">
             <span class="fa fa-thumbs-up vote-up"> </span>
             <input type="submit" value="     ">
         </form>
         <span class="like"> {{.Like}}</span>
 
-        <form action="/votes?id={{.ID}}" method="POST">
+        <form action="/votes/post?id={{.ID}}" method="POST">
             <input type="hidden" name="dislike" value="1">
             <span class="fa fa-thumbs-down vote-down"> </span>
             <input type="submit" value="     ">

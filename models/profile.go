@@ -7,9 +7,12 @@ import (
 	"net/http"
 	"time"
 
-	"ForumX/general"
 	"ForumX/utils"
 )
+
+// var (
+// 	UserID int
+// )
 
 //Users struct
 type User struct {
@@ -53,17 +56,15 @@ type Notify struct {
 }
 
 //GetUserProfile function
-func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie) ([]Post, []Post, []Post, []Comment, User, error) {
+func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie string) ([]Post, []Post, []Post, []Comment, User, error) {
 
 	//time.AfterFunc(10, checkCookieLife(cookie, w, r)) try check every 30 min cookie
-	s := general.Session{UUID: cookie.Value}
 	u := User{}
-	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
+	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", cookie).Scan(&UserID)
 
-	liked := VotedPosts("like_state", s.UserID)
-	disliked := VotedPosts("dislike_state", s.UserID)
-
-	err = DB.QueryRow("SELECT id, full_name, email, username, isAdmin, age, sex, created_time, city, image  FROM users WHERE id = ?", s.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.Username, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
+	liked := VotedPosts("like_state", UserID)
+	disliked := VotedPosts("dislike_state", UserID)
+	err = DB.QueryRow("SELECT id, full_name, email, username, isAdmin, age, sex, created_time, city, image  FROM users WHERE id = ?", UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.Username, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
 	//Age, sex, picture, city, date ?
 	if err != nil {
 		log.Println(err)
@@ -75,7 +76,7 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 	u.ImageHTML = base64.StdEncoding.EncodeToString(u.Image)
 
 	//get posts current user
-	pStmp, err := DB.Query("SELECT * FROM posts WHERE creator_id=?", s.UserID)
+	pStmp, err := DB.Query("SELECT * FROM posts WHERE creator_id=?", UserID)
 	postsCreated := []Post{}
 
 	for pStmp.Next() {
@@ -84,12 +85,12 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 		if err != nil {
 			log.Println(err.Error())
 		}
-		post.AuthorForPost = s.UserID
+		post.AuthorForPost = UserID
 		post.Time = post.CreatedTime.Format("2006 Jan _2 15:04:05")
 		postsCreated = append(postsCreated, post)
 	}
 
-	commentQuery, err := DB.Query("SELECT * FROM comments WHERE creator_id=?", s.UserID)
+	commentQuery, err := DB.Query("SELECT * FROM comments WHERE creator_id=?", UserID)
 
 	var comments []Comment
 	var cmt Comment
@@ -119,12 +120,8 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, cookie *http.Cookie)
 //GetUserActivities func
 func GetUserActivities(w http.ResponseWriter, r *http.Request) (result []Notify) {
 
-	cookie, _ := r.Cookie("_cookie")
-	s := general.Session{UUID: cookie.Value}
-	DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
-
 	var notifies []Notify
-	nQuery, err := DB.Query("SELECT * FROM notify WHERE to_whom=?", s.UserID)
+	nQuery, err := DB.Query("SELECT * FROM notify WHERE to_whom=?", UserID)
 
 	for nQuery.Next() {
 		n := Notify{}

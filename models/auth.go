@@ -12,6 +12,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var (
+	UserID int
+)
+
 //Signup func
 func (u User) Signup(w http.ResponseWriter, r *http.Request) {
 
@@ -22,10 +26,8 @@ func (u User) Signup(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 	}
-	fmt.Println("her2")
-	userCheck := utils.IsRegistered(w, r, u.Email)
-	emailCheck := utils.IsRegistered(w, r, u.Username)
-
+	emailCheck := utils.IsRegistered(w, r, u.Email)
+	userCheck := utils.IsRegistered(w, r, u.Username)
 	if emailCheck == userCheck {
 		userPrepare, err := DB.Prepare(`INSERT INTO users(full_name, email, username, password, age, sex, created_time, city, image) VALUES(?,?,?,?,?,?,?,?,?)`)
 		if err != nil {
@@ -44,9 +46,10 @@ func (u User) Signup(w http.ResponseWriter, r *http.Request) {
 		} else {
 			msg = "Not unique email && username"
 		}
-		utils.DisplayTemplate(w, "signup", &msg)
+		if utils.AuthType == "default" {
+			utils.DisplayTemplate(w, "signup", &msg)
+		}
 	}
-
 }
 
 //Signin function dsds
@@ -65,7 +68,7 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-	var err error
+	UserID = user.ID
 
 	if utils.AuthType == "default" {
 		if !isUserOrEmail {
@@ -76,6 +79,7 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else if isUserOrEmail {
+
 			err = DB.QueryRow("SELECT id, password FROM users WHERE username=?", uStr.Username).Scan(&user.ID, &user.Password)
 			log.Println("errr username")
 			if err != nil {
@@ -109,6 +113,7 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 	defer userPrepare.Close()
 
 	if err != nil {
+		log.Println(err, "ERR#")
 		utils.AuthError(w, r, err, "the user is already in the system", utils.AuthType)
 		//get ssesion id, by local struct uuid
 		return
@@ -119,7 +124,6 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 		utils.AuthError(w, r, err, "not find user from session", utils.AuthType)
 		return
 	}
-
 	//set cookie 9128ueq9widjaisdh238yrhdeiuwandijsan
 	cookie := http.Cookie{
 		Name:     "_cookie",
@@ -134,21 +138,11 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 }
 
 //Logout function
-func Logout(w http.ResponseWriter, r *http.Request) {
+func Logout(w http.ResponseWriter, r *http.Request, cookie string) {
 
-	fmt.Println(w, "wr logour")
-	cookie, err := r.Cookie("_cookie")
-	if err != nil {
-		fmt.Println(err, "cookie err")
-	}
-	//add cookie -> fields uuid
-	s := general.Session{UUID: cookie.Value}
-	//get ssesion id, by local struct uuid
-	DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).
-		Scan(&s.ID)
-	fmt.Println(s.ID, "user id deleted session")
+	fmt.Println(UserID, "user id deleted session")
 	//delete session by id session
-	_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
+	_, err = DB.Exec("DELETE FROM session WHERE id = ?", UserID)
 
 	if err != nil {
 		log.Println(err)

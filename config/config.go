@@ -14,8 +14,6 @@ var (
 	err error
 )
 
-//admin@mail.kz
-
 //Init Db
 func Init() {
 	// create DB and columns
@@ -76,10 +74,9 @@ func Init() {
 	commentBridge.Exec()
 	replyComment.Exec()
 	category.Exec()
-	//create ategory first time
 	category.Exec()
 	putCategoriesInDb()
-
+	//send packege - DB conn
 	controllers.DB = db
 	models.DB = db
 	utils.DB = db

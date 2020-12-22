@@ -7,89 +7,85 @@ import (
 	"net/http"
 )
 
-//Init func handlers
+//Middleware func wrapper
 //cokie, check post, get, print log, print IN data from client
-func Init() {
-	mux := http.NewServeMux()
-	
-	//mux.Handle("/", http.HandleFunc(utils.IsCookie(GetAllPosts))
+func Middleware(f http.HandlerFunc) http.HandlerFunc {
 
-	//mux.Handle("/", utils.IsCookie(GetAllPosts))
-	mux.HandleFunc("/", GetAllPosts)
-	mux.HandleFunc("/sapid",GetAllPosts)
-	mux.HandleFunc("/love",GetAllPosts)
-	mux.HandleFunc("/science", GetAllPosts)
-	mux.HandleFunc("/signin",Signin)
-	// fs := http.StripPrefix("/statics/", http.FileServer(http.Dir("./statics/")))
-	// mux.Handle("/statics/", fs)
-
-	routers := RequireAuthentication(mux)
-
-	//mux.Handle("/", http.HandlerFunc( GetAllPosts))
-
-	// mux.Handle("/post", http.HandlerFunc(GetPostByID))
-	// mux.Handle("/create/post", http.HandlerFunc(CreatePost))
-	// mux.Handle("/edit/post", http.HandlerFunc(UpdatePost))
-
-	// mux.Handle("/delete/post", http.HandlerFunc(DeletePost))
-	// mux.Handle("/activity", http.HandlerFunc(GetUserActivities))
-	// mux.Handle("/comment", http.HandlerFunc(LeaveComment))
-
-	// mux.Handle("/edit/comment", http.HandlerFunc(UpdateComment))
-	// mux.Handle("/delete/comment", http.HandlerFunc(DeleteComment))
-	// mux.Handle("/answer/comment", http.HandlerFunc(AnswerComment))
-
-	// mux.Handle("/votes/post", http.HandlerFunc(VotesPost))
-	// mux.Handle("/votes/comment", http.HandlerFunc(VotesComment))
-	// mux.Handle("/search", http.HandlerFunc(Search))
-
-	// mux.Handle("/profile", http.HandlerFunc(GetUserProfile))
-	// mux.Handle("/user/id", http.HandlerFunc(GetAnotherProfile))
-	// mux.Handle("/edit/user", http.HandlerFunc(UpdateProfile))
-	// mux.Handle("/delete/account", http.HandlerFunc(DeleteAccount))
-
-	// mux.Handle("/signup", http.HandlerFunc(Signup))
-	// mux.Handle("/signin", http.HandlerFunc(Signin))
-	// mux.Handle("/logout", http.HandlerFunc(Logout))
-
-	// mux.Handle("/googleSignin", http.HandlerFunc(GoogleSignin))
-	// mux.Handle("/googleUserInfo", http.HandlerFunc(GoogleUserData))
-
-	// mux.Handle("/githubSignin", http.HandlerFunc(GithubSignin))
-	// mux.Handle("/githubUserInfo", http.HandlerFunc(GithubUserData))
-
-	// http.HandleFunc("/chat", routing.StartChat)
-	fmt.Println("Listening port: 6969")
-	log.Fatal(http.ListenAndServe(":6969", routers))
+	return func(w http.ResponseWriter, r *http.Request) {
+		//valid Input data, and , logger
+		c, _ := r.Cookie("_cookie")
+		cookieBrowser := ""
+		if c != nil {
+			cookieBrowser = c.Value
+		}
+		isCookie, sessionF := utils.IsCookie(w, r, cookieBrowser)
+		if isCookie {
+			//write cookie value & session value - global variable
+			CookieBrowser = c.Value
+			session = sessionF
+			fmt.Println("ok cookie have", session)
+			f(w, r)
+		}
+	}
 }
 
-// func Middleware(handleW http.Handler) {
-//     utils.IsCookie(http.ResponseWriter, r *http.Request)
+//Init func handlers
+func Init() {
+	const PORT = ":6969"
+	//create multiplexer
+	mux := http.NewServeMux()
+	//file server
+	mux.Handle("/statics/", http.StripPrefix("/statics/", http.FileServer(http.Dir("./statics/"))))
+
+	mux.HandleFunc("/", GetAllPosts)
+	mux.HandleFunc("/sapid", GetAllPosts)
+	mux.HandleFunc("/love", GetAllPosts)
+	mux.HandleFunc("/science", GetAllPosts)
+
+	mux.HandleFunc("/post", GetPostByID)
+	mux.HandleFunc("/create/post", Middleware(CreatePost))
+	mux.HandleFunc("/edit/post", Middleware(UpdatePost))
+	mux.HandleFunc("/delete/post", Middleware(DeletePost))
+
+	mux.HandleFunc("/comment", Middleware(LeaveComment))
+	mux.HandleFunc("/edit/comment", Middleware(UpdateComment))
+	mux.HandleFunc("/delete/comment", Middleware(DeleteComment))
+	mux.HandleFunc("/answer/comment", Middleware(AnswerComment))
+
+	mux.HandleFunc("/votes/post", Middleware(VotesPost))
+	mux.HandleFunc("/votes/comment", Middleware(VotesComment))
+
+	mux.HandleFunc("/signin", Signin)
+	mux.HandleFunc("/signup", Signup)
+	mux.HandleFunc("/googleSignin", GoogleSignin)
+	mux.HandleFunc("/googleUserInfo", GoogleUserData)
+
+	mux.HandleFunc("/githubSignin", GithubSignin)
+	mux.HandleFunc("/githubUserInfo", GithubUserData)
+	mux.HandleFunc("/logout", Logout)
+
+	mux.HandleFunc("/profile", Middleware(GetUserProfile))
+	mux.HandleFunc("/user/id", Middleware(GetAnotherProfile))
+	mux.HandleFunc("/edit/user", Middleware(UpdateProfile))
+	mux.HandleFunc("/delete/account", Middleware(DeleteAccount))
+
+	mux.HandleFunc("/activity", Middleware(GetUserActivities))
+	mux.HandleFunc("/search", Search)
+	// http.HandleFunc("/chat", routing.StartChat)
+	log.Fatal(http.ListenAndServe(PORT, mux))
+	fmt.Println("Listening port:", PORT)
+}
+
+//chaining
+// func RequireAuthentication(next http.Handler) http.Handler {
+// 	return http.HandlerFunc(
+// 		func(w http.ResponseWriter, r *http.Request) {
+// 			b, _ := utils.IsCookie(w, r)
+// 			fmt.Print(b, "ccokie")
+// 			if !b {
+// 				http.Redirect(w, r, "/signin", 302)
+// 				return
+// 			}
+// 			next.ServeHTTP(w, r)
+// 		})
 // }
-
-func RequireAuthentication(next http.Handler) http.Handler {
-	// We wrap our anonymous function, and cast it to a http.HandlerFunc
-	// Because our function signature matches ServeHTTP(w, r), this allows
-	// our function (type) to implicitly satisify the http.Handler interface.
-	return http.HandlerFunc(
-	  func(w http.ResponseWriter, r *http.Request) {
-		// Logic before - reading request values, putting things into the
-		// request context, performing authentication
-  
-		// Important that we call the 'next' handler in the chain. If we don't,
-		// then request handling will stop here.
-		b, _ := utils.IsCookie(w,r)
-		fmt.Print(b, "ccokie")
-		if !b {
-            http.Redirect(w, r, "/signin", 302)
-			return
-        }
-
-		next.ServeHTTP(w, r)
-		// Logic after - useful for logging, metrics, etc.
-		//
-		// It's important that we don't use the ResponseWriter after we've called the
-		// next handler: we may cause conflicts when trying to write the response
-	  })
-  }
-

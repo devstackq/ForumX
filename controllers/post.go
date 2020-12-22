@@ -103,14 +103,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 			utils.DisplayTemplate(w, "header", utils.IsAuth(r))
 			utils.DisplayTemplate(w, "create_post", &msg)
 		}
-
 		if r.Method == "POST" {
-			access, session := utils.IsCookie(w, r)
-			log.Println(access, "access status")
-			if !access {
-				http.Redirect(w, r, "/signin", 200)
-				return
-			}
 			//r.ParseMultipartForm(10 << 20)
 			f, _, _ := r.FormFile("uploadfile")
 			f2, _, _ := r.FormFile("uploadfile")
@@ -140,11 +133,6 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/edit/post") {
 
-		access, _ := utils.IsCookie(w, r)
-		if !access {
-			http.Redirect(w, r, "/signin", 200)
-			return
-		}
 		pid, _ := strconv.Atoi(r.FormValue("id"))
 
 		if r.Method == "GET" {
@@ -183,11 +171,6 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/delete/post") {
 
-		access, _ := utils.IsCookie(w, r)
-		if !access {
-			http.Redirect(w, r, "/signin", 200)
-			return
-		}
 		pid, _ := strconv.Atoi(r.URL.Query().Get("id"))
 		p := models.Post{ID: pid}
 

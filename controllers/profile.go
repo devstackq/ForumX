@@ -17,14 +17,9 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 	if utils.URLChecker(w, r, "/profile") {
 
 		if r.Method == "GET" {
-			access, _ := utils.IsCookie(w, r)
-			if !access {
-				http.Redirect(w, r, "/signin", 200)
-				return
-			}
-			cookie, _ := r.Cookie("_cookie")
+
 			//if userId now, createdPost uid equal -> show
-			dislikedPost, likedPost, posts, comments, user, err := models.GetUserProfile(r, w, cookie)
+			dislikedPost, likedPost, posts, comments, user, err := models.GetUserProfile(r, w, CookieBrowser)
 			if err != nil {
 				log.Println(err)
 			}
@@ -36,7 +31,6 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 			utils.DisplayTemplate(w, "disliked_post", dislikedPost)
 			utils.DisplayTemplate(w, "comment_user", comments)
 
-			fmt.Println(w, "wr")
 			//delete coookie db, 10 min
 			go func() {
 				for range time.Tick(19 * time.Minute) {
@@ -75,11 +69,6 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/activity") {
 
-		access, _ := utils.IsCookie(w, r)
-		if !access {
-			http.Redirect(w, r, "/signin", 302)
-			return
-		}
 		notifies := models.GetUserActivities(w, r)
 
 		if err != nil {
@@ -105,14 +94,6 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 		if r.Method == "POST" {
 
-			access, s := utils.IsCookie(w, r)
-			if !access {
-				return
-			}
-
-			DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).
-				Scan(&s.UserID)
-
 			is, _ := strconv.Atoi(r.FormValue("age"))
 
 			p := models.User{
@@ -121,7 +102,7 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 				Sex:      r.FormValue("sex"),
 				City:     r.FormValue("city"),
 				Image:    utils.FileByte(r, "user"),
-				ID:       s.UserID,
+				ID:       session.UserID,
 			}
 
 			err = p.UpdateProfile()
@@ -140,10 +121,6 @@ func DeleteAccount(w http.ResponseWriter, r *http.Request) {
 
 		if r.Method == "POST" {
 
-			access, _ := utils.IsCookie(w, r)
-			if !access {
-				return
-			}
 			var p models.User
 
 			err := json.NewDecoder(r.Body).Decode(&p.ID)
