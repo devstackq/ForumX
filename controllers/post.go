@@ -33,7 +33,7 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 		Category: r.FormValue("cats"),
 	}
 
-	posts, endpoint, category, err := filterValue.GetAllPost(r, r.FormValue("next"), r.FormValue("prev"))
+	p, endpoint, category, err := filterValue.GetAllPost(r, r.FormValue("next"), r.FormValue("prev"))
 
 	if err != nil {
 		log.Fatal(err)
@@ -42,28 +42,19 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 	utils.DisplayTemplate(w, "header", utils.IsAuth(r))
 
 	if endpoint == "/" {
-		// if s.Authenticated {
-		// 	general.API.Authenticated = true
-		// 	w.WriteHeader(http.StatusOK)
-		// 	m, _ := json.Marshal(general.API)
-		// 	w.Write(m)
-		// 	// msg := []byte(fmt.Sprintf("<h3 id='category'> %s </h3>", general.API))
-		// 	// w.Header().Set("Content-Type", "application/json")
-		// 	// w.Write(msg)
-		// } else {
-		//utils.DisplayTemplate(w, "index", general.API)
+		posts := models.AllPosts{Posts: p}
+		if session.UserID > 0 {
+			posts.Auth = "success"
+		}
 		utils.DisplayTemplate(w, "index", posts)
-
-		//utils.DisplayTemplate(w, "index", posts)
 	} else {
 		//send category value
 		msg := []byte(fmt.Sprintf("<h3 id='category'> %s </h3>", category))
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(msg)
-		utils.DisplayTemplate(w, "category_post_template", posts)
+		utils.DisplayTemplate(w, "category_post_template", p)
 	}
 }
-
 //GetPostByID  1 post by id
 func GetPostByID(w http.ResponseWriter, r *http.Request) {
 

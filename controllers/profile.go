@@ -17,7 +17,6 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 	if utils.URLChecker(w, r, "/profile") {
 
 		if r.Method == "GET" {
-
 			//if userId now, createdPost uid equal -> show
 			dislikedPost, likedPost, posts, comments, user, err := models.GetUserProfile(r, w, CookieBrowser)
 			if err != nil {
@@ -31,7 +30,7 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 			utils.DisplayTemplate(w, "disliked_post", dislikedPost)
 			utils.DisplayTemplate(w, "comment_user", comments)
 
-			//delete coookie db, 10 min
+			//delete coookie db, 20 min
 			go func() {
 				for range time.Tick(19 * time.Minute) {
 					utils.IsCookieExpiration(w, r)

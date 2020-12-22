@@ -2,11 +2,12 @@
 
 <div class="main">
 
-    <a id="create_post" class="link-profile create-btn" href="/create/post">Create post</a>
+    {{if eq .Auth "success" }} <a id="create_post" class="link-profile create-btn" href="/create/post">Create post</a>
+    {{end}}
 
-    {{template "search"}} {{template "filter_post" }} 
-    
-    {{ range $key, $value := . }}
+    {{template "search"}} {{template "filter_post" }}
+
+    {{ range $key, $value := .Posts }}
 
     <a class="links" href="/post?id={{$value.ID}}">
         <div class="wrapper-main">
@@ -17,18 +18,18 @@
             <h3>{{ $value.Title }}</h3>
             <p class="content-main"> {{ $value.Content}} .... </p>
             <span id="time"> {{.Time}}</span>
-               <div class="likes-card"> 
-         <span class = "fa fa-thumbs-up" > {{$value.Like}} </span>
-        <span class = "fa fa-thumbs-down">{{$value.Dislike}} </span>
-    </div>
+            <div class="likes-card">
+                <span class="fa fa-thumbs-up"> {{$value.Like}} </span>
+                <span class="fa fa-thumbs-down">{{$value.Dislike}} </span>
+            </div>
         </div>
     </a>
     {{end}}
 </div>
 
-<div class="container-pagination">
 
-    <form  class="container-pagination-prev" action="/" method="POST">
+<div class="container-pagination">
+    <form class="container-pagination-prev" action="/" method="POST">
         <input type="hidden" name="prev" value="prev">
         <input class="" type="submit" value="prev">
     </form>
@@ -41,17 +42,16 @@
 
 {{template "footer" }}
 
-{{end}}
-
-<script>
-window.onload = async  function() {
-  console.log("windwos onload")
-      let response = await fetch('http://localhost:6969/', {
-        mode: 'cors',
-        method: 'get',
+<!-- <script>
+    window.onload = async function () {
+        console.log("windwos onload")
+        let response = await fetch('http://localhost:6969/', {
+            mode: 'cors',
+            method: 'get',
         })
-      let data = await response.json()
-    console.log(data, "D")
-}
+        let data = await response.json()
+        console.log(data, "D")
+    }
 //fecth query, check, if auth True, show button, by id #create_post
-</script>
+</script> -->
+{{end}}

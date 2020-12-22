@@ -41,8 +41,7 @@
         </form>
         <span>If you are logged in, then log in to me <a style="color: gold;" href="/signin">Signin</a> </span>
         <br />
-        <span id="notify"> {{.}} </span>
-
+        <span id="notify"> {{ if . }} {{.}} {{end}} </span>
     </div>
 
 </div>

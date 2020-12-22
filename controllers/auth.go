@@ -26,6 +26,7 @@ var (
 func Signup(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/signup") {
+		
 		utils.CheckMethod(r.Method, "signup", auth, "", w, func(http.ResponseWriter) {
 			intAge, err := strconv.Atoi(r.FormValue("age"))
 			if err != nil {

@@ -7,10 +7,10 @@ import (
 	"net/http"
 )
 
-//Middleware func wrapper
-//cokie, check post, get, print log, print IN data from client
+// high order function func(func)(callback)
 func Middleware(f http.HandlerFunc) http.HandlerFunc {
-
+//анонимная функция вызывается, и делает логику, смотрит куки, и если надо вызовет хендлер, а отом вернет результат вызова анонимной фукнции
+//Коллбэки же позволяют нам быть уверенными в том, что определенный код не начнет исполнение до того момента, пока другой код не завершит исполнение.
 	return func(w http.ResponseWriter, r *http.Request) {
 		//valid Input data, and , logger
 		c, _ := r.Cookie("_cookie")
@@ -18,6 +18,7 @@ func Middleware(f http.HandlerFunc) http.HandlerFunc {
 		if c != nil {
 			cookieBrowser = c.Value
 		}
+		//check cookie, routting, then call handler -> middleware
 		isCookie, sessionF := utils.IsCookie(w, r, cookieBrowser)
 		if isCookie {
 			//write cookie value & session value - global variable
@@ -25,7 +26,9 @@ func Middleware(f http.HandlerFunc) http.HandlerFunc {
 			session = sessionF
 			fmt.Println("ok cookie have", session)
 			f(w, r)
+			return 
 		}
+			http.Redirect(w, r, "/signin", 302)
 	}
 }
 
@@ -40,7 +43,7 @@ func Init() {
 	mux.HandleFunc("/", GetAllPosts)
 	mux.HandleFunc("/sapid", GetAllPosts)
 	mux.HandleFunc("/love", GetAllPosts)
-	mux.HandleFunc("/science", GetAllPosts)
+	mux.HandleFunc("/science", GetAllPosts)	
 
 	mux.HandleFunc("/post", GetPostByID)
 	mux.HandleFunc("/create/post", Middleware(CreatePost))

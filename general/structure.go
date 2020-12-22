@@ -14,4 +14,5 @@ type Session struct {
 var API struct {
 	Authenticated bool   `json:"authenticated"`
 	Message       string `json:"message"`
+	
 }

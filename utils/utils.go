@@ -37,7 +37,6 @@ var (
 	AuthType string
 )
 
-//moh@mail.com
 type API struct {
 	Authenticated bool `json:"authenticated"`
 }
@@ -56,43 +55,28 @@ func IsAuth(r *http.Request) API {
 //IsCookie check user cookie client and DB session value, if true -> give access
 func IsCookie(w http.ResponseWriter, r *http.Request, cookie string) (bool, general.Session) {
 
-	var flag, cookieHave bool
-
-	if IsAuth(r).Authenticated {
-		cookieHave = true
-	}
 	s := general.Session{UUID: cookie}
 
-	if !cookieHave {
-		http.Redirect(w, r, "/signin", 302)
-	} else {
-		var tmp string
-		//get client cookie
-		//set local struct -> cookie value
-		//write from session - userId
-
+	if IsAuth(r).Authenticated {
+		var dbCookie string
 		// get userid by Client sessionId
-		err = DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).
-			Scan(&s.UserID)
+		err = DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
 		//get uuid by userid, and write UUID data
 		if err != nil {
 			log.Println(err)
 		}
-		err = DB.QueryRow("SELECT uuid FROM session WHERE user_id = ?", s.UserID).Scan(&tmp)
+		err = DB.QueryRow("SELECT uuid FROM session WHERE user_id = ?", s.UserID).Scan(&dbCookie)
 
 		if err != nil {
 			log.Println(err)
 		}
 		//check local and DB session
-		if cookie == tmp {
-			flag = true
+		if cookie == dbCookie {
+			s.UUID = cookie
+			return true, s
 		}
 	}
-	if flag {
-		s.UUID = cookie
-		return flag, s
-	}
-	return flag, s
+	return false, s
 }
 
 //CheckLetter correct letter

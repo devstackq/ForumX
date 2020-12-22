@@ -14,19 +14,23 @@ func main() {
 	config.Init()
 	controllers.Init()
 
+	todo UserID - old || another variant
+	//errors -> with gorutine
 	// func main start, UserID, global Variable Вынести при запуске сервера и заполнить Uid, maybe middleware,
 	//|| controllers -> send UserID -> to Model
 	// google logour not work -> timeout and logour - not delete Session
 	//func args, refactor,(cookie delete)
 
+	//add Middleware, logger & checkData
+
 	//session delete in Db fix
 	//func -> route, globalVariable -> userID
 
-	// add valid Input data, and logger -> Middleware
+	//add valid Input data, and logger -> Middleware
 	//save copokie - local - Map[string]string
 
 	// todo another Func add	CheckMethod
-	//category - table, nickname auth, url post/id=?, add 2 password form, createbutton in main page
+	// done category - table, nickname auth, url post/id=?, add 2 password form, createbutton in main page, show user name activity,  optimisation code, 
 
 	//logout system, when login another browser, create new Token
 	//mod Name -> change github/devstackq/...
@@ -67,7 +71,6 @@ func run(f func()) {
 // 1 table create RepliesComment, FK(reply_id) References comments(id) -> Comment -> []ReplyComments
 // form inside Client(answer comment )
 // Client - form Comment, form each Comments inside comment -> ReplyForm todo
-
 //----------------------
 // comment table - comment noraml & comment under reply comment,
 // reply table, uid, comment id, content, , comment id,

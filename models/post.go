@@ -70,6 +70,11 @@ type Filter struct {
 	Date     string `json:"date"`
 }
 
+type AllPosts struct {
+	Posts []Post
+	Auth string	
+}
+
 //GetAllPost function
 func (f *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string, string, error) {
 	//pageNum = 1

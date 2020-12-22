@@ -79,7 +79,6 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else if isUserOrEmail {
-
 			err = DB.QueryRow("SELECT id, password FROM users WHERE username=?", uStr.Username).Scan(&user.ID, &user.Password)
 			log.Println("errr username")
 			if err != nil {
