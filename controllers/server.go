@@ -5,32 +5,76 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 )
 
 // high order function func(func)(callback)
 func Middleware(f http.HandlerFunc) http.HandlerFunc {
-//анонимная функция вызывается, и делает логику, смотрит куки, и если надо вызовет хендлер, а отом вернет результат вызова анонимной фукнции
-//Коллбэки же позволяют нам быть уверенными в том, что определенный код не начнет исполнение до того момента, пока другой код не завершит исполнение.
+	//анонимная функция вызывается, и делает логику, смотрит куки, и если надо вызовет хендлер, а отом вернет результат вызова анонимной фукнции
+	//Коллбэки же позволяют нам быть уверенными в том, что определенный код не начнет исполнение до того момента, пока другой код не завершит исполнение.
 	return func(w http.ResponseWriter, r *http.Request) {
 		//valid Input data, and , logger
-		c, _ := r.Cookie("_cookie")
-		cookieBrowser := ""
-		if c != nil {
-			cookieBrowser = c.Value
+		c, err := r.Cookie("_cookie")
+		if err != nil {
+			log.Println(err)
+			utils.DeleteCookie(w)
+			utils.IsCookieExpiration(w, r, session)
+
+			return
 		}
+		var sid int
+		err = DB.QueryRow("SELECT id FROM session WHERE uuid = ?", c.Value).Scan(&sid)
+		if sid <= 0 {
+			fmt.Println("del cookie", sid)
+			utils.DeleteCookie(w)
+		}
+		cookie := c.Value
+
 		//check cookie, routting, then call handler -> middleware
-		isCookie, sessionF := utils.IsCookie(w, r, cookieBrowser)
+		isCookie, sessionF := utils.IsCookie(w, r, cookie)
 		if isCookie {
 			//write cookie value & session value - global variable
-			CookieBrowser = c.Value
 			session = sessionF
 			fmt.Println("ok cookie have", session)
 			f(w, r)
-			return 
+			//delete cookie & session db goroutine
+			go func() {
+				for range time.Tick(7 * time.Second) {
+					//fake query
+					fmt.Println("del cookie in DB")
+					http.Redirect(w, r, "/", http.StatusFound)
+					//time.Sleep(1 * time.Minute)
+					return
+				}
+			}()
+			return
 		}
-			http.Redirect(w, r, "/signin", 302)
+		http.Redirect(w, r, "/signin", 201)
 	}
 }
+
+//expire > timeNow()
+
+//cookie timeNow, compare seconds > cookie expoiration ?
+
+// func IsCookieExpiration(f http.HandlerFunc) http.HandlerFunc {
+
+// 	return func(w http.ResponseWriter, r *http.Request) {
+// 	//get ssesion id, by local struct uuid
+// 	utils.DeleteCookie(w)
+
+// 	// http.SetCookie(w, &cookieDelete)
+// 	fmt.Println("delete in Db cookie,", s)
+
+// 	DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).Scan(&s.ID)
+// 	_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
+
+// 	http.Redirect(w, r, "/", 302)
+// else {
+// 	f(w, r)
+
+// }
+// }
 
 //Init func handlers
 func Init() {
@@ -43,7 +87,7 @@ func Init() {
 	mux.HandleFunc("/", GetAllPosts)
 	mux.HandleFunc("/sapid", GetAllPosts)
 	mux.HandleFunc("/love", GetAllPosts)
-	mux.HandleFunc("/science", GetAllPosts)	
+	mux.HandleFunc("/science", GetAllPosts)
 
 	mux.HandleFunc("/post", GetPostByID)
 	mux.HandleFunc("/create/post", Middleware(CreatePost))
@@ -65,7 +109,7 @@ func Init() {
 
 	mux.HandleFunc("/githubSignin", GithubSignin)
 	mux.HandleFunc("/githubUserInfo", GithubUserData)
-	mux.HandleFunc("/logout", Logout)
+	mux.HandleFunc("/logout", Middleware(Logout))
 
 	mux.HandleFunc("/profile", Middleware(GetUserProfile))
 	mux.HandleFunc("/user/id", Middleware(GetAnotherProfile))

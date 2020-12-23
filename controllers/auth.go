@@ -17,16 +17,15 @@ import (
 
 var (
 	//GoogleConfig *oauth2.Config
-	oAuthState    = "pseudo-random"
-	session       = general.Session{}
-	CookieBrowser string
+	oAuthState = "pseudo-random"
+	session    = general.Session{}
 )
 
 //Signup system function
 func Signup(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/signup") {
-		
+
 		utils.CheckMethod(r.Method, "signup", auth, "", w, func(http.ResponseWriter) {
 			intAge, err := strconv.Atoi(r.FormValue("age"))
 			if err != nil {
@@ -78,13 +77,14 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 
 //Signin system function
 func Signin(w http.ResponseWriter, r *http.Request) {
-
+	//19322
 	if utils.URLChecker(w, r, "/signin") {
 
 		utils.CheckMethod(r.Method, "signin", auth, msg, w, func(http.ResponseWriter) {
 
 			var person models.User
 			err := json.NewDecoder(r.Body).Decode(&person)
+			// {name : user, password: 12345...}" -> {name : user, password: 12345...}
 			//badrequest
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
@@ -108,7 +108,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/logout") {
 		if r.Method == "GET" {
-			models.Logout(w, r, CookieBrowser)
+			models.Logout(w, r, session)
 			http.Redirect(w, r, "/", 302)
 		}
 	}

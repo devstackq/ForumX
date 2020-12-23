@@ -125,22 +125,27 @@ func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 }
 
 //IsCookieExpiration if cookie time = 0, delete session and cookie client
-func IsCookieExpiration(w http.ResponseWriter, r *http.Request) {
+func IsCookieExpiration(w http.ResponseWriter, r *http.Request, s general.Session) {
 
-	cookie, _ := r.Cookie("_cookie")
-
-	if cookie.Name == "_cookie" {
-		fmt.Println("delete in Db cookie")
-		s := general.Session{UUID: cookie.Value}
-		//get ssesion id, by local struct uuid
-		DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).
-			Scan(&s.ID)
-		_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
-		DeleteCookie(w)
-		http.Redirect(w, r, "/signin", 302)
-		// then delete cookie from client
-		//	return
+	//get ssesion id, by local struct uuid
+	//DeleteCookie(w)
+	fmt.Println(w, "utils")
+	cookieDelete := http.Cookie{
+		Name:     "_cookie",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		HttpOnly: false,
 	}
+	http.SetCookie(w, &cookieDelete)
+	fmt.Println("hello: ", w)
+	fmt.Println("delete in Db cookie,", s)
+
+	DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).Scan(&s.ID)
+	_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
+	// http.Redirect(w, r, "/", http.StatusFound)
+	// then delete cookie from client
+	//	return
 }
 
 //FileByte func for convert receive file - to fileByte
@@ -178,6 +183,7 @@ func AuthError(w http.ResponseWriter, r *http.Request, err error, text string, a
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			m, _ := json.Marshal(text)
+			fmt.Println(text)
 			w.Write(m)
 		} else {
 			w.WriteHeader(http.StatusOK)
@@ -188,10 +194,10 @@ func AuthError(w http.ResponseWriter, r *http.Request, err error, text string, a
 		if err != nil {
 			msg := general.API.Message
 			msg = text
-
 			w.WriteHeader(http.StatusUnauthorized)
 			DisplayTemplate(w, "signin", msg)
 		} else {
+			w.WriteHeader(http.StatusOK)
 			http.Redirect(w, r, "/profile", 302)
 		}
 	}
@@ -255,6 +261,16 @@ func DeleteCookie(w http.ResponseWriter) {
 		HttpOnly: false,
 	}
 	http.SetCookie(w, &cookieDelete)
+
+}
+func GetUserID(cookie string) (uid int) {
+
+	err = DB.QueryRow("SELECT id FROM session WHERE uuid = ?", cookie).Scan(&uid)
+
+	if err != nil {
+		log.Println(err)
+	}
+	return uid
 }
 
 //IsImage func

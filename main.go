@@ -14,7 +14,12 @@ func main() {
 	config.Init()
 	controllers.Init()
 
-	todo UserID - old || another variant
+	//redirect - signini not work,
+	//signout goroutine refirect fix
+	//registered USer -> signou -> not delete session Db ?
+
+	//todo UserID - old || another variant || func() getUseraID() in utils
+
 	//errors -> with gorutine
 	// func main start, UserID, global Variable Вынести при запуске сервера и заполнить Uid, maybe middleware,
 	//|| controllers -> send UserID -> to Model
@@ -30,7 +35,7 @@ func main() {
 	//save copokie - local - Map[string]string
 
 	// todo another Func add	CheckMethod
-	// done category - table, nickname auth, url post/id=?, add 2 password form, createbutton in main page, show user name activity,  optimisation code, 
+	// done category - table, nickname auth, url post/id=?, add 2 password form, createbutton in main page, show user name activity,  optimisation code,
 
 	//logout system, when login another browser, create new Token
 	//mod Name -> change github/devstackq/...

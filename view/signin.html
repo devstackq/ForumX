@@ -32,20 +32,6 @@
         type: ''
     };
 
-    function sendGoogleData(user) {
-
-        fetch('http://localhost:6969/signin', {
-            method: 'post',
-            body: user,
-        })
-            .then((response) => {
-                response.json()
-            })
-            .then((data) => {
-                console.log(data, "D", user)
-                showNotify(data)
-            });
-    }
 
     function defAuthShow() {
         let el = document.getElementById("authWrapperId");

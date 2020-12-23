@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 //GetUserProfile  current -> user page
@@ -18,7 +17,7 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 
 		if r.Method == "GET" {
 			//if userId now, createdPost uid equal -> show
-			dislikedPost, likedPost, posts, comments, user, err := models.GetUserProfile(r, w, CookieBrowser)
+			dislikedPost, likedPost, posts, comments, user, err := models.GetUserProfile(r, w, session)
 			if err != nil {
 				log.Println(err)
 			}
@@ -29,16 +28,6 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 			utils.DisplayTemplate(w, "favorited_post", likedPost)
 			utils.DisplayTemplate(w, "disliked_post", dislikedPost)
 			utils.DisplayTemplate(w, "comment_user", comments)
-
-			//delete coookie db, 20 min
-			go func() {
-				for range time.Tick(19 * time.Minute) {
-					utils.IsCookieExpiration(w, r)
-					fmt.Println("del cookie in DB")
-					//time.Sleep(1 * time.Minute)
-					break
-				}
-			}()
 		}
 	}
 }
@@ -68,7 +57,7 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/activity") {
 
-		notifies := models.GetUserActivities(w, r)
+		notifies := models.GetUserActivities(w, r, session)
 
 		if err != nil {
 			log.Println(err)
