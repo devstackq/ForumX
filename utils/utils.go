@@ -127,26 +127,17 @@ func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 //IsCookieExpiration if cookie time = 0, delete session and cookie client
 func IsCookieExpiration(w http.ResponseWriter, r *http.Request, s general.Session) {
 
-	//get ssesion id, by local struct uuid
-	//DeleteCookie(w)
-	fmt.Println(w, "utils")
-	cookieDelete := http.Cookie{
-		Name:     "_cookie",
-		Value:    "",
-		Path:     "/",
-		Expires:  time.Unix(0, 0),
-		HttpOnly: false,
-	}
-	http.SetCookie(w, &cookieDelete)
-	fmt.Println("hello: ", w)
-	fmt.Println("delete in Db cookie,", s)
-
+	DeleteCookie(w)
+	fmt.Println("delete in Db cookie and browser,", s)
 	DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).Scan(&s.ID)
 	_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
-	// http.Redirect(w, r, "/", http.StatusFound)
-	// then delete cookie from client
-	//	return
+	http.Redirect(w, r, "/signin", 302)
 }
+
+//check current user email system,
+// func ReSession(w, r) {
+
+// }
 
 //FileByte func for convert receive file - to fileByte
 func FileByte(r *http.Request, typePhoto string) []byte {

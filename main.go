@@ -14,6 +14,11 @@ func main() {
 	config.Init()
 	controllers.Init()
 
+	//no rows in result set  -> fix
+
+	//IsCookieExpiration -> refactor - logour function
+	//add writeHeader()
+
 	//redirect - signini not work,
 	//signout goroutine refirect fix
 	//registered USer -> signou -> not delete session Db ?

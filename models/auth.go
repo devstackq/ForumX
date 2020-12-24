@@ -64,18 +64,55 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
+	//if cookie timeout -> delete user from system
+
 	if utils.AuthType == "default" {
 		if !isUserOrEmail {
+			log.Println("1")
 			err = DB.QueryRow("SELECT id, password FROM users WHERE email=?", uStr.Email).Scan(&user.ID, &user.Password)
-			log.Println("err email")
 			if err != nil {
+				log.Println("err email")
 				utils.AuthError(w, r, err, "user by Email not found", utils.AuthType)
 				return
 			}
+			log.Println("2")
+			//email || username _> have session ? -> delete session and cookie, ressession Call
+			var uid int
+
+			err = DB.QueryRow("SELECT id FROM  users WHERE email=?", uStr.Email).Scan(&uid)
+
+			if err != nil {
+				log.Println(err, "no have user by email")
+				return
+			}
+
+			var sid int
+			err = DB.QueryRow("SELECT id FROM session WHERE user_id=?", uid).Scan(&sid)
+			if err != nil {
+				log.Println(err, "no have session by uid")
+				//return
+			} else {
+				log.Println("mean -> user in system, Delete cookie")
+				//get by email -> session, if have session -> drop session -> ReLogin
+				// if same browser delete cookie
+				utils.DeleteCookie(w)
+				_, err = DB.Exec("DELETE FROM session WHERE id = ?", sid)
+				//http.Redirect(w, r, "/signin", 302)
+				log.Println(sid, "sid")
+				//deleted session ->
+				if utils.AuthType == "google" {
+					_, err = http.Get("https://accounts.google.com/o/oauth2/revoke?token=" + utils.Token)
+					if err != nil {
+						log.Println(err)
+					}
+				}
+			}
+			//Logout(w, r, s)
+			//ReLogin()
 		} else if isUserOrEmail {
 			err = DB.QueryRow("SELECT id, password FROM users WHERE username=?", uStr.Username).Scan(&user.ID, &user.Password)
-			log.Println("errr username")
 			if err != nil {
+				log.Println("errr username")
 				utils.AuthError(w, r, err, "user by Username not found", utils.AuthType)
 				return
 			}
@@ -88,21 +125,21 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	//get user by Id, and write session struct
-	s := general.Session{
+	//create new session values
+	newSession := general.Session{
 		UserID: user.ID,
 	}
 	uuid := uuid.Must(uuid.NewV4(), err).String()
 	if err != nil {
-		utils.AuthError(w, r, err, "uuid trouble", utils.AuthType)
+		utils.AuthError(w, r, err, "uuid problem", utils.AuthType)
 		return
 	}
 	//create uuid and set uid DB table session by userid,
-
 	userPrepare, err := DB.Prepare(`INSERT INTO session(uuid, user_id) VALUES (?, ?)`)
 	if err != nil {
 		log.Println(err)
 	}
-	_, err = userPrepare.Exec(uuid, s.UserID)
+	_, err = userPrepare.Exec(uuid, newSession.UserID)
 	defer userPrepare.Close()
 
 	if err != nil {
@@ -112,27 +149,26 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// get user in info by session Id
-	err = DB.QueryRow("SELECT id, uuid FROM session WHERE user_id = ?", s.UserID).Scan(&s.ID, &s.UUID)
+	err = DB.QueryRow("SELECT id, uuid FROM session WHERE user_id = ?", newSession.UserID).Scan(&newSession.ID, &newSession.UUID)
 	if err != nil {
 		utils.AuthError(w, r, err, "not find user from session", utils.AuthType)
-		log.Println(err)
+		log.Println(err, "her")
 		return
 	}
 
 	//if cookie not, dele
 	// this should give you time in location
 	//set cookie 9128ueq9widjaisdh238yrhdeiuwandijsan
-	t := time.Now().UTC()
-	fmt.Println(time.Now())
 	cookie := http.Cookie{
 		Name:    "_cookie",
-		Value:   s.UUID,
+		Value:   newSession.UUID,
 		Path:    "/",
-		Expires: t.Add(6 * time.Second),
+		Expires: time.Now().Add(21 * time.Minute),
 		//MaxAge:   15,
 		HttpOnly: false,
 	}
 	http.SetCookie(w, &cookie)
+	fmt.Println(newSession, "cookie", cookie)
 	utils.AuthError(w, r, nil, "success", utils.AuthType)
 	fmt.Println(utils.AuthType, "auth type")
 }
@@ -141,19 +177,8 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 
 //Logout function
 func Logout(w http.ResponseWriter, r *http.Request, s general.Session) {
-	var idSession int
-	err = DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).Scan(&idSession)
-	if err != nil {
-		log.Println(err)
-	}
-	//delete session by id session
-	_, err = DB.Exec("DELETE FROM session WHERE user_id = ?", idSession)
 
-	if err != nil {
-		log.Println(err)
-	}
-	// then delete cookie from client
-	utils.DeleteCookie(w)
+	utils.IsCookieExpiration(w, r, s)
 
 	if utils.AuthType == "google" {
 		_, err = http.Get("https://accounts.google.com/o/oauth2/revoke?token=" + utils.Token)

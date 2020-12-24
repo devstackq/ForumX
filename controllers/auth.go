@@ -77,15 +77,14 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 
 //Signin system function
 func Signin(w http.ResponseWriter, r *http.Request) {
-	//19322
+
 	if utils.URLChecker(w, r, "/signin") {
 
 		utils.CheckMethod(r.Method, "signin", auth, msg, w, func(http.ResponseWriter) {
 
 			var person models.User
 			err := json.NewDecoder(r.Body).Decode(&person)
-			// {name : user, password: 12345...}" -> {name : user, password: 12345...}
-			//badrequest
+
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return

@@ -1,4 +1,4 @@
-
+package main
 
 // 	//	strunct Method, with *, allows -> Change  specific Struct by Address, change fields
 // 	//init structure

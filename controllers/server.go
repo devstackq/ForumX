@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 )
 
 // high order function func(func)(callback)
@@ -16,18 +15,17 @@ func Middleware(f http.HandlerFunc) http.HandlerFunc {
 		//valid Input data, and , logger
 		c, err := r.Cookie("_cookie")
 		if err != nil {
-			log.Println(err)
-			utils.DeleteCookie(w)
+			log.Println(err, "expires timeout")
 			utils.IsCookieExpiration(w, r, session)
-
 			return
 		}
-		var sid int
-		err = DB.QueryRow("SELECT id FROM session WHERE uuid = ?", c.Value).Scan(&sid)
-		if sid <= 0 {
-			fmt.Println("del cookie", sid)
-			utils.DeleteCookie(w)
-		}
+		// var sid int
+		// err = DB.QueryRow("SELECT id FROM session WHERE uuid = ?", c.Value).Scan(&sid)
+		// if sid <= 0 {
+		// 	fmt.Println("del cookie", sid)
+		// 	utils.DeleteCookie(w)
+		// }
+
 		cookie := c.Value
 
 		//check cookie, routting, then call handler -> middleware
@@ -35,46 +33,14 @@ func Middleware(f http.HandlerFunc) http.HandlerFunc {
 		if isCookie {
 			//write cookie value & session value - global variable
 			session = sessionF
-			fmt.Println("ok cookie have", session)
+			fmt.Println("ok cookie valid, can do operation", session)
 			f(w, r)
-			//delete cookie & session db goroutine
-			go func() {
-				for range time.Tick(7 * time.Second) {
-					//fake query
-					fmt.Println("del cookie in DB")
-					http.Redirect(w, r, "/", http.StatusFound)
-					//time.Sleep(1 * time.Minute)
-					return
-				}
-			}()
-			return
+		} else {
+			fmt.Println("another cookie, uuid != session.Uuid Db ")
+			utils.IsCookieExpiration(w, r, session)
 		}
-		http.Redirect(w, r, "/signin", 201)
 	}
 }
-
-//expire > timeNow()
-
-//cookie timeNow, compare seconds > cookie expoiration ?
-
-// func IsCookieExpiration(f http.HandlerFunc) http.HandlerFunc {
-
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 	//get ssesion id, by local struct uuid
-// 	utils.DeleteCookie(w)
-
-// 	// http.SetCookie(w, &cookieDelete)
-// 	fmt.Println("delete in Db cookie,", s)
-
-// 	DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).Scan(&s.ID)
-// 	_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
-
-// 	http.Redirect(w, r, "/", 302)
-// else {
-// 	f(w, r)
-
-// }
-// }
 
 //Init func handlers
 func Init() {
