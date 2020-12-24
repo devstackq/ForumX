@@ -14,53 +14,49 @@ func main() {
 	config.Init()
 	controllers.Init()
 
+	//Not unique username - msg not correct -> if 2 time signup
+	//google auth, github auth -> signup -Chekck  if exist user -> show message
+	//by nickename, google auth, github -> logout other browser todo,
+
+	//try another logic -> when user login, but cookie another -> logout, with Table field - resseion(true), -> Note -phone see
+
 	//optimisation - beatu code, -> fix, signin server auth utils MEthods refactor
 	//no rows in result set  -> fix
 
 	//IsCookieExpiration -> refactor - logour function
 	//add writeHeader()
+	//redirect - signin not work,
 
-	//redirect - signini not work,
-	//signout goroutine refirect fix
-	//registered USer -> signou -> not delete session Db ?
-
-	//todo UserID - old || another variant || func() getUseraID() in utils
-
-	//errors -> with gorutine
-	// func main start, UserID, global Variable Вынести при запуске сервера и заполнить Uid, maybe middleware,
+	// try errors -> with gorutine
 	//|| controllers -> send UserID -> to Model
-	// google logour not work -> timeout and logour - not delete Session
 	//func args, refactor,(cookie delete)
 
 	//add Middleware, logger & checkData
 
-	//session delete in Db fix
-	//func -> route, globalVariable -> userID
-
 	//add valid Input data, and logger -> Middleware
-	//save copokie - local - Map[string]string
-
-	// todo another Func add	CheckMethod
-	// done category - table, nickname auth, url post/id=?, add 2 password form, createbutton in main page, show user name activity,  optimisation code,
-
-	//logout system, when login another browser, create new Token
-	//mod Name -> change github/devstackq/...
-
 	//create post button -> вынести  В main page ...
-	//author id  activity page - show
 	// edit comment/.post -> add Edited message in Post
-	//delete cookie & when time Expires 0, and redirect, cook life 20min
 
-	//login current User (logged), if have session in Db, drop Session and cookie, and create new cookie and save Db & cookie
 
+	//not require, 
+	//save copokie - local - Map[string]string
+	//save image -> local folder, no Db
+	// todo another Func add	CheckMethod
+	//mod Name -> change github/devstackq/...
+	//Start - reply system
+	
 	// перегрузку методов
 	// use constructor
 	// use anonim func
 	// use gorutine
 	// try -> func use with Interface
-	// architect like - Zhassymov Gt Search
+	// try architect like - Zhassymov Gt Search
 	//500 status - check
 	// docker check
+	
+	// done: category - table, nickname auth, url post/id=?, add 2 password form, createbutton in main page, show user name activity,  optimisation code, signin system, -> another session delete
+	//,cookie expired -> logout
+
 }
 
 //example anonim func
@@ -77,7 +73,6 @@ func run(f func()) {
 }
 
 // eaxmple reply system https://codewithawa.com/posts/creating-a-comment-and-reply-system-php-and-mysql
-
 //comment system step 3.1
 // 1 table create RepliesComment, FK(reply_id) References comments(id) -> Comment -> []ReplyComments
 // form inside Client(answer comment )
