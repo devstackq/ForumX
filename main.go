@@ -14,6 +14,7 @@ func main() {
 	config.Init()
 	controllers.Init()
 
+	//optimisation - beatu code, -> fix, signin server auth utils MEthods refactor
 	//no rows in result set  -> fix
 
 	//IsCookieExpiration -> refactor - logour function

@@ -25,19 +25,21 @@ func Middleware(f http.HandlerFunc) http.HandlerFunc {
 		// 	fmt.Println("del cookie", sid)
 		// 	utils.DeleteCookie(w)
 		// }
-
 		cookie := c.Value
-
 		//check cookie, routting, then call handler -> middleware
 		isCookie, sessionF := utils.IsCookie(w, r, cookie)
+		//update Page call Middleware(getProfile)- > check current cookie(logouted user), == session(newCookie)
 		if isCookie {
 			//write cookie value & session value - global variable
 			session = sessionF
 			fmt.Println("ok cookie valid, can do operation", session)
 			f(w, r)
 		} else {
+			//cokkie подменили или новый юзер зашел, isCookie, ref, || logic change
 			fmt.Println("another cookie, uuid != session.Uuid Db ")
-			utils.IsCookieExpiration(w, r, session)
+			//	utils.DeleteCookie(w)
+			http.Redirect(w, r, "/signin", 302)
+			//utils.IsCookieExpiration(w, r, session)
 		}
 	}
 }

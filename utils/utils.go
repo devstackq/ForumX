@@ -65,7 +65,10 @@ func IsCookie(w http.ResponseWriter, r *http.Request, cookie string) (bool, gene
 		if err != nil {
 			log.Println(err)
 		}
+
 		err = DB.QueryRow("SELECT uuid FROM session WHERE user_id = ?", s.UserID).Scan(&dbCookie)
+		//1 signin Iscookie, 2 redirect Middleware(GetProfile) isCookie
+		fmt.Println("IsCookie:", s.UUID, dbCookie)
 
 		if err != nil {
 			log.Println(err)
@@ -128,7 +131,7 @@ func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 func IsCookieExpiration(w http.ResponseWriter, r *http.Request, s general.Session) {
 
 	DeleteCookie(w)
-	fmt.Println("delete in Db cookie and browser,", s)
+	fmt.Println(" IsCookieExpiration : delete in Db cookie and browser,", s)
 	DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).Scan(&s.ID)
 	_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
 	http.Redirect(w, r, "/signin", 302)
