@@ -7,39 +7,24 @@ import (
 	"net/http"
 )
 
+//анонимная функция вызывается, и делает логику, смотрит куки, и если надо вызовет хендлер, а отом вернет результат вызова анонимной фукнции
+//Коллбэки же позволяют нам быть уверенными в том, что определенный код не начнет исполнение до того момента, пока другой код не завершит исполнение.
 // high order function func(func)(callback)
 func Middleware(f http.HandlerFunc) http.HandlerFunc {
-	//анонимная функция вызывается, и делает логику, смотрит куки, и если надо вызовет хендлер, а отом вернет результат вызова анонимной фукнции
-	//Коллбэки же позволяют нам быть уверенными в том, что определенный код не начнет исполнение до того момента, пока другой код не завершит исполнение.
+
 	return func(w http.ResponseWriter, r *http.Request) {
-		//valid Input data, and , logger
+		//check expires cookie
 		c, err := r.Cookie("_cookie")
 		if err != nil {
 			log.Println(err, "expires timeout")
-			utils.IsCookieExpiration(w, r, session)
+			utils.Logout(w, r, session)
 			return
 		}
-		// var sid int
-		// err = DB.QueryRow("SELECT id FROM session WHERE uuid = ?", c.Value).Scan(&sid)
-		// if sid <= 0 {
-		// 	fmt.Println("del cookie", sid)
-		// 	utils.DeleteCookie(w)
-		// }
-		cookie := c.Value
-		//check cookie, routting, then call handler -> middleware
-		isCookie, sessionF := utils.IsCookie(w, r, cookie)
-		//update Page call Middleware(getProfile)- > check current cookie(logouted user), == session(newCookie)
-		if isCookie {
-			//write cookie value & session value - global variable
+		// then call handler -> middleware
+		if isValidCookie, sessionF := utils.IsCookie(w, r, c.Value); isValidCookie {
+			//write session data - global variable
 			session = sessionF
-			fmt.Println("ok cookie valid, can do operation", session)
 			f(w, r)
-		} else {
-			//cokkie подменили или новый юзер зашел, isCookie, ref, || logic change
-			fmt.Println("another cookie, uuid != session.Uuid Db ")
-			//	utils.DeleteCookie(w)
-			http.Redirect(w, r, "/signin", 302)
-			//utils.IsCookieExpiration(w, r, session)
 		}
 	}
 }
@@ -90,17 +75,3 @@ func Init() {
 	log.Fatal(http.ListenAndServe(PORT, mux))
 	fmt.Println("Listening port:", PORT)
 }
-
-//chaining
-// func RequireAuthentication(next http.Handler) http.Handler {
-// 	return http.HandlerFunc(
-// 		func(w http.ResponseWriter, r *http.Request) {
-// 			b, _ := utils.IsCookie(w, r)
-// 			fmt.Print(b, "ccokie")
-// 			if !b {
-// 				http.Redirect(w, r, "/signin", 302)
-// 				return
-// 			}
-// 			next.ServeHTTP(w, r)
-// 		})
-// }

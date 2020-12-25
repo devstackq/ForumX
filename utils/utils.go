@@ -52,34 +52,34 @@ func IsAuth(r *http.Request) API {
 	return auth
 }
 
-//IsCookie check user cookie client and DB session value, if true -> give access
+//IsCookie check cookie all case
 func IsCookie(w http.ResponseWriter, r *http.Request, cookie string) (bool, general.Session) {
 
 	s := general.Session{UUID: cookie}
-
+	//if have _cookie in  browser, get userId - in  session table ->
 	if IsAuth(r).Authenticated {
-		var dbCookie string
-		// get userid by Client sessionId
+		// get userid by borswerCookie
 		err = DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
-		//get uuid by userid, and write UUID data
 		if err != nil {
-			log.Println(err)
+			log.Println(err, "warn: no session with this cookie")
+			Logout(w, r, s)
+			return false, s
 		}
-
-		err = DB.QueryRow("SELECT uuid FROM session WHERE user_id = ?", s.UserID).Scan(&dbCookie)
-		//1 signin Iscookie, 2 redirect Middleware(GetProfile) isCookie
-		fmt.Println("IsCookie:", s.UUID, dbCookie)
-
+		//get uuid by userId in session table
+		err = DB.QueryRow("SELECT uuid FROM session WHERE user_id = ?", s.UserID).Scan(&s.DbCookie)
 		if err != nil {
-			log.Println(err)
+			log.Println(err, "warn: no session with this UserID")
+			Logout(w, r, s)
+			return false, s
 		}
-		//check local and DB session
-		if cookie == dbCookie {
-			s.UUID = cookie
-			return true, s
+		//sesseionCookie != dbCookie
+		if s.DbCookie != s.UUID {
+			log.Println(err, "warn: reSession || cookie changed")
+			Logout(w, r, s)
+			return false, s
 		}
 	}
-	return false, s
+	return true, s
 }
 
 //CheckLetter correct letter
@@ -94,7 +94,6 @@ func CheckLetter(value string) bool {
 
 //calback methods continue
 func TestCallback(arr []int, count int, flag bool, sortX func([]int)) {
-	fmt.Print(arr, "arr", count)
 	if count > 5 && flag {
 		sortX(arr)
 	} else {
@@ -107,7 +106,6 @@ func CheckMethod(method string, tmpl string, isAuth bool, msg string, w http.Res
 
 	if tmpl == "signin" && method == "GET" {
 		DisplayTemplate(w, tmpl, msg)
-		fmt.Println("signin get")
 	} else if method == "GET" && tmpl == "signup" {
 		DisplayTemplate(w, tmpl, isAuth)
 	} else {
@@ -115,11 +113,11 @@ func CheckMethod(method string, tmpl string, isAuth bool, msg string, w http.Res
 	}
 }
 
-//DisplayTemplate function
+//DisplayTemplate function, 500 error
 func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 	err = temp.ExecuteTemplate(w, tmpl, data)
 	if err != nil {
-		fmt.Println(err, "exec ERR")
+		log.Println(err, "exec templ ERR")
 		http.Error(w, err.Error(),
 			http.StatusInternalServerError)
 		fmt.Fprintf(w, err.Error())
@@ -128,19 +126,12 @@ func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 }
 
 //IsCookieExpiration if cookie time = 0, delete session and cookie client
-func IsCookieExpiration(w http.ResponseWriter, r *http.Request, s general.Session) {
-
+func Logout(w http.ResponseWriter, r *http.Request, s general.Session) {
 	DeleteCookie(w)
-	fmt.Println(" IsCookieExpiration : delete in Db cookie and browser,", s)
 	DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).Scan(&s.ID)
 	_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
 	http.Redirect(w, r, "/signin", 302)
 }
-
-//check current user email system,
-// func ReSession(w, r) {
-
-// }
 
 //FileByte func for convert receive file - to fileByte
 func FileByte(r *http.Request, typePhoto string) []byte {
@@ -170,31 +161,21 @@ func FileByte(r *http.Request, typePhoto string) []byte {
 //AuthError show auth error
 func AuthError(w http.ResponseWriter, r *http.Request, err error, text string, authType string) {
 
-	fmt.Println(text, "notify auth")
-
+	fmt.Println(text, "notify msg")
 	if authType == "default" {
 		w.Header().Set("Content-Type", "application/json")
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			m, _ := json.Marshal(text)
-			fmt.Println(text)
 			w.Write(m)
-		} else {
-			w.WriteHeader(http.StatusOK)
-			m, _ := json.Marshal(text)
-			w.Write(m)
+			return
 		}
-	} else {
-		if err != nil {
-			msg := general.API.Message
-			msg = text
-			w.WriteHeader(http.StatusUnauthorized)
-			DisplayTemplate(w, "signin", msg)
-		} else {
-			w.WriteHeader(http.StatusOK)
-			http.Redirect(w, r, "/profile", 302)
-		}
+		//send client - js receive value "success"
+		w.WriteHeader(http.StatusOK)
+		m, _ := json.Marshal(text)
+		w.Write(m)
 	}
+
 }
 
 //URLChecker function
@@ -295,9 +276,11 @@ func IsRegistered(w http.ResponseWriter, r *http.Request, data string) bool {
 	if len(s) == 2 {
 		field = "email"
 	}
-	//fmt.Println(data, field)
 	//check email by unique, if have same email
 	count := 0
+	var users []string
+	var emailDB string
+
 	err = DB.QueryRow("SELECT count(*) FROM users").Scan(&count)
 	if err != nil {
 		log.Println(err)
@@ -308,9 +291,7 @@ func IsRegistered(w http.ResponseWriter, r *http.Request, data string) bool {
 		if err != nil {
 			log.Println(err)
 		}
-		var users []string
 		for checkUser.Next() {
-			var emailDB string
 			err = checkUser.Scan(&emailDB)
 			if err != nil {
 				log.Println(err.Error())
@@ -319,7 +300,6 @@ func IsRegistered(w http.ResponseWriter, r *http.Request, data string) bool {
 		}
 
 		for _, v := range users {
-			fmt.Println(v, data, field)
 			if v == data {
 				log.Println(err)
 				return true
@@ -334,7 +314,7 @@ func IsRegistered(w http.ResponseWriter, r *http.Request, data string) bool {
 //UpdateVoteNotify func
 func UpdateVoteNotify(table string, toWhom, fromWhom, objID, voteType int) {
 
-	fmt.Println(voteType, "TYPE", table)
+	fmt.Println(voteType, "vote TYPE", table)
 
 	if table == "post" && toWhom != 0 {
 		_, err = DB.Exec("UPDATE notify SET voteState=? WHERE comment_id=? AND post_id =? AND current_user_id=?  AND to_whom=?", voteType, 0, objID, fromWhom, toWhom)
@@ -402,4 +382,29 @@ func SetCommentNotify(pid string, fromWhom, toWhom int, lid int64) {
 		log.Println(err)
 	}
 	defer voteNotifyPrepare.Close()
+}
+
+func ReSession(uid int) {
+
+	var sid int
+
+	//cookieDb 1 - asd, cookieBw asd
+	//2: cDb = qwe, cBw = eed
+	//no session exit func
+	err = DB.QueryRow("SELECT id FROM session WHERE user_id=?", uid).Scan(&sid)
+	if err != nil {
+		log.Println(err, "no have session by uid")
+		return
+	}
+	//update when uuid session equal query table session
+
+	//drop - if cookieBrowser ==
+	// 1 - cookie = "", 2 = "qwe", 3 otherBrowser = "",
+	log.Println("Session have, logout user,  mean -> user in system, Delete cookie ReSession")
+	//get by email -> session, if have session -> drop session -> ReLogin
+	_, err := DB.Exec("DELETE FROM session WHERE id = ?", sid)
+	if err != nil {
+		log.Println(err)
+	}
+
 }

@@ -93,3 +93,61 @@ package main
 // // 	p.name = name
 
 // // }
+
+// if isCookie {
+// 	//write cookie value & session value - global variable
+// 	session = sessionF
+// 	fmt.Println("ok cookie valid, can do operation", session)
+
+// 	//_, err = DB.Exec("UPDATE session SET resession=? WHERE user_id=?", 0, session.UserID)
+// 	f(w, r)
+// } else {
+// 	//cookie another,  2 case -> 1 podmena, 2 antoher session active
+// 	var temp string
+// 	var reSession int
+// 	err = DB.QueryRow("SELECT uuid FROM session WHERE user_id = ?", session.UserID).Scan(&temp)
+// 	err = DB.QueryRow("SELECT resession FROM session WHERE user_id = ?", session.UserID).Scan(&reSession)
+// 	if err != nil {
+// 		log.Println(err, "222")
+// 	}
+
+// 	if reSession != 1 {
+// 		fmt.Println("nothin")
+// 	} else {
+// 		fmt.Println(temp, cookie, reSession)
+// 		if temp != cookie {
+// 			_, err = DB.Exec("UPDATE session SET resession=? WHERE user_id=?", 1, session.UserID)
+// 			utils.IsCookieExpiration(w, r, session)
+// 			fmt.Println("another cookie browser, uuid != session.Uuid Db 3 ")
+// 		}
+
+// 		//				fmt.Println("signout session != 1, delete sessiob")
+// 		//return
+// 	}
+// if err != nil {
+// 	//utils.IsCookieExpiration(w, r, session)
+// 	log.Println(err, "no session user in db 1")
+// 	return
+// }
+//fmt.Println(session, "cookie exit 2", temp, cookie)
+
+//set resession 1, when another user signin
+// if resession {
+// 	_, err = DB.Exec("UPDATE session SET resession=? WHERE id=?", 1, lid)
+// 	if err != nil {
+// 		log.Println(err)
+// 	}
+// }
+//chaining
+// func RequireAuthentication(next http.Handler) http.Handler {
+// 	return http.HandlerFunc(
+// 		func(w http.ResponseWriter, r *http.Request) {
+// 			b, _ := utils.IsCookie(w, r)
+// 			fmt.Print(b, "ccokie")
+// 			if !b {
+// 				http.Redirect(w, r, "/signin", 302)
+// 				return
+// 			}
+// 			next.ServeHTTP(w, r)
+// 		})
+// }

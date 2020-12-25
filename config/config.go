@@ -14,9 +14,9 @@ var (
 	err error
 )
 
-//Init Db
+//Init Db, if not table -> create
 func Init() {
-	// create DB and columns
+	// create DB and table
 	db, err = sql.Open("sqlite3", "forumx.db")
 	if err != nil {
 		log.Println(err)
@@ -35,7 +35,7 @@ func Init() {
 	if err != nil {
 		log.Println(err)
 	}
-	session, err := db.Prepare(`CREATE TABLE IF NOT EXISTS "session"("id" INTEGER PRIMARY KEY AUTOINCREMENT, "uuid"	TEXT, "user_id"	INTEGER UNIQUE )`)
+	session, err := db.Prepare(`CREATE TABLE IF NOT EXISTS "session"("id" INTEGER PRIMARY KEY AUTOINCREMENT, "uuid"	TEXT, "user_id"	INTEGER UNIQUE)`)
 	if err != nil {
 		log.Println(err)
 	}
@@ -85,6 +85,7 @@ func Init() {
 
 //first call -> put categories values
 func putCategoriesInDb() {
+
 	count := 0
 	err = db.QueryRow("SELECT count(*) FROM category").Scan(&count)
 	if err != nil {

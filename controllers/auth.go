@@ -71,7 +71,6 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 				msg := "Incorrect email address: example god@mail.kz"
 				utils.DisplayTemplate(w, "signup", &msg)
 			}
-			//}
 		})
 	}
 }

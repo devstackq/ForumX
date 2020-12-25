@@ -14,18 +14,14 @@ func main() {
 	config.Init()
 	controllers.Init()
 
-	//Not unique username - msg not correct -> if 2 time signup
-	//google auth, github auth -> signup -Chekck  if exist user -> show message
-	//by nickename, google auth, github -> logout other browser todo,
+	//valid Input data, and , logger - add midlaweare
+	//add last seen in System- when logout, save time
+	//edit post/comment, compare create time & update tiome, if update > current -> show edited & time
 
-	//try another logic -> when user login, but cookie another -> logout, with Table field - resseion(true), -> Note -phone see
-
-	//optimisation - beatu code, -> fix, signin server auth utils MEthods refactor
 	//no rows in result set  -> fix
 
-	//IsCookieExpiration -> refactor - logour function
 	//add writeHeader()
-	//redirect - signin not work,
+	//http: superfluous response.WriteHeader  fix
 
 	// try errors -> with gorutine
 	//|| controllers -> send UserID -> to Model
@@ -37,14 +33,13 @@ func main() {
 	//create post button -> вынести  В main page ...
 	// edit comment/.post -> add Edited message in Post
 
-
-	//not require, 
+	//not require,
 	//save copokie - local - Map[string]string
 	//save image -> local folder, no Db
 	// todo another Func add	CheckMethod
 	//mod Name -> change github/devstackq/...
 	//Start - reply system
-	
+
 	// перегрузку методов
 	// use constructor
 	// use anonim func
@@ -53,7 +48,7 @@ func main() {
 	// try architect like - Zhassymov Gt Search
 	//500 status - check
 	// docker check
-	
+
 	// done: category - table, nickname auth, url post/id=?, add 2 password form, createbutton in main page, show user name activity,  optimisation code, signin system, -> another session delete
 	//,cookie expired -> logout
 

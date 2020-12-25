@@ -24,7 +24,7 @@ func (u User) Signup(w http.ResponseWriter, r *http.Request) {
 	}
 	emailCheck := utils.IsRegistered(w, r, u.Email)
 	userCheck := utils.IsRegistered(w, r, u.Username)
-	if emailCheck == userCheck {
+	if !emailCheck && !userCheck {
 		userPrepare, err := DB.Prepare(`INSERT INTO users(full_name, email, username, password, age, sex, created_time, city, image) VALUES(?,?,?,?,?,?,?,?,?)`)
 		if err != nil {
 			log.Println(err)
@@ -35,88 +35,49 @@ func (u User) Signup(w http.ResponseWriter, r *http.Request) {
 		}
 		defer userPrepare.Close()
 	} else {
-		if emailCheck == false {
+		if emailCheck {
 			msg = "Not unique email"
-		} else if userCheck == false {
+		}
+		if userCheck {
 			msg = "Not unique username"
-		} else {
+		}
+		if userCheck && emailCheck {
 			msg = "Not unique email && username"
 		}
-		if utils.AuthType == "default" {
-			utils.DisplayTemplate(w, "signup", &msg)
-		}
+		//if utils.AuthType == "default" {
+		utils.DisplayTemplate(w, "signup", &msg)
+		//}
 	}
 }
 
 //Signin function dsds
 func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, s general.Session) {
 
-	var isUserOrEmail bool
-
-	if uStr.Username != "" {
-		isUserOrEmail = true
-	} else if uStr.Email != "" {
-		isUserOrEmail = false
-	}
 	var user User
 
 	err = DB.QueryRow("SELECT id FROM users WHERE email=?", uStr.Email).Scan(&user.ID)
 	if err != nil {
 		log.Println(err)
 	}
-	//if cookie timeout -> delete user from system
 
 	if utils.AuthType == "default" {
 
-		if !isUserOrEmail {
+		if uStr.Email != "" {
 			err = DB.QueryRow("SELECT id, password FROM users WHERE email=?", uStr.Email).Scan(&user.ID, &user.Password)
 			if err != nil {
 				log.Println("err email")
 				utils.AuthError(w, r, err, "user by Email not found", utils.AuthType)
 				return
 			}
-			//email || username _> have session ? -> delete session and cookie, ressession Call
-
-			var sid int
-			err = DB.QueryRow("SELECT id FROM session WHERE user_id=?", user.ID).Scan(&sid)
-			if err != nil {
-				log.Println(err, "no have session by uid")
-				//return
-			} else {
-				var sessionCookie string
-				err = DB.QueryRow("SELECT uuid FROM session WHERE user_id = ?", user.ID).Scan(&sessionCookie)
-				//current Browser(previus) ==  current new - session
-				//				log.Println(s.UUID, "|||", sessionCookie, "tuki", s.UserID, user.ID)
-
-				if s.UUID == sessionCookie {
-
-					log.Println("session have, logout user,  mean -> user in system, Delete cookie")
-					//get by email -> session, if have session -> drop session -> ReLogin
-					// if same browser delete cookie
-					_, err = DB.Exec("DELETE FROM session WHERE id = ?", sid)
-					//http.Redirect(w, r, "/signin", 302)
-					//log.Println(sid, "sid")
-					//deleted session ->
-					if utils.AuthType == "google" {
-						_, err = http.Get("https://accounts.google.com/o/oauth2/revoke?token=" + utils.Token)
-						if err != nil {
-							log.Println(err)
-						}
-					}
-				}
-			}
-			//a7d1fb2e-0383-41b4-b295-25dec2bd7c0e incognito
-			// 8b4c05e6-3e03-40bf-a659-cda1dc810328,
-
-			//Logout(w, r, s)
-			//ReLogin()
-		} else if isUserOrEmail {
+			utils.ReSession(user.ID)
+		} else if uStr.Username != "" {
 			err = DB.QueryRow("SELECT id, password FROM users WHERE username=?", uStr.Username).Scan(&user.ID, &user.Password)
 			if err != nil {
 				log.Println("errr username")
 				utils.AuthError(w, r, err, "user by Username not found", utils.AuthType)
 				return
 			}
+			utils.ReSession(user.ID)
 		}
 		//check pwd, if not correct, error
 		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(uStr.Password))
@@ -124,6 +85,8 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, s general.Sessi
 			utils.AuthError(w, r, err, "password incorrect", utils.AuthType)
 			return
 		}
+	} else if utils.AuthType == "google" || utils.AuthType == "github" {
+		utils.ReSession(user.ID)
 	}
 	//get user by Id, and write session struct
 	//create new session values
@@ -140,10 +103,9 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, s general.Sessi
 	if err != nil {
 		log.Println(err)
 	}
+
 	_, err = userPrepare.Exec(uuid, newSession.UserID)
 	defer userPrepare.Close()
-
-	fmt.Println(uuid, "set uuid in Db")
 
 	if err != nil {
 		utils.AuthError(w, r, err, "the user is already in the system", utils.AuthType)
@@ -159,11 +121,6 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, s general.Sessi
 		return
 	}
 
-	//update -> Middleware(Profile call) -> delete session Db, if no session Db -> exit
-
-	//if cookie not, dele
-	// this should give you time in location
-	//set cookie 9128ueq9widjaisdh238yrhdeiuwandijsan
 	cookie := http.Cookie{
 		Name:    "_cookie",
 		Value:   newSession.UUID,
@@ -173,17 +130,16 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, s general.Sessi
 		HttpOnly: false,
 	}
 	http.SetCookie(w, &cookie)
-	fmt.Println(newSession, "cookie", cookie)
 	utils.AuthError(w, r, nil, "success", utils.AuthType)
 	fmt.Println(utils.AuthType, "auth type")
-}
+	http.Redirect(w, r, "/profile", 302)
 
-// query -> if Db not have Cookie -> delete client side cookie
+}
 
 //Logout function
 func Logout(w http.ResponseWriter, r *http.Request, s general.Session) {
 
-	utils.IsCookieExpiration(w, r, s)
+	utils.Logout(w, r, s)
 
 	if utils.AuthType == "google" {
 		_, err = http.Get("https://accounts.google.com/o/oauth2/revoke?token=" + utils.Token)
