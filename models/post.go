@@ -194,30 +194,28 @@ func (p *Post) UpdatePost() {
 }
 
 //DeletePost function, delete rows, notify, voteState, comment, by postId
-func (p *Post) DeletePost() error {
+func (p *Post) DeletePost() {
 
 	_, err = DB.Exec("DELETE FROM comments  WHERE post_id =?", p.ID)
 	if err != nil {
-		return err
+log.Println(err)
 	}
 	_, err = DB.Exec("DELETE FROM notify  WHERE post_id =?", p.ID)
 	if err != nil {
-		return err
+		log.Println(err)
 	}
 	_, err = DB.Exec("DELETE FROM voteState  WHERE post_id =?", p.ID)
 	if err != nil {
-		return err
+		log.Println(err)
 	}
 	_, err = DB.Exec("DELETE FROM post_cat_bridge  WHERE post_id =?", p.ID)
 	if err != nil {
-		return err
+		log.Println(err)
 	}
 	_, err = DB.Exec("DELETE FROM posts  WHERE id =?", p.ID)
 	if err != nil {
-		return err
+		log.Println(err)
 	}
-
-	return nil
 }
 
 //CreatePost function
@@ -311,15 +309,15 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 			p.SVG = true
 		}
 	}
+	//difference time -> ,meand edited
 	diff := p.UpdateTime.Sub(p.CreateTime)
-
 	if diff > 0 {
 		p.Time = p.UpdateTime.Format("2006 Jan _2 15:04:05")
 		p.Edited = true
 	}else {
 		p.Time = p.CreateTime.Format("2006 Jan _2 15:04:05")
 	}
-//	p.Time = p.CreateTime.Format("2006 Jan _2 15:04:05")
+
 	p.ImageHTML = base64.StdEncoding.EncodeToString(p.Image)
 	DB.QueryRow("SELECT full_name FROM users WHERE id = ?", p.CreatorID).Scan(&p.FullName)
 

@@ -35,20 +35,18 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 		Category: r.FormValue("cats"),
 	}
 
-	p, endpoint, category := filterValue.GetAllPost(r, r.FormValue("next"), r.FormValue("prev"))
+	posts, endpoint, category := filterValue.GetAllPost(r, r.FormValue("next"), r.FormValue("prev"))
 
 	utils.RenderTemplate(w, "header", utils.IsAuth(r))
 
 	if endpoint == "/" {
-		//posts := models.AllPosts{Posts: p}
-		
-		utils.RenderTemplate(w, "index", p)
+		utils.RenderTemplate(w, "index", posts)
 	} else {
 		//send category value
 		msg := []byte(fmt.Sprintf("<h3 id='category'> %s </h3>", category))
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(msg)
-		utils.RenderTemplate(w, "category_post_template", p)
+		utils.RenderTemplate(w, "category_post_template", posts)
 	}
 }
 //GetPostByID  1 post by id
@@ -56,14 +54,11 @@ func GetPostByID(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/post") {
 
-		count := 0
-		err = DB.QueryRow("SELECT count(*) FROM posts").Scan(&count)
-		if err != nil {
-			log.Println(err)
-		}
+		if r.Method == "GET" {
 
+		count := utils.GetCountTable("posts", DB)
 		id, _ := strconv.Atoi(r.FormValue("id"))
-
+		
 		if id > 0 && id <= count {
 			pid := models.Post{ID: id}
 			comments, post, err := pid.GetPostByID(r)
@@ -78,6 +73,8 @@ func GetPostByID(w http.ResponseWriter, r *http.Request) {
 			utils.RenderTemplate(w, "404page", http.StatusBadRequest)
 		}
 	}
+
+	}
 }
 
 //CreatePost  function
@@ -85,7 +82,6 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/create/post") {
 
-		//switch r.Method {
 		if r.Method == "GET" {
 			utils.RenderTemplate(w, "header", utils.IsAuth(r))
 			utils.RenderTemplate(w, "create_post", &msg)
@@ -124,7 +120,7 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 		pid, _ := strconv.Atoi(r.FormValue("id"))
 
 		if r.Method == "GET" {
-
+		//send data - client
 			var p models.Post
 			DB.QueryRow("SELECT * FROM posts WHERE id = ?", pid).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreateTime, &p.UpdateTime, &p.Image, &p.Like, &p.Dislike)
 			p.ImageHTML = base64.StdEncoding.EncodeToString(p.Image)
@@ -145,8 +141,8 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 			
 			p.UpdatePost()
 		}
-		http.Redirect(w, r, "/profile", 302)
-		//http.Redirect(w, r, "/post?id="+strconv.Itoa(int(pid)), 302)
+		//http.Redirect(w, r, "/profile", 302)
+		http.Redirect(w, r, "/post?id="+strconv.Itoa(int(pid)), 302)
 	}
 }
 
@@ -154,15 +150,9 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 func DeletePost(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/delete/post") {
-
 		pid, _ := strconv.Atoi(r.URL.Query().Get("id"))
 		p := models.Post{ID: pid}
-
-		err = p.DeletePost()
-
-		if err != nil {
-			log.Println(err.Error())
-		}
+		p.DeletePost()
 		http.Redirect(w, r, "/profile", 302)
 	}
 }
@@ -171,25 +161,15 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 func Search(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/search") {
-
-		if r.Method == "GET" {
-			utils.RenderTemplate(w, "search", http.StatusFound)
-		}
-
-		if r.Method == "POST" {
-
 			foundPosts := models.Search(w, r)
-
+			utils.RenderTemplate(w, "header", utils.IsAuth(r))
 			if foundPosts == nil {
-				utils.RenderTemplate(w, "header", utils.IsAuth(r))
 				msg := []byte(fmt.Sprintf("<h2 id='notFound'> Nihuya ne naideno </h2>"))
 				w.Header().Set("Content-Type", "application/json")
 				w.Write(msg)
 				utils.RenderTemplate(w, "index", nil)
 			} else {
-				utils.RenderTemplate(w, "header", utils.IsAuth(r))
 				utils.RenderTemplate(w, "index", foundPosts)
 			}
 		}
 	}
-}

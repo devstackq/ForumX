@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"ForumX/utils"
-	"fmt"
 	"log"
 	"net/http"
 )
@@ -73,6 +72,7 @@ func Init() {
 	mux.HandleFunc("/activity", IsValidCookie(GetUserActivities))
 	mux.HandleFunc("/search", Search)
 	// http.HandleFunc("/chat", routing.StartChat)
+	log.Println("Listening port:", PORT)
 	log.Fatal(http.ListenAndServe(PORT, mux))
-	fmt.Println("Listening port:", PORT)
+	
 }

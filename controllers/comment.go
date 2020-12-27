@@ -70,7 +70,7 @@ func DeleteComment(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/profile", 302)
 }
 
-//AnswerComment func
+//AnswerComment func replyComment
 func AnswerComment(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/answer/comment") {
@@ -90,12 +90,7 @@ func AnswerComment(w http.ResponseWriter, r *http.Request) {
 				PostID:  pid,
 				UserID:  session.UserID,
 			}
-
-			lastInsertCommentID, err = comment.LeaveComment()
-
-			if err != nil {
-				log.Println(err.Error())
-			}
+			lastInsertCommentID = comment.LeaveComment()
 		}
 		fmt.Println(toWhom, answer, currentCommentID, "last inserted comment ID", lastInsertCommentID)
 

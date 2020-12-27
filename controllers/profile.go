@@ -18,9 +18,7 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 			//if userId now, createdPost uid equal -> show
 			dislikedPost, likedPost, posts, comments, user := models.GetUserProfile(r, w, session)
-			if err != nil {
-				log.Println(err)
-			}
+	
 			//check if current cookie equal - cookie
 			utils.RenderTemplate(w, "header", utils.IsAuth(r))
 			utils.RenderTemplate(w, "profile", user)

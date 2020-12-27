@@ -31,7 +31,7 @@ type Comment struct {
 
 
 //LeaveComment for post by id
-func (c *Comment) LeaveComment()  {
+func (c *Comment) LeaveComment() (int64) {
 
 	commentPrepare, err := DB.Prepare(`INSERT INTO comments(content, post_id, creator_id, create_time) VALUES(?,?,?,?)`)
 	if err != nil {
@@ -53,6 +53,7 @@ func (c *Comment) LeaveComment()  {
 		log.Println(err)
 	}
 	utils.SetCommentNotify(c.PostID, c.UserID, c.ToWhom, lid)
+	return lid
 }
 
 //UpdateComment func

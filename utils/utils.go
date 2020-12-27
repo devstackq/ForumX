@@ -266,6 +266,14 @@ func IsImage(r *http.Request) []byte {
 	}
 	return imgBytes
 }
+func GetCountTable(table string, db *sql.DB) (count int) {
+
+	err = db.QueryRow("SELECT count(*) FROM " + table).Scan(&count)
+	if err != nil {
+		log.Println(err)
+	}
+	return count
+}
 
 //IsRegistered func
 func IsRegistered(w http.ResponseWriter, r *http.Request, data string) bool {
@@ -277,14 +285,10 @@ func IsRegistered(w http.ResponseWriter, r *http.Request, data string) bool {
 		field = "email"
 	}
 	//check email by unique, if have same email
-	count := 0
 	var users []string
 	var emailDB string
 
-	err = DB.QueryRow("SELECT count(*) FROM users").Scan(&count)
-	if err != nil {
-		log.Println(err)
-	}
+	count := GetCountTable("users", DB)
 	if count > 0 {
 
 		checkUser, err := DB.Query("SELECT " + field + " FROM users")

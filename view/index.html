@@ -4,7 +4,6 @@
     {{template "search"}} {{template "filter_post" }}
 
     {{ range $key, $value := . }}
-
     <a class="links" href="/post?id={{$value.ID}}">
         <div class="wrapper-main">
             <form method="POST" action="{{ $value.Endpoint}}/{{$value.ID}}">

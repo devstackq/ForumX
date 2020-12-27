@@ -94,7 +94,7 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, s *general.Session) 
 	defer commentQuery.Close()
 
 	for commentQuery.Next() {
-		err = commentQuery.Scan(&cmt.ID, &cmt.Content, &cmt.PostID, &cmt.UserID, &cmt.Time, &cmt.UpdatedTime, &cmt.Like, &cmt.Dislike)
+		err = commentQuery.Scan(&cmt.ID, &cmt.Content, &cmt.PostID, &cmt.UserID, &cmt.CreatedTime, &cmt.UpdatedTime, &cmt.Like, &cmt.Dislike)
 		if err != nil {
 			log.Println(err.Error())
 		}

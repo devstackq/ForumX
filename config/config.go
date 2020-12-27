@@ -85,11 +85,7 @@ func Init() {
 //first call -> put categories values
 func putCategoriesInDb() {
 
-	count := 0
-	err = db.QueryRow("SELECT count(*) FROM category").Scan(&count)
-	if err != nil {
-		log.Println(err)
-	}
+count := utils.GetCountTable("category", db)
 
 	if count != 3 {
 		categories := []string{"science", "love", "sapid"}
