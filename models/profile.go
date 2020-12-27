@@ -223,14 +223,12 @@ func (user *User) GetAnotherProfile(r *http.Request) ([]Post, User, error) {
 }
 
 //UpdateProfile function
-func (u *User) UpdateProfile() error {
+func (u *User) UpdateProfile() {
 
 	_, err := DB.Exec("UPDATE  users SET full_name=?, age=?, sex=?, city=?, image=? WHERE id =?",
 		u.FullName, u.Age, u.Sex, u.City, u.Image, u.ID)
 	if err != nil {
-		return err
-	}
-	return nil
+	log.Println(err)	}
 }
 
 //DeleteAccount then dlogut - delete cookie, delete lsot comment, session Db, voteState

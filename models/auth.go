@@ -122,19 +122,10 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, s general.Sessi
 		return
 	}
 
-	cookie := http.Cookie{
-		Name:    "_cookie",
-		Value:   newSession.UUID,
-		Path:    "/",
-		Expires: time.Now().Add(21 * time.Minute),
-		//MaxAge:   15,
-		HttpOnly: false,
-	}
-	http.SetCookie(w, &cookie)
+	utils.SetCookie(w, newSession.UUID)
 	utils.AuthError(w, r, nil, "success", utils.AuthType)
 	fmt.Println(utils.AuthType, "auth type")
 	http.Redirect(w, r, "/profile", 302)
-
 }
 
 //Logout function

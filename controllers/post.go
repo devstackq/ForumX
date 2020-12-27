@@ -54,28 +54,25 @@ func GetPostByID(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/post") {
 
-		if r.Method == "GET" {
-
-		count := utils.GetCountTable("posts", DB)
 		id, _ := strconv.Atoi(r.FormValue("id"))
+		var temp string
+		err = DB.QueryRow("select content from posts where id=?", id).Scan(&temp)
+	if err != nil {
+		log.Println(err)
+		utils.RenderTemplate(w, "404page", http.StatusBadRequest)
+		return 
+	}
+	fmt.Println(temp)
 		
-		if id > 0 && id <= count {
 			pid := models.Post{ID: id}
-			comments, post, err := pid.GetPostByID(r)
-			if err != nil {
-				log.Println(err)
-			}
+			comments, post := pid.GetPostByID(r)
+		
 			utils.RenderTemplate(w, "header", utils.IsAuth(r))
 			utils.RenderTemplate(w, "posts", post)
 			utils.RenderTemplate(w, "comment_post", comments)
 			//utils.RenderTemplate(w, "reply_comment", repliesComment)
-		} else {
-			utils.RenderTemplate(w, "404page", http.StatusBadRequest)
 		}
 	}
-
-	}
-}
 
 //CreatePost  function
 func CreatePost(w http.ResponseWriter, r *http.Request) {

@@ -10,10 +10,8 @@ import (
 func main() {
 	config.Init()
 	controllers.Init()
-	// after delete post, not correct show Link post -> fix redirect Post
-	//check - delete comment -> ? - same problem ?
-	//optimisation, and prettier code, -> 10 princip projectio programmin - profile contorller
 
+	//optimisation, and prettier code, -> 10 princip projectio programmin - post models
 
 	//create uniq Func -> queryDb(table, ...fields string, db)
 	// todo another Func add CheckMethod

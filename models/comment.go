@@ -2,7 +2,6 @@ package models
 
 import (
 	"ForumX/utils"
-	"fmt"
 	"log"
 	"time"
 )
@@ -58,7 +57,6 @@ func (c *Comment) LeaveComment() (int64) {
 
 //UpdateComment func
 func (c *Comment) UpdateComment() {
-	fmt.Println(c.UpdatedTime)
 	_, err := DB.Exec("UPDATE comments SET content=?, update_time=? WHERE id =?",
 		c.Content, c.UpdatedTime, c.ID )
 	if err != nil {

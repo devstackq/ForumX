@@ -74,23 +74,18 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if r.Method == "POST" {
-
-			is, _ := strconv.Atoi(r.FormValue("age"))
+			age, _ := strconv.Atoi(r.FormValue("age"))
 
 			p := models.User{
 				FullName: r.FormValue("fullname"),
-				Age:      is,
+				Age:      age,
 				Sex:      r.FormValue("sex"),
 				City:     r.FormValue("city"),
 				Image:    utils.FileByte(r, "user"),
 				ID:       session.UserID,
 			}
 
-			err = p.UpdateProfile()
-
-			if err != nil {
-				log.Println(err.Error())
-			}
+			p.UpdateProfile()
 		}
 		http.Redirect(w, r, "/profile", http.StatusFound)
 	}
@@ -101,14 +96,11 @@ func DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	if utils.URLChecker(w, r, "/delete/account") {
 
 		if r.Method == "POST" {
-
 			var p models.User
-
 			err := json.NewDecoder(r.Body).Decode(&p.ID)
 			if err != nil {
 				log.Println(err)
 			}
-
 			p.DeleteAccount(w, r)
 			fmt.Println("deleted account by ID", p.ID)
 		}

@@ -33,6 +33,7 @@ func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s *gene
 
 	err = DB.QueryRow("SELECT creator_id FROM "+table+"  WHERE id=?", id).Scan(&vote.CreatorID)
 	objID, _ := strconv.Atoi(id)
+	v := Votes{}
 
 	if vote.ID == 0 {
 		fmt.Println(vote.ID, s.UserID, "start", objID, table, "table", "init Dislike field", field)
@@ -84,7 +85,6 @@ func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s *gene
 			}
 			//remove notify table
 			//research Pointer -> Struct, and Method Struct
-			v := Votes{}
 
 			v.UpdateNotify(any, vote.CreatorID, s.UserID, objID, 0)
 			fmt.Println("case 2 like 0, dis 1")
@@ -109,8 +109,6 @@ func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s *gene
 				log.Println(err)
 			}
 
-			v := Votes{}
-
 			v.UpdateNotify(any, vote.CreatorID, s.UserID, objID, 2)
 		}
 
@@ -125,8 +123,6 @@ func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s *gene
 			if err != nil {
 				log.Println(err)
 			}
-			v := Votes{}
-
 			v.UpdateNotify(any, vote.CreatorID, s.UserID, objID, 2)
 		}
 	}
@@ -147,6 +143,7 @@ func VoteLike(w http.ResponseWriter, r *http.Request, id, any string, s *general
 		log.Println(err)
 	}
 	pid, _ := strconv.Atoi(id)
+	v := Votes{}
 
 	if vote.ID == 0 {
 		fmt.Println(vote.ID, s.UserID, "start", id, table, "table", "init Like field", field)
@@ -200,7 +197,7 @@ func VoteLike(w http.ResponseWriter, r *http.Request, id, any string, s *general
 				log.Println(err)
 			}
 
-			utils.UpdateVoteNotify(any, vote.CreatorID, s.UserID, pid, 0)
+			v.UpdateNotify(any, vote.CreatorID, s.UserID, pid, 0)
 
 		}
 		//set dislike -> to like
@@ -219,7 +216,7 @@ func VoteLike(w http.ResponseWriter, r *http.Request, id, any string, s *general
 			}
 
 			//add like notify &  remove DislikeNotify
-			utils.UpdateVoteNotify(any, vote.CreatorID, s.UserID, pid, 1)
+			v.UpdateNotify(any, vote.CreatorID, s.UserID, pid, 1)
 		}
 		//set like,
 		if vote.LikeState == 0 && vote.DislikeState == 0 {
@@ -234,7 +231,7 @@ func VoteLike(w http.ResponseWriter, r *http.Request, id, any string, s *general
 			if err != nil {
 				log.Println(err)
 			}
-			utils.UpdateVoteNotify(any, vote.CreatorID, s.UserID, pid, 1)
+			v.UpdateNotify(any, vote.CreatorID, s.UserID, pid, 1)
 		}
 	}
 }

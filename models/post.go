@@ -72,10 +72,6 @@ type Filter struct {
 	Date     string `json:"date"`
 }
 
-type AllPosts struct {
-	Posts []Post
-	Auth string	
-}
 
 //GetAllPost function
 func (filter *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string, string) {
@@ -198,7 +194,7 @@ func (p *Post) DeletePost() {
 
 	_, err = DB.Exec("DELETE FROM comments  WHERE post_id =?", p.ID)
 	if err != nil {
-log.Println(err)
+		log.Println(err)
 	}
 	_, err = DB.Exec("DELETE FROM notify  WHERE post_id =?", p.ID)
 	if err != nil {
@@ -212,7 +208,7 @@ log.Println(err)
 	if err != nil {
 		log.Println(err)
 	}
-	_, err = DB.Exec("DELETE FROM posts  WHERE id =?", p.ID)
+	_, err = DB.Exec("DELETE FROM posts WHERE id =?", p.ID)
 	if err != nil {
 		log.Println(err)
 	}
@@ -295,7 +291,7 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 }
 
 //GetPostByID function take from all post, only post by id, then write p struct Post
-func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
+func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post) {
 //write new structure data
 	p := Post{}
 	err = DB.QueryRow("SELECT * FROM posts WHERE id = ?", post.ID).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreateTime, &p.UpdateTime, &p.Image, &p.Like, &p.Dislike)
@@ -309,7 +305,7 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 			p.SVG = true
 		}
 	}
-	//difference time -> ,meand edited
+	//difference time -> ,mean edited
 	diff := p.UpdateTime.Sub(p.CreateTime)
 	if diff > 0 {
 		p.Time = p.UpdateTime.Format("2006 Jan _2 15:04:05")
@@ -344,7 +340,6 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 		}else {
 			comment.Time = comment.CreatedTime.Format("2006 Jan _2 15:04:05")
 		}
-		
 		DB.QueryRow("SELECT full_name FROM users WHERE id = ?", comment.UserID).Scan(&comment.Author)
 
 		// replyCommentQuery, err := DB.Query("SELECT * FROM replyComment WHERE comment_id =?", comment.ID)
@@ -367,9 +362,9 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 		comments = append(comments, comment)
 	}
 	if err != nil {
-		return comments, p, err
+	log.Println(err)
 	}
-	return comments, p, nil
+	return comments, p
 }
 
 //CreateBridge create post  -> post_id relation category

@@ -28,7 +28,6 @@ func IsValidCookie(f http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-
 //Init func handlers
 func Init() {
 	const PORT = ":6969"
@@ -74,5 +73,4 @@ func Init() {
 	// http.HandleFunc("/chat", routing.StartChat)
 	log.Println("Listening port:", PORT)
 	log.Fatal(http.ListenAndServe(PORT, mux))
-	
 }

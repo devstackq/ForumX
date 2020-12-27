@@ -59,6 +59,8 @@ func Init() {
 	// if err != nil {
 	// 	log.Println(err)
 	// }
+	// commentBridge.Exec()
+	// replyComment.Exec()
 	category, err := db.Prepare(`CREATE TABLE IF NOT EXISTS  category(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE)`)
 	if err != nil {
 		log.Println(err)
@@ -70,11 +72,10 @@ func Init() {
 	comment.Exec()
 	user.Exec()
 	voteState.Exec()
-	notify.Exec()
-	// commentBridge.Exec()
-	// replyComment.Exec()
+	notify.Exec()	
 	category.Exec()
 	putCategoriesInDb()
+	
 	//send packege - DB conn
 	controllers.DB = db
 	models.DB = db

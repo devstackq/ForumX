@@ -39,7 +39,7 @@ var (
 )
 //API struct
 type API struct {
-	Authenticated bool `json:"authenticated"`
+	Authenticated bool `json:"authentificated"`
 }
 
 //IsAuth check user now authorized system ?
@@ -94,19 +94,9 @@ func CheckLetter(value string) bool {
 	return false
 }
 
-//calback methods continue, anonim
-func TestCallback(arr []int, count int, flag bool, sortX func([]int)) {
-	if count > 5 && flag {
-		sortX(arr)
-	} else {
-		//1 call func example
-		fmt.Println("не сооттветствуют данные")
-	}
-}
 //CheckMethod anonim callback function, call parent Func -> then call child Func if condition True
 func CheckMethod(method string, tmpl string, isAuth bool, msg string, w http.ResponseWriter, f func(http.ResponseWriter)) {
 	 if (method == "GET" ) &&  (tmpl == "signin" || tmpl == "signup") {
-		//RenderTemplate(w, "header", isAuth)
 		RenderTemplate(w, tmpl, isAuth)
 	} else {
 		f(w)
@@ -126,21 +116,23 @@ func RenderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 
 //IsCookieExpiration if cookie time = 0, delete session and cookie client
 func Logout(w http.ResponseWriter, r *http.Request, s *general.Session) {
+
 	DeleteCookie(w)
 	DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).Scan(&s.ID)
 	_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
-	*s = general.Session{UserID: 0}
+	*s = general.Session{}
 	fmt.Println(s, "session after logout")
 	http.Redirect(w, r, "/signin", 302)
+
 }
 
 //FileByte func for convert receive file - to fileByte
 func FileByte(r *http.Request, typePhoto string) []byte {
 	//check user photo || post photo
+	var defImg *os.File
 	r.ParseMultipartForm(10 << 20)
 	file, _, err := r.FormFile("uploadfile")
 
-	var defImg *os.File
 	if err != nil {
 		log.Println(err)
 		//set default photo user
@@ -236,36 +228,35 @@ func DeleteCookie(w http.ResponseWriter) {
 		HttpOnly: false,
 	}
 	http.SetCookie(w, &cookieDelete)
-
 }
-func GetUserID(cookie string) (uid int) {
 
-	err = DB.QueryRow("SELECT id FROM session WHERE uuid = ?", cookie).Scan(&uid)
+func SetCookie(w http.ResponseWriter, uuid string) {
 
-	if err != nil {
-		log.Println(err)
+	cookie := http.Cookie{
+		Name:    "_cookie",
+		Value:   uuid,
+		Path:    "/",
+		Expires: time.Now().Add(21 * time.Minute),
+		//MaxAge:   1200,
+		HttpOnly: false,
 	}
-	return uid
+	http.SetCookie(w, &cookie)
 }
 
 //IsImage func
 func IsImage(r *http.Request) []byte {
 
 	f, _, _ := r.FormFile("uploadfile")
-	photoFlag := false
-
-	if f != nil {
-		photoFlag = true
-	}
 	var imgBytes []byte
 
-	if !photoFlag {
-		imgBytes = []byte{0, 0}
-	} else {
+	if f != nil {
 		imgBytes = FileByte(r, "post")
+	}else {
+		imgBytes = []byte{0, 0}
 	}
 	return imgBytes
 }
+
 func GetCountTable(table string, db *sql.DB) (count int) {
 
 	err = db.QueryRow("SELECT count(*) FROM " + table).Scan(&count)
@@ -289,8 +280,8 @@ func IsRegistered(w http.ResponseWriter, r *http.Request, data string) bool {
 	var emailDB string
 
 	count := GetCountTable("users", DB)
-	if count > 0 {
 
+	if count > 0 {
 		checkUser, err := DB.Query("SELECT " + field + " FROM users")
 		if err != nil {
 			log.Println(err)
@@ -302,7 +293,6 @@ func IsRegistered(w http.ResponseWriter, r *http.Request, data string) bool {
 			}
 			users = append(users, emailDB)
 		}
-
 		for _, v := range users {
 			if v == data {
 				log.Println(err)
@@ -315,29 +305,7 @@ func IsRegistered(w http.ResponseWriter, r *http.Request, data string) bool {
 	return false
 }
 
-//UpdateVoteNotify func
-func UpdateVoteNotify(table string, toWhom, fromWhom, objID, voteType int) {
-
-	fmt.Println(voteType, "vote TYPE", table)
-
-	if table == "post" && toWhom != 0 {
-		_, err = DB.Exec("UPDATE notify SET voteState=? WHERE comment_id=? AND post_id =? AND current_user_id=?  AND to_whom=?", voteType, 0, objID, fromWhom, toWhom)
-		if err != nil {
-			fmt.Println(err)
-		}
-		fmt.Println(objID, fromWhom, toWhom, "update  Like/Dislike Post")
-
-	} else if table == "comment" && toWhom != 0 {
-
-		fmt.Println(objID, fromWhom, toWhom, "notify Update Vote Comment")
-		_, err = DB.Exec("UPDATE notify SET voteState=? WHERE post_id=? AND  comment_id=? AND current_user_id=?  AND to_whom=?", voteType, 0, objID, fromWhom, toWhom)
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
-}
-
-//SetVoteNotify func
+//SetVoteNotify func, post || comment - set notify
 func SetVoteNotify(table string, toWhom, fromWhom, objID int, voteLD bool) {
 
 	voteState := 2
@@ -346,7 +314,6 @@ func SetVoteNotify(table string, toWhom, fromWhom, objID int, voteLD bool) {
 	}
 	//putch(some fields), put(all fields),
 	if table == "post" && toWhom != 0 {
-
 		voteNotifyPreparePost, err := DB.Prepare(`INSERT INTO notify(post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)`)
 		if err != nil {
 			log.Println(err)
@@ -359,9 +326,6 @@ func SetVoteNotify(table string, toWhom, fromWhom, objID int, voteLD bool) {
 		defer voteNotifyPreparePost.Close()
 
 	} else if table == "comment" && toWhom != 0 {
-
-		fmt.Println(objID, fromWhom, toWhom, "notify Set Vote comment")
-
 		voteNotifyPrepare, err := DB.Prepare(`INSERT INTO notify( post_id, current_user_id, voteState, created_time, to_whom, comment_id ) VALUES(?, ?, ?, ?, ?, ?)`)
 		if err != nil {
 			log.Println(err)
@@ -371,6 +335,7 @@ func SetVoteNotify(table string, toWhom, fromWhom, objID int, voteLD bool) {
 			log.Println(err)
 		}
 		defer voteNotifyPrepare.Close()
+		fmt.Println(objID, fromWhom, toWhom, "notify Set Vote comment")
 	}
 }
 
@@ -385,6 +350,7 @@ func SetCommentNotify(pid string, fromWhom, toWhom int, lid int64) {
 	if err != nil {
 		log.Println(err)
 	}
+	fmt.Println(pid, fromWhom, toWhom, "Set comment notify")
 	defer voteNotifyPrepare.Close()
 }
 
@@ -407,7 +373,6 @@ func ReSession(uid int, s *general.Session) {
 }
 //QueryDb comment
 func QueryDb(table string, db *sql.DB, queryType string, fields ...string) {
-
 }
 
 //func IsEdit(diff time.Duration, data interface{}) {
