@@ -10,24 +10,25 @@ import (
 //анонимная функция вызывается, и делает логику, смотрит куки, и если надо вызовет хендлер, а отом вернет результат вызова анонимной фукнции
 //Коллбэки же позволяют нам быть уверенными в том, что определенный код не начнет исполнение до того момента, пока другой код не завершит исполнение.
 // high order function func(func)(callback)
-func Middleware(f http.HandlerFunc) http.HandlerFunc {
-
+func IsValidCookie(f http.HandlerFunc) http.HandlerFunc {
+	
 	return func(w http.ResponseWriter, r *http.Request) {
 		//check expires cookie
 		c, err := r.Cookie("_cookie")
 		if err != nil {
-			log.Println(err, "expires timeout")
+			log.Println(err, "expires timeout || cookie deleted")
 			utils.Logout(w, r, session)
 			return
 		}
 		// then call handler -> middleware
 		if isValidCookie, sessionF := utils.IsCookie(w, r, c.Value); isValidCookie {
 			//write session data - global variable
-			session = sessionF
+			session = &sessionF
 			f(w, r)
 		}
 	}
 }
+
 
 //Init func handlers
 func Init() {
@@ -43,17 +44,17 @@ func Init() {
 	mux.HandleFunc("/science", GetAllPosts)
 
 	mux.HandleFunc("/post", GetPostByID)
-	mux.HandleFunc("/create/post", Middleware(CreatePost))
-	mux.HandleFunc("/edit/post", Middleware(UpdatePost))
-	mux.HandleFunc("/delete/post", Middleware(DeletePost))
+	mux.HandleFunc("/create/post", IsValidCookie(CreatePost))
+	mux.HandleFunc("/edit/post", IsValidCookie(UpdatePost))
+	mux.HandleFunc("/delete/post", IsValidCookie(DeletePost))
 
-	mux.HandleFunc("/comment", Middleware(LeaveComment))
-	mux.HandleFunc("/edit/comment", Middleware(UpdateComment))
-	mux.HandleFunc("/delete/comment", Middleware(DeleteComment))
-	mux.HandleFunc("/answer/comment", Middleware(AnswerComment))
+	mux.HandleFunc("/comment", IsValidCookie(LeaveComment))
+	mux.HandleFunc("/edit/comment", IsValidCookie(UpdateComment))
+	mux.HandleFunc("/delete/comment", IsValidCookie(DeleteComment))
+	mux.HandleFunc("/answer/comment", IsValidCookie(AnswerComment))
 
-	mux.HandleFunc("/votes/post", Middleware(VotesPost))
-	mux.HandleFunc("/votes/comment", Middleware(VotesComment))
+	mux.HandleFunc("/votes/post", IsValidCookie(VotesPost))
+	mux.HandleFunc("/votes/comment", IsValidCookie(VotesComment))
 
 	mux.HandleFunc("/signin", Signin)
 	mux.HandleFunc("/signup", Signup)
@@ -62,14 +63,14 @@ func Init() {
 
 	mux.HandleFunc("/githubSignin", GithubSignin)
 	mux.HandleFunc("/githubUserInfo", GithubUserData)
-	mux.HandleFunc("/logout", Middleware(Logout))
+	mux.HandleFunc("/logout", IsValidCookie(Logout))
 
-	mux.HandleFunc("/profile", Middleware(GetUserProfile))
-	mux.HandleFunc("/user/id", Middleware(GetAnotherProfile))
-	mux.HandleFunc("/edit/user", Middleware(UpdateProfile))
-	mux.HandleFunc("/delete/account", Middleware(DeleteAccount))
+	mux.HandleFunc("/profile", IsValidCookie(GetUserProfile))
+	mux.HandleFunc("/user/id", IsValidCookie(GetAnotherProfile))
+	mux.HandleFunc("/edit/user", IsValidCookie(UpdateProfile))
+	mux.HandleFunc("/delete/account", IsValidCookie(DeleteAccount))
 
-	mux.HandleFunc("/activity", Middleware(GetUserActivities))
+	mux.HandleFunc("/activity", IsValidCookie(GetUserActivities))
 	mux.HandleFunc("/search", Search)
 	// http.HandleFunc("/chat", routing.StartChat)
 	log.Fatal(http.ListenAndServe(PORT, mux))

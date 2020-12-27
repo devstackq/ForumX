@@ -2,6 +2,7 @@ package models
 
 import (
 	"ForumX/utils"
+	"fmt"
 	"log"
 	"time"
 )
@@ -18,6 +19,7 @@ type Comment struct {
 	TitlePost   string    `json:"titlePost"`
 	Time        time.Time `json:"time"`
 	CreatedTime string    `json:"createdTime"`
+	UpdatedTime time.Time    `json:"updatedTime"`
 	ToWhom      int       `json:"toWhom"`
 	FromWhom    int       `json:"fromWhom"`
 	ReplyID     int       `json:"replyId"`
@@ -30,7 +32,7 @@ type Comment struct {
 //LeaveComment for post by id
 func (c *Comment) LeaveComment() (int64, error) {
 
-	commentPrepare, err := DB.Prepare(`INSERT INTO comments(content, post_id, creator_id, created_time) VALUES(?,?,?,?)`)
+	commentPrepare, err := DB.Prepare(`INSERT INTO comments(content, post_id, creator_id, create_time) VALUES(?,?,?,?)`)
 	if err != nil {
 		log.Println(err)
 	}
@@ -56,9 +58,9 @@ func (c *Comment) LeaveComment() (int64, error) {
 
 //UpdateComment func
 func (c *Comment) UpdateComment() {
-	_, err := DB.Exec("UPDATE  comments SET  content=? WHERE id =?",
-		c.Content, c.ID)
-
+	fmt.Println(c.UpdatedTime)
+	_, err := DB.Exec("UPDATE comments SET content=?, update_time=? WHERE id =?",
+		c.Content, c.UpdatedTime, c.ID )
 	if err != nil {
 		log.Println(err)
 	}

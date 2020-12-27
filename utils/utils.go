@@ -20,6 +20,7 @@ import (
 )
 
 var (
+	//DB connect
 	DB   *sql.DB
 	err  error
 	temp = template.Must(template.ParseFiles("./view/header.html", "view/update_comment.html", "view/activity.html", "view/disliked.html", "view/category_post.html", "view/favorites.html", "view/404page.html", "view/update_post.html", "view/created_post.html", "view/comment_user.html", "view/profile_update.html", "view/search.html", "view/another_user.html", "view/profile.html", "view/signin.html", "view/signup.html", "view/filter.html", "view/post.html", "view/comment_post.html", "view/create_post.html", "view/footer.html", "view/index.html"))
@@ -36,7 +37,7 @@ var (
 	Token    string
 	AuthType string
 )
-
+//API struct
 type API struct {
 	Authenticated bool `json:"authenticated"`
 }
@@ -62,20 +63,21 @@ func IsCookie(w http.ResponseWriter, r *http.Request, cookie string) (bool, gene
 		err = DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
 		if err != nil {
 			log.Println(err, "warn: no session with this cookie")
-			Logout(w, r, s)
+			Logout(w, r, &s)
 			return false, s
 		}
 		//get uuid by userId in session table
 		err = DB.QueryRow("SELECT uuid FROM session WHERE user_id = ?", s.UserID).Scan(&s.DbCookie)
 		if err != nil {
 			log.Println(err, "warn: no session with this UserID")
-			Logout(w, r, s)
+			Logout(w, r, &s)
 			return false, s
 		}
 		//sesseionCookie != dbCookie
 		if s.DbCookie != s.UUID {
 			log.Println(err, "warn: reSession || cookie changed")
-			Logout(w, r, s)
+			Logout(w, r, &s)
+			//s = general.Session{}
 			return false, s
 		}
 	}
@@ -92,7 +94,7 @@ func CheckLetter(value string) bool {
 	return false
 }
 
-//calback methods continue
+//calback methods continue, anonim
 func TestCallback(arr []int, count int, flag bool, sortX func([]int)) {
 	if count > 5 && flag {
 		sortX(arr)
@@ -101,35 +103,34 @@ func TestCallback(arr []int, count int, flag bool, sortX func([]int)) {
 		fmt.Println("не сооттветствуют данные")
 	}
 }
-
+//CheckMethod anonim callback function, call parent Func -> then call child Func if condition True
 func CheckMethod(method string, tmpl string, isAuth bool, msg string, w http.ResponseWriter, f func(http.ResponseWriter)) {
-
-	if tmpl == "signin" && method == "GET" {
-		DisplayTemplate(w, tmpl, msg)
-	} else if method == "GET" && tmpl == "signup" {
-		DisplayTemplate(w, tmpl, isAuth)
+	 if (method == "GET" ) &&  (tmpl == "signin" || tmpl == "signup") {
+		//RenderTemplate(w, "header", isAuth)
+		RenderTemplate(w, tmpl, isAuth)
 	} else {
 		f(w)
 	}
 }
 
-//DisplayTemplate function, 500 error
-func DisplayTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
+//utils.RenderTemplate function, 500 error, if ok render page
+func RenderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 	err = temp.ExecuteTemplate(w, tmpl, data)
 	if err != nil {
 		log.Println(err, "exec templ ERR")
-		http.Error(w, err.Error(),
-			http.StatusInternalServerError)
-		fmt.Fprintf(w, err.Error())
+		w.WriteHeader(500)
+		fmt.Fprintf(w, "Internal server error, 500")
 		return
 	}
 }
 
 //IsCookieExpiration if cookie time = 0, delete session and cookie client
-func Logout(w http.ResponseWriter, r *http.Request, s general.Session) {
+func Logout(w http.ResponseWriter, r *http.Request, s *general.Session) {
 	DeleteCookie(w)
 	DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).Scan(&s.ID)
 	_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
+	*s = general.Session{UserID: 0}
+	fmt.Println(s, "session after logout")
 	http.Redirect(w, r, "/signin", 302)
 }
 
@@ -158,7 +159,7 @@ func FileByte(r *http.Request, typePhoto string) []byte {
 	return imgBytes
 }
 
-//AuthError show auth error
+//AuthError show auth error, use js, fetch() query - use js func, showNotify() (signin handler	)
 func AuthError(w http.ResponseWriter, r *http.Request, err error, text string, authType string) {
 
 	fmt.Println(text, "notify msg")
@@ -175,14 +176,13 @@ func AuthError(w http.ResponseWriter, r *http.Request, err error, text string, a
 		m, _ := json.Marshal(text)
 		w.Write(m)
 	}
-
 }
 
 //URLChecker function
 func URLChecker(w http.ResponseWriter, r *http.Request, url string) bool {
 
 	if r.URL.Path != url {
-		DisplayTemplate(w, "404page", http.StatusNotFound)
+		RenderTemplate(w, "404page", http.StatusNotFound)
 		return false
 	}
 	return true
@@ -384,27 +384,20 @@ func SetCommentNotify(pid string, fromWhom, toWhom int, lid int64) {
 	defer voteNotifyPrepare.Close()
 }
 
-func ReSession(uid int) {
+func ReSession(uid int, s *general.Session) {
 
 	var sid int
-
-	//cookieDb 1 - asd, cookieBw asd
-	//2: cDb = qwe, cBw = eed
-	//no session exit func
+	//first time enter signin system
 	err = DB.QueryRow("SELECT id FROM session WHERE user_id=?", uid).Scan(&sid)
 	if err != nil {
 		log.Println(err, "no have session by uid")
 		return
 	}
-	//update when uuid session equal query table session
-
-	//drop - if cookieBrowser ==
-	// 1 - cookie = "", 2 = "qwe", 3 otherBrowser = "",
-	log.Println("Session have, logout user,  mean -> user in system, Delete cookie ReSession")
-	//get by email -> session, if have session -> drop session -> ReLogin
+	//same  email signin -> session, if have session -> drop session -> ReLogin
 	_, err := DB.Exec("DELETE FROM session WHERE id = ?", sid)
 	if err != nil {
 		log.Println(err)
 	}
-
+	//set nil local session
+	*s = general.Session{}
 }

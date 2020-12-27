@@ -10,7 +10,7 @@
     <div class="user-info">
       <label for="">Name:</label>
       <td> {{.FullName}}</td> <br>
-       <label for="">Nickname:</label>
+      <label for="">Nickname:</label>
       <td> {{.Username}}</td> <br>
       <label for="">Email:</label>
       <td> {{.Email}}</td> <br>
@@ -28,11 +28,11 @@
     <a class="link-profile edit-btn" href="/edit/user?uid={{.ID}}">Edit profile</a>
     <a class="link-profile delete-btn" onclick="areYouSure({{.ID}} )">Delete account</a>
   </div>
-<br/>
-
-<a class = "link-profile activity-btn"  href="/activity" >Activities </a>
+  <br />
+  <a id="create_post" class="link-profile create-btn" href="/create/post">Create
+    post</a>
+  <a class="link-profile activity-btn" href="/activity">Activities </a>
 </div>
-
 <script>
   const areYouSure = (id) => {
     if (confirm("Are u sure epta?")) {

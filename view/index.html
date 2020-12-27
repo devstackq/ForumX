@@ -1,10 +1,6 @@
 {{define "index"}}
 
 <div class="main">
-
-    {{if eq .Auth "success" }} <a id="create_post" class="link-profile create-btn" href="/create/post">Create post</a>
-    {{end}}
-
     {{template "search"}} {{template "filter_post" }}
 
     {{ range $key, $value := .Posts }}
@@ -27,31 +23,18 @@
     {{end}}
 </div>
 
-
 <div class="container-pagination">
     <form class="container-pagination-prev" action="/" method="POST">
         <input type="hidden" name="prev" value="prev">
-        <input class="" type="submit" value="prev">
+        <input type="submit" value="previus">
     </form>
 
     <form class="container-pagination-next" action="/" method="POST">
         <input type="hidden" name="next" value="next">
-        <input class="" type="submit" value="next">
+        <input type="submit" value="next">
     </form>
 </div>
 
 {{template "footer" }}
 
-<!-- <script>
-    window.onload = async function () {
-        console.log("windwos onload")
-        let response = await fetch('http://localhost:6969/', {
-            mode: 'cors',
-            method: 'get',
-        })
-        let data = await response.json()
-        console.log(data, "D")
-    }
-//fecth query, check, if auth True, show button, by id #create_post
-</script> -->
 {{end}}

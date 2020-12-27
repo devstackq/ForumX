@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 var (
@@ -19,40 +20,35 @@ var (
 	auth = general.API.Authenticated
 )
 
+
 //GetAllPosts  by category || all posts
 func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/" && r.URL.Path != "/science" && r.URL.Path != "/love" && r.URL.Path != "/sapid" {
-		utils.DisplayTemplate(w, "404page", http.StatusNotFound)
+		utils.RenderTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
-
+//methods Filter struct -> if no case filter : default get All post
 	filterValue := models.Filter{
 		Like:     r.FormValue("likes"),
 		Date:     r.FormValue("date"),
 		Category: r.FormValue("cats"),
 	}
 
-	p, endpoint, category, err := filterValue.GetAllPost(r, r.FormValue("next"), r.FormValue("prev"))
+	p, endpoint, category := filterValue.GetAllPost(r, r.FormValue("next"), r.FormValue("prev"))
 
-	if err != nil {
-		log.Fatal(err)
-	}
-	//s := utils.IsAuth(r)
-	utils.DisplayTemplate(w, "header", utils.IsAuth(r))
+	utils.RenderTemplate(w, "header", utils.IsAuth(r))
 
 	if endpoint == "/" {
 		posts := models.AllPosts{Posts: p}
-		if session.UserID > 0 {
-			posts.Auth = "success"
-		}
-		utils.DisplayTemplate(w, "index", posts)
+		
+		utils.RenderTemplate(w, "index", posts)
 	} else {
 		//send category value
 		msg := []byte(fmt.Sprintf("<h3 id='category'> %s </h3>", category))
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(msg)
-		utils.DisplayTemplate(w, "category_post_template", p)
+		utils.RenderTemplate(w, "category_post_template", p)
 	}
 }
 //GetPostByID  1 post by id
@@ -74,12 +70,12 @@ func GetPostByID(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Println(err)
 			}
-			utils.DisplayTemplate(w, "header", utils.IsAuth(r))
-			utils.DisplayTemplate(w, "posts", post)
-			utils.DisplayTemplate(w, "comment_post", comments)
-			//utils.DisplayTemplate(w, "reply_comment", repliesComment)
+			utils.RenderTemplate(w, "header", utils.IsAuth(r))
+			utils.RenderTemplate(w, "posts", post)
+			utils.RenderTemplate(w, "comment_post", comments)
+			//utils.RenderTemplate(w, "reply_comment", repliesComment)
 		} else {
-			utils.DisplayTemplate(w, "404page", http.StatusBadRequest)
+			utils.RenderTemplate(w, "404page", http.StatusBadRequest)
 		}
 	}
 }
@@ -91,9 +87,10 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 
 		//switch r.Method {
 		if r.Method == "GET" {
-			utils.DisplayTemplate(w, "header", utils.IsAuth(r))
-			utils.DisplayTemplate(w, "create_post", &msg)
+			utils.RenderTemplate(w, "header", utils.IsAuth(r))
+			utils.RenderTemplate(w, "create_post", &msg)
 		}
+		
 		if r.Method == "POST" {
 			//r.ParseMultipartForm(10 << 20)
 			f, _, _ := r.FormFile("uploadfile")
@@ -129,11 +126,11 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 
 			var p models.Post
-			DB.QueryRow("SELECT * FROM posts WHERE id = ?", pid).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreatedTime, &p.Image, &p.Like, &p.Dislike)
+			DB.QueryRow("SELECT * FROM posts WHERE id = ?", pid).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreateTime, &p.UpdateTime, &p.Image, &p.Like, &p.Dislike)
 			p.ImageHTML = base64.StdEncoding.EncodeToString(p.Image)
 
-			utils.DisplayTemplate(w, "header", utils.IsAuth(r))
-			utils.DisplayTemplate(w, "update_post", p)
+			utils.RenderTemplate(w, "header", utils.IsAuth(r))
+			utils.RenderTemplate(w, "update_post", p)
 		}
 
 		if r.Method == "POST" {
@@ -143,14 +140,10 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 				Content: r.FormValue("content"),
 				Image:   utils.IsImage(r),
 				ID:      pid,
+				UpdateTime:  time.Now(),
 			}
-
-			err = p.UpdatePost()
-
-			if err != nil {
-				//try hadnler all error
-				defer log.Println(err, "upd post err")
-			}
+			
+			p.UpdatePost()
 		}
 		http.Redirect(w, r, "/profile", 302)
 		//http.Redirect(w, r, "/post?id="+strconv.Itoa(int(pid)), 302)
@@ -180,25 +173,22 @@ func Search(w http.ResponseWriter, r *http.Request) {
 	if utils.URLChecker(w, r, "/search") {
 
 		if r.Method == "GET" {
-			utils.DisplayTemplate(w, "search", http.StatusFound)
+			utils.RenderTemplate(w, "search", http.StatusFound)
 		}
 
 		if r.Method == "POST" {
 
-			foundPosts, err := models.Search(w, r)
+			foundPosts := models.Search(w, r)
 
-			if err != nil {
-				log.Println(err)
-			}
 			if foundPosts == nil {
-				utils.DisplayTemplate(w, "header", utils.IsAuth(r))
+				utils.RenderTemplate(w, "header", utils.IsAuth(r))
 				msg := []byte(fmt.Sprintf("<h2 id='notFound'> Nihuya ne naideno </h2>"))
 				w.Header().Set("Content-Type", "application/json")
 				w.Write(msg)
-				utils.DisplayTemplate(w, "index", nil)
+				utils.RenderTemplate(w, "index", nil)
 			} else {
-				utils.DisplayTemplate(w, "header", utils.IsAuth(r))
-				utils.DisplayTemplate(w, "index", foundPosts)
+				utils.RenderTemplate(w, "header", utils.IsAuth(r))
+				utils.RenderTemplate(w, "index", foundPosts)
 			}
 		}
 	}

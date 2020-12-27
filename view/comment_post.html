@@ -6,7 +6,7 @@
     <div class="comment-underpost">
 
         <div class="comment-wrapper-1">
-            <form action="/user/id/?{{.UserID}}" method="post" autocomplete="off">
+            <form action="/user/id?{{.UserID}}" method="post" autocomplete="off">
                 <input type="hidden" name="uid" value="{{.UserID}}">
                 <input type="submit" value="{{.Author}}">
             </form>
@@ -46,7 +46,7 @@
     <br />
     {{/* {{range .RepliesComments}} {{.ID}}
     <div class="answer-comment-container">
-        <a href="localhost:6969/user/id/?2" /> {{.Author}}</a>
+        <a href="localhost:6969/user/id?2" /> {{.Author}}</a>
         {{.Content}} {{.CreatedTime}}
         <br />
         <button id="btn-reply-answer" onclick="showAnswerForm({{.ID}})">Reply Ans Com</button>

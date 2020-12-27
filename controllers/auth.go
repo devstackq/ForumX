@@ -18,7 +18,7 @@ import (
 var (
 	//GoogleConfig *oauth2.Config
 	oAuthState = "pseudo-random"
-	session    = general.Session{}
+	session    = &general.Session{}
 )
 
 //Signup system function
@@ -61,15 +61,15 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 						http.Redirect(w, r, "/signin", 302)
 					} else {
 						msg := "Incorrect password: must be 8 symbols, 1 big, 1 special character, example: 9Password!"
-						utils.DisplayTemplate(w, "signup", &msg)
+						utils.RenderTemplate(w, "signup", &msg)
 					}
 				} else {
 					msg := "Password fields: not match epta"
-					utils.DisplayTemplate(w, "signup", &msg)
+					utils.RenderTemplate(w, "signup", &msg)
 				}
 			} else {
 				msg := "Incorrect email address: example god@mail.kz"
-				utils.DisplayTemplate(w, "signup", &msg)
+				utils.RenderTemplate(w, "signup", &msg)
 			}
 		})
 	}
@@ -96,7 +96,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 					Username: person.Username,
 					Password: person.Password,
 				}
-				u.Signin(w, r, session)
+				u.Signin(w, r, *session)
 			}
 		})
 	}
@@ -223,7 +223,7 @@ func SigninSideService(w http.ResponseWriter, r *http.Request, u models.User) {
 			Email:    u.Email,
 			FullName: u.Name,
 		}
-		u.Signin(w, r, session) //login
+		u.Signin(w, r, *session) //login
 	} else {
 		//if github = location -> else Almaty
 		u := models.User{
@@ -236,6 +236,6 @@ func SigninSideService(w http.ResponseWriter, r *http.Request, u models.User) {
 			Image:    utils.FileByte(r, "user"),
 		}
 		u.Signup(w, r)
-		u.Signin(w, r, session)
+		u.Signin(w, r, *session)
 	}
 }

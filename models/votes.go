@@ -23,7 +23,7 @@ type Votes struct {
 }
 
 //VoteDislike func
-func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s general.Session) {
+func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s *general.Session) {
 
 	vote := Votes{}
 	field := any + "_id"
@@ -133,7 +133,7 @@ func VoteDislike(w http.ResponseWriter, r *http.Request, id, any string, s gener
 }
 
 //VoteLike func
-func VoteLike(w http.ResponseWriter, r *http.Request, id, any string, s general.Session) {
+func VoteLike(w http.ResponseWriter, r *http.Request, id, any string, s *general.Session) {
 
 	vote := Votes{}
 	field := any + "_id"

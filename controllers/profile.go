@@ -17,17 +17,17 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 
 		if r.Method == "GET" {
 			//if userId now, createdPost uid equal -> show
-			dislikedPost, likedPost, posts, comments, user, err := models.GetUserProfile(r, w, session)
+			dislikedPost, likedPost, posts, comments, user := models.GetUserProfile(r, w, session)
 			if err != nil {
 				log.Println(err)
 			}
 			//check if current cookie equal - cookie
-			utils.DisplayTemplate(w, "header", utils.IsAuth(r))
-			utils.DisplayTemplate(w, "profile", user)
-			utils.DisplayTemplate(w, "created_post", posts)
-			utils.DisplayTemplate(w, "favorited_post", likedPost)
-			utils.DisplayTemplate(w, "disliked_post", dislikedPost)
-			utils.DisplayTemplate(w, "comment_user", comments)
+			utils.RenderTemplate(w, "header", utils.IsAuth(r))
+			utils.RenderTemplate(w, "profile", user)
+			utils.RenderTemplate(w, "created_post", posts)
+			utils.RenderTemplate(w, "favorited_post", likedPost)
+			utils.RenderTemplate(w, "disliked_post", dislikedPost)
+			utils.RenderTemplate(w, "comment_user", comments)
 		}
 	}
 }
@@ -45,27 +45,22 @@ func GetAnotherProfile(w http.ResponseWriter, r *http.Request) {
 				log.Println(err)
 			}
 
-			utils.DisplayTemplate(w, "header", utils.IsAuth(r))
-			utils.DisplayTemplate(w, "another_user", user)
-			utils.DisplayTemplate(w, "created_post", posts)
+			utils.RenderTemplate(w, "header", utils.IsAuth(r))
+			utils.RenderTemplate(w, "another_user", user)
+			utils.RenderTemplate(w, "created_post", posts)
 		}
 	}
 }
 
 //GetUserActivities func
 func GetUserActivities(w http.ResponseWriter, r *http.Request) {
-
+	
 	if utils.URLChecker(w, r, "/activity") {
 
 		notifies := models.GetUserActivities(w, r, session)
-
-		if err != nil {
-			log.Println(err)
-		}
-		utils.DisplayTemplate(w, "header", utils.IsAuth(r))
-
+		utils.RenderTemplate(w, "header", utils.IsAuth(r))
 		if notifies != nil {
-			utils.DisplayTemplate(w, "activity", notifies)
+			utils.RenderTemplate(w, "activity", notifies)
 		}
 	}
 }
@@ -76,8 +71,8 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	if utils.URLChecker(w, r, "/edit/user") {
 
 		if r.Method == "GET" {
-			utils.DisplayTemplate(w, "header", utils.IsAuth(r))
-			utils.DisplayTemplate(w, "profile_update", "")
+			utils.RenderTemplate(w, "header", utils.IsAuth(r))
+			utils.RenderTemplate(w, "profile_update", "")
 		}
 
 		if r.Method == "POST" {
@@ -117,7 +112,7 @@ func DeleteAccount(w http.ResponseWriter, r *http.Request) {
 			}
 
 			p.DeleteAccount(w, r)
-			fmt.Println("delete account by ID", p.ID)
+			fmt.Println("deleted account by ID", p.ID)
 		}
 		http.Redirect(w, r, "/", 302)
 	}

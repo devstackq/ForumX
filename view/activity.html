@@ -6,30 +6,33 @@
     <div class="user-post-card">
         {{if gt .PID 0 }}
         Author:
-        <form action="/user/id/?{{.UID}}" method="post" class="author-post">
+        <form action="/user/id?{{.UID}}" method="post" class="author-post">
             <input type="hidden" name="uid" value="{{.UID}}">
             <input type="submit" value="{{.UserLost}}">
+            {{.Time}}
         </form>
+
         <a href="/post?id={{.PID}}"> {{if eq .VoteState 2 }} Disiked Post {{end}}
             {{if eq .VoteState 1 }} Liked Post{{end}} </a>
         </a> in Post "{{.PostTitle}}" {{end}} {{if .CID}} {{if gt .CID 0 }}
         Author:
-        <form action="/user/id/?{{.UID}}" method="post" class="author-post">
+        <form action="/user/id?{{.UID}}" method="post" class="author-post">
             <input type="hidden" name="uid" value="{{.UID}}">
             <input type="submit" value="{{.UserLost}}">
         </form>
+        {{.Time}}
         <a href="/post?id={{.CIDPID}}"> {{if eq .VoteState 2 }} Disiked Comment {{end}}
             {{if eq .VoteState 1 }} Liked Comment{{end}} </a>
         </a> in Comment "{{.PostTitle}}" {{end}} {{end}}
         {{if .CLID}}
         {{if gt .CLID 0 }}
         Author:
-        <form action="/user/id/?{{.UID}}" method="post" class="author-post">
+        <form action="/user/id?{{.UID}}" method="post" class="author-post">
             <input type="hidden" name="uid" value="{{.UID}}">
             <input type="submit" value="{{.UserLost}}">
         </form>
+        {{.Time}}
         <a href="/post?id={{.CLID}}"> Lost comment </a>
-
         </a> in Comment "{{.PostTitle}}" {{end}} {{end}}
     </div>
     {{end}} {{end}}

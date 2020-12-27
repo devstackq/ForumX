@@ -49,19 +49,20 @@ func UpdateComment(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 
 			var comment models.Comment
-			err = DB.QueryRow("SELECT * FROM comments WHERE id = ?", cid).Scan(&comment.ID, &comment.Content, &comment.PostID, &comment.UserID, &comment.CreatedTime, &comment.Like, &comment.Dislike)
+			err = DB.QueryRow("SELECT * FROM comments WHERE id = ?", cid).Scan(&comment.ID, &comment.Content, &comment.PostID, &comment.UserID, &comment.CreatedTime, &comment.UpdatedTime, &comment.Like, &comment.Dislike)
 			if err != nil {
 				fmt.Println(err)
 			}
-			utils.DisplayTemplate(w, "header", utils.IsAuth(r))
-			fmt.Println(comment, "FF")
-			utils.DisplayTemplate(w, "update_comment", comment)
+			
+			utils.RenderTemplate(w, "header", utils.IsAuth(r))
+			utils.RenderTemplate(w, "update_comment", comment)
 		}
 		if r.Method == "POST" {
 
 			comment := models.Comment{
 				ID:      cid,
 				Content: r.FormValue("content"),
+				UpdatedTime: time.Now(),
 			}
 
 			comment.UpdateComment()
@@ -111,7 +112,7 @@ func AnswerComment(w http.ResponseWriter, r *http.Request) {
 		//if have flag -> answered bool, -> show Naswer by comment
 		// || comments -> table RepliesComments - child each  Comment
 
-		replyCommentPrepare, err := DB.Prepare(`INSERT INTO commentBridge( post_id, comment_id, reply_comment_id, fromWhoId, toWhoId, created_time) VALUES(?, ?, ?, ?, ?, ?)`)
+		replyCommentPrepare, err := DB.Prepare(`INSERT INTO commentBridge( post_id, comment_id, reply_comment_id, fromWhoId, toWhoId, create_time) VALUES(?, ?, ?, ?, ?, ?)`)
 		if err != nil {
 			log.Println(err)
 		}

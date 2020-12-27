@@ -27,11 +27,11 @@ func Init() {
 	if err != nil {
 		log.Println(err)
 	}
-	comment, err := db.Prepare(`CREATE TABLE IF NOT EXISTS comments(id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT, post_id	INTEGER, creator_id	INTEGER, created_time	datetime,  count_like INTEGER DEFAULT 0, count_dislike  INTEGER DEFAULT 0, CONSTRAINT fk_key_post_comment FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE )`)
+	comment, err := db.Prepare(`CREATE TABLE IF NOT EXISTS comments(id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT, post_id	INTEGER, creator_id	INTEGER, create_time datetime,  update_time	datetime DEFAULT CURRENT_TIMESTAMP,  count_like INTEGER DEFAULT 0, count_dislike  INTEGER DEFAULT 0, CONSTRAINT fk_key_post_comment FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE )`)
 	if err != nil {
 		log.Println(err)
 	}
-	post, err := db.Prepare(`CREATE TABLE IF NOT EXISTS posts(id INTEGER PRIMARY KEY AUTOINCREMENT, title	TEXT, content	TEXT, creator_id INTEGER,  created_time	datetime, image	BLOB NOT NULL, count_like INTEGER DEFAULT 0, count_dislike INTEGER DEFAULT 0, FOREIGN KEY(creator_id) REFERENCES users(id) ON DELETE CASCADE ) `)
+	post, err := db.Prepare(`CREATE TABLE IF NOT EXISTS posts(id INTEGER PRIMARY KEY AUTOINCREMENT, title	TEXT, content	TEXT, creator_id INTEGER, create_time datetime,   update_time datetime DEFAULT CURRENT_TIMESTAMP, image	BLOB NOT NULL, count_like INTEGER DEFAULT 0, count_dislike INTEGER DEFAULT 0, FOREIGN KEY(creator_id) REFERENCES users(id) ON DELETE CASCADE ) `)
 	if err != nil {
 		log.Println(err)
 	}
@@ -51,14 +51,14 @@ func Init() {
 	if err != nil {
 		log.Println(err)
 	}
-	replyComment, err := db.Prepare(`CREATE TABLE IF NOT EXISTS replyComment(id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT, post_id INTEGER, comment_id INTEGER, fromWhoId INTEGER, toWhomId INTEGER,  created_time datetime,  FOREIGN KEY(comment_id) REFERENCES comments(id), FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE )`)
-	if err != nil {
-		log.Println(err)
-	}
-	commentBridge, err := db.Prepare(`CREATE TABLE IF NOT EXISTS commentBridge(id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER, reply_comment_id INTEGER, comment_id INTEGER, fromWhoId INTEGER, toWhoId INTEGER, created_time datetime,  FOREIGN KEY(comment_id) REFERENCES comments(id), FOREIGN KEY(reply_comment_id) REFERENCES replyComment(id), FOREIGN KEY(toWhoId) REFERENCES users(id), FOREIGN KEY(fromWhoId) REFERENCES users(id), FOREIGN KEY(post_id) REFERENCES posts(id) )`)
-	if err != nil {
-		log.Println(err)
-	}
+	// replyComment, err := db.Prepare(`CREATE TABLE IF NOT EXISTS replyComment(id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT, post_id INTEGER, comment_id INTEGER, fromWhoId INTEGER, toWhomId INTEGER,  created_time datetime,  FOREIGN KEY(comment_id) REFERENCES comments(id), FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE )`)
+	// if err != nil {
+	// 	log.Println(err)
+	// }
+	// commentBridge, err := db.Prepare(`CREATE TABLE IF NOT EXISTS commentBridge(id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER, reply_comment_id INTEGER, comment_id INTEGER, fromWhoId INTEGER, toWhoId INTEGER, created_time datetime,  FOREIGN KEY(comment_id) REFERENCES comments(id), FOREIGN KEY(reply_comment_id) REFERENCES replyComment(id), FOREIGN KEY(toWhoId) REFERENCES users(id), FOREIGN KEY(fromWhoId) REFERENCES users(id), FOREIGN KEY(post_id) REFERENCES posts(id) )`)
+	// if err != nil {
+	// 	log.Println(err)
+	// }
 	category, err := db.Prepare(`CREATE TABLE IF NOT EXISTS  category(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE)`)
 	if err != nil {
 		log.Println(err)
@@ -71,9 +71,8 @@ func Init() {
 	user.Exec()
 	voteState.Exec()
 	notify.Exec()
-	commentBridge.Exec()
-	replyComment.Exec()
-	category.Exec()
+	// commentBridge.Exec()
+	// replyComment.Exec()
 	category.Exec()
 	putCategoriesInDb()
 	//send packege - DB conn

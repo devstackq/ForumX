@@ -11,7 +11,7 @@ import (
 	"ForumX/utils"
 )
 
-//Users struct
+//User struct
 type User struct {
 	ID          int       `json:"id"`
 	FullName    string    `json:"fullName"`
@@ -45,7 +45,9 @@ type Notify struct {
 	CommentID    int    `json:"commentId"`
 	UserLostID   int    `json:"userLostId"`
 	VoteState    int    `json:"voteState"`
-	CreatedTime  string `json:"createdTime"`
+	Time  string `json:"time"`
+	CreatedTime  time.Time `json:"createdTime"`
+	UpdatedTime time.Time `json:"updatedTime"`
 	ToWhom       int    `json:"toWhom"`
 	PostTitle    string `json:"postTitle"`
 	UserLost     string `json:"userLost"`
@@ -53,13 +55,10 @@ type Notify struct {
 }
 
 //GetUserProfile function
-func GetUserProfile(r *http.Request, w http.ResponseWriter, s general.Session) ([]Post, []Post, []Post, []Comment, User, error) {
+func GetUserProfile(r *http.Request, w http.ResponseWriter, s *general.Session) ([]Post, []Post, []Post, []Comment, User) {
 
 	//time.AfterFunc(10, checkCookieLife(cookie, w, r)) try check every 30 min cookie
 	u := User{}
-
-	//uid := utils.GetUserID(cookie)
-
 	liked := VotedPosts("like_state", s.UserID)
 	disliked := VotedPosts("dislike_state", s.UserID)
 	err = DB.QueryRow("SELECT id, full_name, email, username, isAdmin, age, sex, created_time, city, image  FROM users WHERE id = ?", s.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.Username, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
@@ -78,13 +77,13 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, s general.Session) (
 	postsCreated := []Post{}
 
 	for pStmp.Next() {
-		err = pStmp.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreatedTime, &post.Image, &post.Like, &post.Dislike)
+		err = pStmp.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreateTime, &post.UpdateTime, &post.Image, &post.Like, &post.Dislike)
 
 		if err != nil {
 			log.Println(err.Error())
 		}
 		post.AuthorForPost = s.UserID
-		post.Time = post.CreatedTime.Format("2006 Jan _2 15:04:05")
+		post.Time = post.CreateTime.Format("2006 Jan _2 15:04:05")
 		postsCreated = append(postsCreated, post)
 	}
 
@@ -95,7 +94,7 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, s general.Session) (
 	defer commentQuery.Close()
 
 	for commentQuery.Next() {
-		err = commentQuery.Scan(&cmt.ID, &cmt.Content, &cmt.PostID, &cmt.UserID, &cmt.Time, &cmt.Like, &cmt.Dislike)
+		err = commentQuery.Scan(&cmt.ID, &cmt.Content, &cmt.PostID, &cmt.UserID, &cmt.Time, &cmt.UpdatedTime, &cmt.Like, &cmt.Dislike)
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -111,12 +110,11 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, s general.Session) (
 		cmt.CreatedTime = cmt.Time.Format("2006 Jan _2 15:04:05")
 		comments = append(comments, cmt)
 	}
-
-	return disliked, liked, postsCreated, comments, u, nil
+	return disliked, liked, postsCreated, comments, u
 }
 
 //GetUserActivities func
-func GetUserActivities(w http.ResponseWriter, r *http.Request, s general.Session) (result []Notify) {
+func GetUserActivities(w http.ResponseWriter, r *http.Request, s *general.Session) (result []Notify) {
 
 	var notifies []Notify
 	nQuery, err := DB.Query("SELECT * FROM notify WHERE to_whom=?", s.UserID)
@@ -129,25 +127,45 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request, s general.Session
 		}
 		notifies = append(notifies, n)
 	}
-
+fmt.Println(notifies)
 	for _, v := range notifies {
-		//get postTitle, by postID, / get userLost Name, - uid /
+		//get postTitle, by postID, / get userLost Name, - uid
 		n := Notify{}
-		//like/dislike case
 		// commneId - delete, but notify - Have row
 		err = DB.QueryRow("SELECT title FROM posts WHERE id = ?", v.PostID).Scan(&n.PostTitle)
 		if err != nil {
 			log.Println(err)
-		}
-		err = DB.QueryRow("SELECT post_id FROM comments WHERE id = ?", v.CommentID).Scan(&n.CIDPID)
+		}		
+		err = DB.QueryRow("SELECT post_id, content, create_time, update_time FROM comments WHERE id = ?", v.CommentID).Scan(&n.CIDPID, &n.CommentTitle, &n.CreatedTime, &n.UpdatedTime)
 		if err != nil {
 			log.Println(err)
+		}
+		// err = DB.QueryRow("SELECT post_id, content, create_time, update_time FROM posts WHERE id = ?", v.CommentID).Scan(&n.CIDPID, &n.CommentTitle, &n.CreatedTime, &n.UpdatedTime)
+		// if err != nil {
+		// 	log.Println(err)
+		// }
+		
+		//compare create == update, update_time comment
+		diff := n.UpdatedTime.Sub(n.CreatedTime)
+		//comment time change
+		if diff > 0 {
+			n.Time = n.UpdatedTime.Format("2006 Jan _2 15:04:05")
+			fmt.Println( "edited post/comment", diff)
+			//add text Editted
+		}else {
+			n.Time = n.CreatedTime.Format("2006 Jan _2 15:04:05")
+		}
+//post time editted
+		diffPost := v.UpdatedTime.Sub(v.CreatedTime)
+		fmt.Println( "edited post", v.UpdatedTime, v.CreatedTime)
+		if diffPost > 0 {
+			n.Time = v.UpdatedTime.Format("2006 Jan _2 15:04:05")
+			fmt.Println( "edited post/comment", diffPost)
+			//add text Editted
+		}else {
+			n.Time = v.CreatedTime.Format("2006 Jan _2 15:04:05")
 		}
 
-		err = DB.QueryRow("SELECT content FROM comments WHERE id = ?", v.CommentID).Scan(&n.CommentTitle)
-		if err != nil {
-			log.Println(err)
-		}
 		err = DB.QueryRow("SELECT full_name FROM users WHERE id = ?", v.UserLostID).Scan(&n.UserLost)
 		if err != nil {
 			log.Println(err)
@@ -207,12 +225,12 @@ func (user *User) GetAnotherProfile(r *http.Request) ([]Post, User, error) {
 
 	for psu.Next() {
 
-		err = psu.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreatedTime, &post.Image, &post.Like, &post.Dislike)
+		err = psu.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreateTime, &post.UpdateTime, &post.Image, &post.Like, &post.Dislike)
 		if err != nil {
 			log.Println(err.Error())
 		}
 		//AuthorForPost
-		post.Time = post.CreatedTime.Format("2006 Jan _2 15:04:05")
+		post.Time = post.CreateTime.Format("2006 Jan _2 15:04:05")
 		postsU = append(postsU, post)
 	}
 	if err != nil {
@@ -274,11 +292,11 @@ func VotedPosts(voteType string, uid int) (result []Post) {
 		}
 		p := Post{}
 		for smtp.Next() {
-			err = smtp.Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreatedTime, &p.Image, &p.Like, &p.Dislike)
+			err = smtp.Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreateTime, &p.UpdateTime, &p.Image, &p.Like, &p.Dislike)
 			if err != nil {
 				log.Println(err.Error())
 			}
-			p.Time = p.CreatedTime.Format("2006 Jan _2 15:04:05")
+			p.Time = p.CreateTime.Format("2006 Jan _2 15:04:05")
 			result = append(result, p)
 		}
 	}

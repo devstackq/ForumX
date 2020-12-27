@@ -33,7 +33,8 @@ type Post struct {
 	Title         string          `json:"title"`
 	Content       string          `json:"content"`
 	CreatorID     int             `json:"creatorId"`
-	CreatedTime   time.Time       `json:"createdTime"`
+	CreateTime   time.Time       `json:"createTime"`
+	UpdateTime   time.Time       `json:"updateTime"`
 	Endpoint      string          `json:"endpoint"`
 	FullName      string          `json:"fullName"`
 	Image         []byte          `json:"image"`
@@ -48,7 +49,7 @@ type Post struct {
 	PBGCategory   string          `json:"pbgCategory"`
 	FileS         multipart.File  `json:"fileS"`
 	FileI         multipart.File  `json:"fileB"`
-	Session       general.Session `json:"session"`
+	Session       *general.Session `json:"session"`
 	Categories    []string        `json:"categories"`
 	Temp          string          `json:"temp"`
 	IsPhoto       bool            `json:"isPhoto"`
@@ -59,8 +60,8 @@ type Post struct {
 
 //PostCategory struct
 type PostCategory struct {
-	PostID   int64
-	Category string
+	PostID   int64 `json:"postId"`
+	Category string `json:"category"`
 }
 
 //Filter struct
@@ -76,7 +77,7 @@ type AllPosts struct {
 }
 
 //GetAllPost function
-func (f *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string, string, error) {
+func (filter *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string, string) {
 	//pageNum = 1
 	var post Post
 	var leftJoin bool
@@ -89,45 +90,71 @@ func (f *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string,
 	if prev == "prev" {
 		pageNum--
 	}
-	//count pageNum, fix
 
+	//count pageNum, fix
 	limit := 4
 	offset := limit * (pageNum - 1)
 	switch r.URL.Path {
 	case "/":
 		leftJoin = false
 		post.Endpoint = "/"
-		if f.Date == "asc" {
-			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time ASC LIMIT 8 ")
-		} else if f.Date == "desc" {
-			rows, err = DB.Query("SELECT * FROM posts  ORDER BY created_time DESC LIMIT 8")
-		} else if f.Like == "like" {
+		if filter.Date == "asc" {
+			rows, err = DB.Query("SELECT * FROM posts  ORDER BY create_time ASC LIMIT 8 ")
+			if err != nil {
+				log.Println(err)
+			}
+		} else if filter.Date == "desc" {
+			rows, err = DB.Query("SELECT * FROM posts  ORDER BY create_time DESC LIMIT 8")
+			if err != nil {
+				log.Println(err)
+			}
+		} else if filter.Like == "like" {
 			rows, err = DB.Query("SELECT * FROM posts  ORDER BY count_like DESC LIMIT 8")
-		} else if f.Like == "dislike" {
+			if err != nil {
+				log.Println(err)
+			}
+		} else if filter.Like == "dislike" {
 			rows, err = DB.Query("SELECT * FROM posts  ORDER BY count_dislike DESC LIMIT 8")
-		} else if f.Category != "" {
+			if err != nil {
+				log.Println(err)
+			}
+		} else if filter.Category != "" {
 			leftJoin = true
-			rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category_id=? ORDER  BY created_time  DESC LIMIT 8", f.Category)
+			rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category_id=? ORDER  BY create_time  DESC LIMIT 8", filter.Category)
+			if err != nil {
+				log.Println(err)
+			}
 		} else {
-			rows, err = DB.Query("SELECT * FROM posts ORDER BY created_time DESC LIMIT ? OFFSET ?", limit, offset)
+			rows, err = DB.Query("SELECT * FROM posts ORDER BY create_time DESC LIMIT ? OFFSET ?", limit, offset)
+			if err != nil {
+				log.Println(err)
+			}
 		}
 	case "/science":
 		leftJoin = true
 		post.Temp = "Science"
 		post.Endpoint = "/science"
-		rows, err = DB.Query("SELECT * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category_id=?  ORDER  BY created_time  DESC LIMIT 5", 1)
+		rows, err = DB.Query("SELECT * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category_id=?  ORDER  BY create_time  DESC LIMIT 5", 1)
+	if err != nil {
+		log.Println(err)
+	}
 	case "/love":
 		leftJoin = true
 		post.Temp = "Love"
 		post.Endpoint = "/love"
-		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category_id=?   ORDER  BY created_time  DESC LIMIT 5", 2)
+		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category_id=?   ORDER  BY create_time  DESC LIMIT 5", 2)
+		if err != nil {
+			log.Println(err)
+		}
 	case "/sapid":
 		leftJoin = true
 		post.Temp = "Sapid"
 		post.Endpoint = "/sapid"
-		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category_id=?  ORDER  BY created_time  DESC LIMIT 5", 3)
+		rows, err = DB.Query("SELECT  * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id  WHERE category_id=?  ORDER  BY create_time  DESC LIMIT 5", 3)
+		if err != nil {
+			log.Println(err)
+		}
 	}
-
 	defer rows.Close()
 	if err != nil {
 		log.Println(err.Error())
@@ -135,37 +162,35 @@ func (f *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string,
 	}
 	for rows.Next() {
 		if leftJoin {
-			if err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreatedTime, &post.Image, &post.Like, &post.Dislike, &post.PBGID, &post.PBGPostID, &post.PBGCategory); err != nil {
+			if err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreateTime, &post.UpdateTime, &post.Image, &post.Like, &post.Dislike, &post.PBGID, &post.PBGPostID, &post.PBGCategory); err != nil {
 				fmt.Println(err)
 			}
 		} else {
-			if err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreatedTime, &post.Image, &post.Like, &post.Dislike); err != nil {
+			if err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreateTime,  &post.UpdateTime, &post.Image, &post.Like, &post.Dislike); err != nil {
 				fmt.Println(err)
 			}
 		}
 
+		//send countr +1
+		err = DB.QueryRow("SELECT COUNT(id) FROM posts").Scan(&post.CountPost)
 		if err != nil {
 			log.Println(err)
 		}
-		//send countr +1
-		err = DB.QueryRow("SELECT COUNT(id) FROM posts").Scan(&post.CountPost)
-		post.Time = post.CreatedTime.Format("2006 Jan _2 15:04:05")
+		post.Time = post.CreateTime.Format("2006 Jan _2 15:04:05")
 		arrPosts = append(arrPosts, post)
 	}
 	//err = DB.QueryRow("SELECT COUNT(id) FROM posts").Scan(&post.CountPost)
-	return arrPosts, post.Endpoint, post.Temp, nil
+	return arrPosts, post.Endpoint, post.Temp
 }
 
 //UpdatePost fucntion
-func (p *Post) UpdatePost() error {
+func (p *Post) UpdatePost() {
 
-	_, err := DB.Exec("UPDATE  posts SET title=?, content=?, image=? WHERE id =?",
-		p.Title, p.Content, p.Image, p.ID)
-
+	_, err := DB.Exec("UPDATE  posts SET title=?, content=?, image=?, update_time=? WHERE id=?",
+		p.Title, p.Content, p.Image,  p.UpdateTime, p.ID)
 	if err != nil {
-		return err
+		log.Println(err)
 	}
-	return nil
 }
 
 //DeletePost function, delete rows, notify, voteState, comment, by postId
@@ -211,20 +236,18 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 			}
 			fileBytes, err = ioutil.ReadAll(p.FileI)
 		} else {
-			utils.DisplayTemplate(w, "header", utils.IsAuth(r))
-			utils.DisplayTemplate(w, "create", "Large file, more than 20mb")
+			utils.RenderTemplate(w, "header", utils.IsAuth(r))
+			utils.RenderTemplate(w, "create", "Large file, more than 20mb")
 		}
 	} else {
 		//set empty photo post
 		fileBytes = []byte{0, 0}
 	}
 
-	//DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", p.Session.UUID).Scan(&p.Session.UserID)
-
 	//check empty values
 	if utils.CheckLetter(p.Title) && utils.CheckLetter(p.Content) {
 
-		createPostPrepare, err := DB.Prepare(`INSERT INTO posts(title, content, creator_id, created_time, image) VALUES(?,?,?,?,?)`)
+		createPostPrepare, err := DB.Prepare(`INSERT INTO posts(title, content, creator_id, create_time, image) VALUES(?,?,?,?,?)`)
 		if err != nil {
 			log.Println(err)
 		}
@@ -268,16 +291,16 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/post?id="+strconv.Itoa(int(last)), 302)
 	} else {
 		msg = "Empty title or content"
-		utils.DisplayTemplate(w, "header", utils.IsAuth(r))
-		utils.DisplayTemplate(w, "create_post", &msg)
+		utils.RenderTemplate(w, "header", utils.IsAuth(r))
+		utils.RenderTemplate(w, "create_post", &msg)
 	}
 }
 
 //GetPostByID function take from all post, only post by id, then write p struct Post
 func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
-
+//write new structure data
 	p := Post{}
-	err = DB.QueryRow("SELECT * FROM posts WHERE id = ?", post.ID).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreatedTime, &p.Image, &p.Like, &p.Dislike)
+	err = DB.QueryRow("SELECT * FROM posts WHERE id = ?", post.ID).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreateTime, &p.UpdateTime, &p.Image, &p.Like, &p.Dislike)
 	if err != nil {
 		log.Println(err)
 	}
@@ -288,7 +311,7 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 			p.SVG = true
 		}
 	}
-	p.Time = p.CreatedTime.Format("2006 Jan _2 15:04:05")
+	p.Time = p.CreateTime.Format("2006 Jan _2 15:04:05")
 	p.ImageHTML = base64.StdEncoding.EncodeToString(p.Image)
 	DB.QueryRow("SELECT full_name FROM users WHERE id = ?", p.CreatorID).Scan(&p.FullName)
 
@@ -303,37 +326,33 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 	for stmp.Next() {
 		//get each comment Post -> by Id, -> get each replyComment by comment_id -> get replyAnswer by reply_com_id
 		comment := Comment{}
-		err = stmp.Scan(&comment.ID, &comment.Content, &comment.PostID, &comment.UserID, &comment.Time, &comment.Like, &comment.Dislike)
+		err = stmp.Scan(&comment.ID, &comment.Content, &comment.PostID, &comment.UserID, &comment.Time, &comment.UpdatedTime, &comment.Like, &comment.Dislike)
 		if err != nil {
 			log.Println(err.Error())
 		}
 		//fmt.Println("/", comment.ID, "com")
-
 		comment.CreatedTime = comment.Time.Format("2006 Jan _2 15:04:05")
 		DB.QueryRow("SELECT full_name FROM users WHERE id = ?", comment.UserID).Scan(&comment.Author)
 
-		replyCommentQuery, err := DB.Query("SELECT * FROM replyComment WHERE comment_id =?", comment.ID)
-		//many reply - 1 comment, by ID
-		replyComment := Comment{}
-		for replyCommentQuery.Next() {
+		// replyCommentQuery, err := DB.Query("SELECT * FROM replyComment WHERE comment_id =?", comment.ID)
+		// //many reply - 1 comment, by ID
+		// replyComment := Comment{}
+		// for replyCommentQuery.Next() {
 
-			err = replyCommentQuery.Scan(&replyComment.ID, &replyComment.Content, &replyComment.PostID, &replyComment.ReplyID, &replyComment.FromWhom, &replyComment.ToWhom, &replyComment.Time)
-			if err != nil {
-				log.Println(err.Error())
-			}
-			//fmt.Println("/", replyComment.ID, "ReplCom ID")
-
-			replyComment.CreatedTime = replyComment.Time.Format("2006 Jan _2 15:04:05")
-			DB.QueryRow("SELECT full_name FROM users WHERE id = ?", replyComment.FromWhom).Scan(&replyComment.Author)
-			//write answer by comment - answer answer
-			comment.RepliesComments = append(comment.RepliesComments, replyComment)
-
-			//append comment - 1 comment ->
-			// write query - get list answer -> by
-		}
+		// 	err = replyCommentQuery.Scan(&replyComment.ID, &replyComment.Content, &replyComment.PostID, &replyComment.ReplyID, &replyComment.FromWhom, &replyComment.ToWhom, &replyComment.Time)
+		// 	if err != nil {
+		// 		log.Println(err.Error())
+		// 	}
+		// 	//fmt.Println("/", replyComment.ID, "ReplCom ID")
+		// 	replyComment.CreatedTime = replyComment.Time.Format("2006 Jan _2 15:04:05")
+		// 	DB.QueryRow("SELECT full_name FROM users WHERE id = ?", replyComment.FromWhom).Scan(&replyComment.Author)
+		// 	//write answer by comment - answer answer
+		// 	comment.RepliesComments = append(comment.RepliesComments, replyComment)
+		// 	//append comment - 1 comment ->
+		// 	// write query - get list answer -> by
+		// }
 		comments = append(comments, comment)
 	}
-
 	if err != nil {
 		return comments, p, err
 	}
@@ -352,25 +371,22 @@ func (pcb *PostCategory) CreateBridge() {
 		log.Println(err)
 	}
 	defer createBridgePrepare.Close()
-
 }
 
 //Search post by contain title
-func Search(w http.ResponseWriter, r *http.Request) ([]Post, error) {
+func Search(w http.ResponseWriter, r *http.Request) ([]Post) {
 
 	var posts []Post
 	psu, err := DB.Query("SELECT * FROM posts WHERE title LIKE ?", "%"+r.FormValue("search")+"%")
 	defer psu.Close()
 
 	for psu.Next() {
-
-		err = psu.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreatedTime, &post.Image, &post.Like, &post.Dislike)
-		post.Time = post.CreatedTime.Format("2006 Jan _2 15:04:05")
+		err = psu.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreateTime, &post.UpdateTime, &post.Image, &post.Like, &post.Dislike)
+		if err != nil {
+			log.Println(err)
+		}
+		post.Time = post.CreateTime.Format("2006 Jan _2 15:04:05")
 		posts = append(posts, post)
 	}
-
-	if err != nil {
-		return nil, err
-	}
-	return posts, nil
+	return posts
 }

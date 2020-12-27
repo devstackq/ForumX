@@ -14,9 +14,14 @@ func main() {
 	config.Init()
 	controllers.Init()
 
+	//create_time datetime,  update_time	datetime, -> 
+
+	//edit post/comment, compare create time & update tiome, if update > current -> show edited & time
+	// todo another Func add	CheckMethod
+	//Start - reply system
+
 	//valid Input data, and , logger - add midlaweare
 	//add last seen in System- when logout, save time
-	//edit post/comment, compare create time & update tiome, if update > current -> show edited & time
 
 	//no rows in result set  -> fix
 
@@ -24,21 +29,16 @@ func main() {
 	//http: superfluous response.WriteHeader  fix
 
 	// try errors -> with gorutine
-	//|| controllers -> send UserID -> to Model
 	//func args, refactor,(cookie delete)
 
-	//add Middleware, logger & checkData
-
 	//add valid Input data, and logger -> Middleware
-	//create post button -> вынести  В main page ...
-	// edit comment/.post -> add Edited message in Post
 
 	//not require,
 	//save copokie - local - Map[string]string
 	//save image -> local folder, no Db
-	// todo another Func add	CheckMethod
 	//mod Name -> change github/devstackq/...
-	//Start - reply system
+	
+	//Heroku deploy
 
 	// перегрузку методов
 	// use constructor

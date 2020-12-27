@@ -32,7 +32,7 @@
         <span class="dislike"> {{.Dislike}}</span>
     </div>
     <div class="author-wrapper">
-        <form action="/user/id/?{{.CreatorID}}" method="post" class="author-post">
+        <form action="/user/id?{{.CreatorID}}" method="post" class="author-post">
             <input type="hidden" name="uid" value="{{.CreatorID}}">
             <input type="submit" value="{{.FullName}}">
         </form>
@@ -41,15 +41,16 @@
 
 <div class="comment-wrapper">
     <form action="/comment" method="POST">
-        <textarea placeholder="lost your comment.." name="comment-text" id="textareaId" cols="160" rows="5" required></textarea>
+        <textarea placeholder="lost your comment.." name="comment-text" id="textareaId" cols="160" rows="5"
+            required></textarea>
         <input type="hidden" name="curr" value="{{.ID}}">
     </form>
 </div>
 </body>
 
 <script>
-    (function() {
-        document.querySelector('textarea').addEventListener('keydown', function(e) {
+    (function () {
+        document.querySelector('textarea').addEventListener('keydown', function (e) {
             if (e.keyCode === 13 && !e.shiftKey) {
                 this.closest("form").submit();
                 e.preventDefault();

@@ -45,7 +45,7 @@ func (u User) Signup(w http.ResponseWriter, r *http.Request) {
 			msg = "Not unique email && username"
 		}
 		//if utils.AuthType == "default" {
-		utils.DisplayTemplate(w, "signup", &msg)
+		utils.RenderTemplate(w, "signup", &msg)
 		//}
 	}
 }
@@ -69,7 +69,7 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, s general.Sessi
 				utils.AuthError(w, r, err, "user by Email not found", utils.AuthType)
 				return
 			}
-			utils.ReSession(user.ID)
+			utils.ReSession(user.ID, &s)
 		} else if uStr.Username != "" {
 			err = DB.QueryRow("SELECT id, password FROM users WHERE username=?", uStr.Username).Scan(&user.ID, &user.Password)
 			if err != nil {
@@ -77,7 +77,7 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, s general.Sessi
 				utils.AuthError(w, r, err, "user by Username not found", utils.AuthType)
 				return
 			}
-			utils.ReSession(user.ID)
+			utils.ReSession(user.ID, &s)
 		}
 		//check pwd, if not correct, error
 		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(uStr.Password))
@@ -86,7 +86,7 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, s general.Sessi
 			return
 		}
 	} else if utils.AuthType == "google" || utils.AuthType == "github" {
-		utils.ReSession(user.ID)
+		utils.ReSession(user.ID, &s)
 	}
 	//get user by Id, and write session struct
 	//create new session values
@@ -137,10 +137,9 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, s general.Sessi
 }
 
 //Logout function
-func Logout(w http.ResponseWriter, r *http.Request, s general.Session) {
-
+func Logout(w http.ResponseWriter, r *http.Request, s *general.Session) {
+	
 	utils.Logout(w, r, s)
-
 	if utils.AuthType == "google" {
 		_, err = http.Get("https://accounts.google.com/o/oauth2/revoke?token=" + utils.Token)
 		if err != nil {
