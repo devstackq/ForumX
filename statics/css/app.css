@@ -242,6 +242,8 @@ a.links {
   padding: 9px;
   background: lightgray;
   margin-bottom: 3px;
+  line-height: 26px;
+  position: relative;
 }
 
 .user-post-card a {
@@ -481,7 +483,7 @@ a.links {
   color: #fff;
 }
 
-.signin-wrapper input[type="email"] {
+.signin-wrapper input[type="text"] {
   margin-top: 130px;
   padding: 10px 0 10px 10px;
   color: royalblue;
@@ -901,4 +903,28 @@ a.dislike {
   padding: 10px;
   margin: 10px 0;
   border: 1px solid red;
+}
+
+.edited-post {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: blue;
+}
+.edited-comment {
+  position: absolute;
+  right: 10px;
+  top: 30px;
+  color: red;
+}
+.notify-time {
+  position: absolute;
+  right: 10px;
+}
+.edited-notify {
+  color: violet;
+  font-size: 18px;
+  position: absolute;
+  right: 10px;
+  top: 30px;
 }

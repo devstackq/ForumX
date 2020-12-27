@@ -56,6 +56,7 @@ type Post struct {
 	Time          string          `json:"time"`
 	CountPost     int             `json:"countPost"`
 	Authenticated bool            `json:"isAuth"`
+	Edited bool `json:"edited"`
 }
 
 //PostCategory struct
@@ -185,7 +186,6 @@ func (filter *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, st
 
 //UpdatePost fucntion
 func (p *Post) UpdatePost() {
-
 	_, err := DB.Exec("UPDATE  posts SET title=?, content=?, image=?, update_time=? WHERE id=?",
 		p.Title, p.Content, p.Image,  p.UpdateTime, p.ID)
 	if err != nil {
@@ -311,7 +311,15 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 			p.SVG = true
 		}
 	}
-	p.Time = p.CreateTime.Format("2006 Jan _2 15:04:05")
+	diff := p.UpdateTime.Sub(p.CreateTime)
+
+	if diff > 0 {
+		p.Time = p.UpdateTime.Format("2006 Jan _2 15:04:05")
+		p.Edited = true
+	}else {
+		p.Time = p.CreateTime.Format("2006 Jan _2 15:04:05")
+	}
+//	p.Time = p.CreateTime.Format("2006 Jan _2 15:04:05")
 	p.ImageHTML = base64.StdEncoding.EncodeToString(p.Image)
 	DB.QueryRow("SELECT full_name FROM users WHERE id = ?", p.CreatorID).Scan(&p.FullName)
 
@@ -326,12 +334,19 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post, error) {
 	for stmp.Next() {
 		//get each comment Post -> by Id, -> get each replyComment by comment_id -> get replyAnswer by reply_com_id
 		comment := Comment{}
-		err = stmp.Scan(&comment.ID, &comment.Content, &comment.PostID, &comment.UserID, &comment.Time, &comment.UpdatedTime, &comment.Like, &comment.Dislike)
+		err = stmp.Scan(&comment.ID, &comment.Content, &comment.PostID, &comment.UserID, &comment.CreatedTime, &comment.UpdatedTime, &comment.Like, &comment.Dislike)
 		if err != nil {
 			log.Println(err.Error())
 		}
-		//fmt.Println("/", comment.ID, "com")
-		comment.CreatedTime = comment.Time.Format("2006 Jan _2 15:04:05")
+
+		diff := comment.UpdatedTime.Sub(comment.CreatedTime)
+		if diff > 0 {
+			comment.Time = comment.UpdatedTime.Format("2006 Jan _2 15:04:05")
+			comment.Edited = true
+		}else {
+			comment.Time = comment.CreatedTime.Format("2006 Jan _2 15:04:05")
+		}
+		
 		DB.QueryRow("SELECT full_name FROM users WHERE id = ?", comment.UserID).Scan(&comment.Author)
 
 		// replyCommentQuery, err := DB.Query("SELECT * FROM replyComment WHERE comment_id =?", comment.ID)

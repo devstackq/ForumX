@@ -401,3 +401,9 @@ func ReSession(uid int, s *general.Session) {
 	//set nil local session
 	*s = general.Session{}
 }
+//QueryDb comment
+func QueryDb(table string, db *sql.DB, queryType string, fields ...string) {
+
+}
+
+//func IsEdit(diff time.Duration, data interface{}) {

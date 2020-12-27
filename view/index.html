@@ -3,7 +3,7 @@
 <div class="main">
     {{template "search"}} {{template "filter_post" }}
 
-    {{ range $key, $value := .Posts }}
+    {{ range $key, $value := . }}
 
     <a class="links" href="/post?id={{$value.ID}}">
         <div class="wrapper-main">

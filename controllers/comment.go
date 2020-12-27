@@ -15,26 +15,16 @@ func LeaveComment(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/comment") {
 
-		if r.Method == "POST" {
-
-			pid := r.FormValue("curr")
 			commentInput := r.FormValue("comment-text")
 
 			if utils.CheckLetter(commentInput) {
-
 				comment := models.Comment{
 					Content: commentInput,
-					PostID:  pid,
+					PostID:  r.FormValue("curr"),
 					UserID:  session.UserID,
 				}
-
-				_, err = comment.LeaveComment()
-
-				if err != nil {
-					log.Println(err.Error())
-				}
+				comment.LeaveComment()
 			}
-		}
 		http.Redirect(w, r, "/post?id="+r.FormValue("curr"), 302)
 	}
 }

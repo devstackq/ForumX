@@ -40,9 +40,9 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 	utils.RenderTemplate(w, "header", utils.IsAuth(r))
 
 	if endpoint == "/" {
-		posts := models.AllPosts{Posts: p}
+		//posts := models.AllPosts{Posts: p}
 		
-		utils.RenderTemplate(w, "index", posts)
+		utils.RenderTemplate(w, "index", p)
 	} else {
 		//send category value
 		msg := []byte(fmt.Sprintf("<h3 id='category'> %s </h3>", category))

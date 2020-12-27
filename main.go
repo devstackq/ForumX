@@ -3,21 +3,17 @@ package main
 import (
 	"ForumX/config"
 	"ForumX/controllers"
-	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
-	run(world)
-	run(hello)
 	config.Init()
 	controllers.Init()
+	//optimisation, and prettier code, -> 10 princip projectio programmin
 
-	//create_time datetime,  update_time	datetime, -> 
-
-	//edit post/comment, compare create time & update tiome, if update > current -> show edited & time
-	// todo another Func add	CheckMethod
+	//create uniq Func -> queryDb(table, ...fields string, db)
+	// todo another Func add CheckMethod
 	//Start - reply system
 
 	//valid Input data, and , logger - add midlaweare
@@ -37,7 +33,7 @@ func main() {
 	//save copokie - local - Map[string]string
 	//save image -> local folder, no Db
 	//mod Name -> change github/devstackq/...
-	
+
 	//Heroku deploy
 
 	// перегрузку методов
@@ -52,19 +48,6 @@ func main() {
 	// done: category - table, nickname auth, url post/id=?, add 2 password form, createbutton in main page, show user name activity,  optimisation code, signin system, -> another session delete
 	//,cookie expired -> logout
 
-}
-
-//example anonim func
-func hello() {
-	fmt.Println("Hello")
-}
-
-func world() {
-	fmt.Println("World!")
-}
-
-func run(f func()) {
-	f()
 }
 
 // eaxmple reply system https://codewithawa.com/posts/creating-a-comment-and-reply-system-php-and-mysql

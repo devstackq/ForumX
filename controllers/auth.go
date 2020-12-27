@@ -18,6 +18,7 @@ import (
 var (
 	//GoogleConfig *oauth2.Config
 	oAuthState = "pseudo-random"
+	//logout -> session clear
 	session    = &general.Session{}
 )
 
@@ -108,7 +109,6 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	if utils.URLChecker(w, r, "/logout") {
 		if r.Method == "GET" {
 			models.Logout(w, r, session)
-			http.Redirect(w, r, "/", 302)
 		}
 	}
 }
@@ -133,6 +133,7 @@ func GoogleUserData(w http.ResponseWriter, r *http.Request) {
 	}
 	googleData := models.User{}
 	json.Unmarshal(content, &googleData)
+	fmt.Println(googleData, "google data")
 	SigninSideService(w, r, googleData)
 }
 

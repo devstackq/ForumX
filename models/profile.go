@@ -49,9 +49,9 @@ type Notify struct {
 	CreatedTime  time.Time `json:"createdTime"`
 	UpdatedTime time.Time `json:"updatedTime"`
 	ToWhom       int    `json:"toWhom"`
-	PostTitle    string `json:"postTitle"`
+	Content    string `json:"postTitle"`
 	UserLost     string `json:"userLost"`
-	CommentTitle string `json:"commentTitle"`
+	Editted bool `json:"editted"`
 }
 
 //GetUserProfile function
@@ -107,7 +107,7 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, s *general.Session) 
 			log.Println(err.Error())
 		}
 
-		cmt.CreatedTime = cmt.Time.Format("2006 Jan _2 15:04:05")
+		cmt.Time = cmt.CreatedTime.Format("2006 Jan _2 15:04:05")
 		comments = append(comments, cmt)
 	}
 	return disliked, liked, postsCreated, comments, u
@@ -127,43 +127,29 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request, s *general.Sessio
 		}
 		notifies = append(notifies, n)
 	}
-fmt.Println(notifies)
 	for _, v := range notifies {
-		//get postTitle, by postID, / get userLost Name, - uid
+		//get data/comment data by id
 		n := Notify{}
-		// commneId - delete, but notify - Have row
-		err = DB.QueryRow("SELECT title FROM posts WHERE id = ?", v.PostID).Scan(&n.PostTitle)
+		// commnentId - delete, but notify - Have row
+		err = DB.QueryRow("SELECT title, create_time, update_time FROM posts WHERE id = ?", v.PostID).Scan(&n.Content, &n.CreatedTime, &n.UpdatedTime)
 		if err != nil {
 			log.Println(err)
 		}		
-		err = DB.QueryRow("SELECT post_id, content, create_time, update_time FROM comments WHERE id = ?", v.CommentID).Scan(&n.CIDPID, &n.CommentTitle, &n.CreatedTime, &n.UpdatedTime)
+		err = DB.QueryRow("SELECT post_id, content, create_time, update_time FROM comments WHERE id = ?", v.CommentID).Scan(&n.CIDPID, &n.Content, &n.CreatedTime, &n.UpdatedTime)
 		if err != nil {
 			log.Println(err)
 		}
-		// err = DB.QueryRow("SELECT post_id, content, create_time, update_time FROM posts WHERE id = ?", v.CommentID).Scan(&n.CIDPID, &n.CommentTitle, &n.CreatedTime, &n.UpdatedTime)
-		// if err != nil {
-		// 	log.Println(err)
-		// }
 		
-		//compare create == update, update_time comment
+		//compare create == update, time post/comment
+		//like - to dislike, Edited vote ??
 		diff := n.UpdatedTime.Sub(n.CreatedTime)
-		//comment time change
+		
 		if diff > 0 {
 			n.Time = n.UpdatedTime.Format("2006 Jan _2 15:04:05")
-			fmt.Println( "edited post/comment", diff)
-			//add text Editted
+			n.Editted = true
+			//fmt.Println( "edited post/comment", diff)		
 		}else {
 			n.Time = n.CreatedTime.Format("2006 Jan _2 15:04:05")
-		}
-//post time editted
-		diffPost := v.UpdatedTime.Sub(v.CreatedTime)
-		fmt.Println( "edited post", v.UpdatedTime, v.CreatedTime)
-		if diffPost > 0 {
-			n.Time = v.UpdatedTime.Format("2006 Jan _2 15:04:05")
-			fmt.Println( "edited post/comment", diffPost)
-			//add text Editted
-		}else {
-			n.Time = v.CreatedTime.Format("2006 Jan _2 15:04:05")
 		}
 
 		err = DB.QueryRow("SELECT full_name FROM users WHERE id = ?", v.UserLostID).Scan(&n.UserLost)
@@ -174,32 +160,29 @@ fmt.Println(notifies)
 		n.VoteState = v.VoteState
 		n.UID = v.UserLostID
 
-		fmt.Println(n.UserLost, "lost user")
+		fmt.Println("lost vote author:", n.UserLost)
 
 		if v.VoteState == 1 && v.PostID != 0 {
 			n.PID = v.PostID
-			fmt.Println("user: ", n.UserLost, " liked your post : ", n.PostTitle, " in ", v.CreatedTime, "")
+			fmt.Println("user: ", n.UserLost, " liked your post : ", n.Content, " in ", v.CreatedTime, "")
 		}
 		if v.VoteState == 2 && v.PostID != 0 {
 			n.PID = v.PostID
-			fmt.Println("user: ", n.UserLost, " Dislike your post : ", n.PostTitle, " in ", v.CreatedTime, "")
+			fmt.Println("user: ", n.UserLost, " Dislike your post : ", n.Content, " in ", v.CreatedTime, "")
 		}
 		if v.VoteState == 1 && v.CommentID != 0 {
 			n.CID = v.CommentID
-			n.PostTitle = n.CommentTitle
-			fmt.Println("user: ", n.UserLost, " liked u Comment : ", n.CommentTitle, " in ", v.CreatedTime, "")
+			fmt.Println("user: ", n.UserLost, " liked u Comment : ", n.Content, " in ", v.CreatedTime, "")
 		}
 
 		if v.VoteState == 2 && v.CommentID != 0 {
 			n.CID = v.CommentID
-			n.PostTitle = n.CommentTitle
-			fmt.Println("user: ", n.UserLost, " Dislike u Comment!: ", n.CommentTitle, " in ", v.CreatedTime, "", n.CID, n.CIDPID)
+			fmt.Println("user: ", n.UserLost, " Dislike u Comment!: ", n.Content, " in ", v.CreatedTime, "", n.CID, n.CIDPID)
 		}
 		//comment lost case
 		if v.VoteState == 0 && v.CommentID != 0 {
-			fmt.Println("user: ", n.UserLost, " Comment u Post: ", n.CommentTitle, " in ", v.CreatedTime)
+			fmt.Println("user: ", n.UserLost, " Comment u Post: ", n.Content, " in ", v.CreatedTime)
 			n.CLID = v.PostID
-			n.PostTitle = n.CommentTitle
 		}
 		result = append(result, n)
 	}
@@ -254,13 +237,21 @@ func (u *User) UpdateProfile() error {
 func (u *User) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 
 	_, err = DB.Exec("DELETE FROM  session  WHERE user_id=?", u.ID)
+	if err != nil {
+		log.Println(err)
+	}
 	_, err = DB.Exec("DELETE FROM  voteState  WHERE user_id=?", u.ID)
+	if err != nil {
+		log.Println(err)
+	}
 	_, err = DB.Exec("DELETE FROM  comments  WHERE creator_id=?", u.ID)
+	if err != nil {
+		log.Println(err)
+	}
 	_, err = DB.Exec("DELETE FROM  users  WHERE id=?", u.ID)
 
 	if err != nil {
 		log.Println(err)
-		return
 	}
 	utils.DeleteCookie(w)
 }

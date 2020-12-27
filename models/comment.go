@@ -17,8 +17,8 @@ type Comment struct {
 	Like        int       `json:"like"`
 	Dislike     int       `json:"dislike"`
 	TitlePost   string    `json:"titlePost"`
-	Time        time.Time `json:"time"`
-	CreatedTime string    `json:"createdTime"`
+	Time         string `json:"time"`
+	CreatedTime  time.Time    `json:"createdTime"`
 	UpdatedTime time.Time    `json:"updatedTime"`
 	ToWhom      int       `json:"toWhom"`
 	FromWhom    int       `json:"fromWhom"`
@@ -26,11 +26,12 @@ type Comment struct {
 	Parent int `json:"parent"`
 	Children []*Comment `json:"children"`
 	RepliesComments []Comment
+	Edited bool `json:"edited"`
 }
 
 
 //LeaveComment for post by id
-func (c *Comment) LeaveComment() (int64, error) {
+func (c *Comment) LeaveComment()  {
 
 	commentPrepare, err := DB.Prepare(`INSERT INTO comments(content, post_id, creator_id, create_time) VALUES(?,?,?,?)`)
 	if err != nil {
@@ -39,7 +40,6 @@ func (c *Comment) LeaveComment() (int64, error) {
 	commentExec, err := commentPrepare.Exec(c.Content, c.PostID, c.UserID, time.Now())
 	if err != nil {
 		log.Println(err)
-		return 0, err
 	}
 	defer commentPrepare.Close()
 
@@ -53,7 +53,6 @@ func (c *Comment) LeaveComment() (int64, error) {
 		log.Println(err)
 	}
 	utils.SetCommentNotify(c.PostID, c.UserID, c.ToWhom, lid)
-	return lid, nil
 }
 
 //UpdateComment func
