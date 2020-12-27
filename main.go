@@ -11,6 +11,8 @@ func main() {
 	config.Init()
 	controllers.Init()
 
+	//post 8, 5 comment, Reply 1 id, from Uid13, To 24, currentReplyId, answerReplyId
+	
 	//optimisation, and prettier code, -> 10 princip projectio programmin - post models
 
 	//create uniq Func -> queryDb(table, ...fields string, db)

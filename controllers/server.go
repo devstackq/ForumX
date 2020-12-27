@@ -49,7 +49,7 @@ func Init() {
 	mux.HandleFunc("/comment", IsValidCookie(LeaveComment))
 	mux.HandleFunc("/edit/comment", IsValidCookie(UpdateComment))
 	mux.HandleFunc("/delete/comment", IsValidCookie(DeleteComment))
-	mux.HandleFunc("/answer/comment", IsValidCookie(AnswerComment))
+	mux.HandleFunc("/reply/comment/replyId", IsValidCookie(ReplyComment))
 
 	mux.HandleFunc("/votes/post", IsValidCookie(VotesPost))
 	mux.HandleFunc("/votes/comment", IsValidCookie(VotesComment))
@@ -67,6 +67,7 @@ func Init() {
 	mux.HandleFunc("/user/id", IsValidCookie(GetAnotherProfile))
 	mux.HandleFunc("/edit/user", IsValidCookie(UpdateProfile))
 	mux.HandleFunc("/delete/account", IsValidCookie(DeleteAccount))
+
 
 	mux.HandleFunc("/activity", IsValidCookie(GetUserActivities))
 	mux.HandleFunc("/search", Search)

@@ -71,41 +71,63 @@ func DeleteComment(w http.ResponseWriter, r *http.Request) {
 }
 
 //AnswerComment func replyComment
-func AnswerComment(w http.ResponseWriter, r *http.Request) {
+func ReplyComment(w http.ResponseWriter, r *http.Request) {
 
-	if utils.URLChecker(w, r, "/answer/comment") {
+//post 8, 5 commentId, Reply 1 id, from Uid13, To 24, currentReplyId, answerReplyId
+	if utils.URLChecker(w, r, "/reply/comment/replyId") {
 
-		answer := r.FormValue("answerComment")
-		currentCommentID := r.FormValue("commentID")
+		content := r.FormValue("answerComment")
+		currentReplyID := r.FormValue("replyId")
+		cID,_:= strconv.Atoi(r.FormValue("commentId"))
+		
+
 		pid := r.FormValue("postId")
 		var toWhom int
 		var lastInsertCommentID int64
 
-		DB.QueryRow("SELECT creator_id FROM comments WHERE id = ?", currentCommentID).Scan(&toWhom)
+		//DB.QueryRow("SELECT creator_id FROM comments WHERE id = ?", currentCommentID).Scan(&toWhom)
+		DB.QueryRow("SELECT fromWho FROM replies WHERE id = ?", currentReplyID).Scan(&toWhom)
+		//else get comment table, user_id, if 1 answer - in comment
 
-		if utils.CheckLetter(answer) {
+		//if no reply, create First reply -> init reply this comment
+		if utils.CheckLetter(content) {
 
 			comment := models.Comment{
-				Content: answer,
+				CommentID: cID,
+				Content: content,
 				PostID:  pid,
-				UserID:  session.UserID,
+				FromWhom:  session.UserID,
+				ToWhom: toWhom,
+
 			}
-			lastInsertCommentID = comment.LeaveComment()
+			fmt.Print(comment, "reply commen", currentReplyID)
+
+			//lastInsertCommentID = comment.LeaveComment()
+			//user_id INTEGER, content TEXT, post_id INTEGER, comment_id INTEGER, fromWhoId INTEGER, toWhomId INTEGER,  created_time datetime
+			commentPrepare, err := DB.Prepare(`INSERT INTO replies( content, post_id, comment_id, fromWho, toWho, created_time) VALUES(?,?,?,?,?,?)`)
+			if err != nil {
+				log.Println(err)
+			}
+			commentExec, err := commentPrepare.Exec(comment.Content, comment.PostID, comment.CommentID, comment.FromWhom, comment.ToWhom, time.Now())
+			if err != nil {
+				log.Println(err)
+			}
+			commentExec.LastInsertId()
 		}
-		fmt.Println(toWhom, answer, currentCommentID, "last inserted comment ID", lastInsertCommentID)
+		fmt.Println(toWhom, content, cID, "last inserted comment ID", lastInsertCommentID)
 
 		//if have flag -> answered bool, -> show Naswer by comment
 		// || comments -> table RepliesComments - child each  Comment
 
-		replyCommentPrepare, err := DB.Prepare(`INSERT INTO commentBridge( post_id, comment_id, reply_comment_id, fromWhoId, toWhoId, create_time) VALUES(?, ?, ?, ?, ?, ?)`)
-		if err != nil {
-			log.Println(err)
-		}
-		_, err = replyCommentPrepare.Exec(pid, currentCommentID, lastInsertCommentID, session.UserID, toWhom, time.Now())
-		if err != nil {
-			log.Println(err)
-		}
-		defer replyCommentPrepare.Close()
+		// replyCommentPrepare, err := DB.Prepare(`INSERT INTO commentBridge( post_id, comment_id, reply_comment_id, fromWhoId, toWhoId, create_time) VALUES(?, ?, ?, ?, ?, ?)`)
+		// if err != nil {
+		// 	log.Println(err)
+		// }
+		// _, err = replyCommentPrepare.Exec(pid, cID, lastInsertCommentID, session.UserID, toWhom, time.Now())
+		// if err != nil {
+		// 	log.Println(err)
+		// }
+		// defer replyCommentPrepare.Close()
 
 		http.Redirect(w, r, "/post?id="+pid, 302)
 	}

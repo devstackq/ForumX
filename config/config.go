@@ -51,21 +51,21 @@ func Init() {
 	if err != nil {
 		log.Println(err)
 	}
-	// replyComment, err := db.Prepare(`CREATE TABLE IF NOT EXISTS replyComment(id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT, post_id INTEGER, comment_id INTEGER, fromWhoId INTEGER, toWhomId INTEGER,  created_time datetime,  FOREIGN KEY(comment_id) REFERENCES comments(id), FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE )`)
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-	// commentBridge, err := db.Prepare(`CREATE TABLE IF NOT EXISTS commentBridge(id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER, reply_comment_id INTEGER, comment_id INTEGER, fromWhoId INTEGER, toWhoId INTEGER, created_time datetime,  FOREIGN KEY(comment_id) REFERENCES comments(id), FOREIGN KEY(reply_comment_id) REFERENCES replyComment(id), FOREIGN KEY(toWhoId) REFERENCES users(id), FOREIGN KEY(fromWhoId) REFERENCES users(id), FOREIGN KEY(post_id) REFERENCES posts(id) )`)
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-	// commentBridge.Exec()
-	// replyComment.Exec()
-	category, err := db.Prepare(`CREATE TABLE IF NOT EXISTS  category(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE)`)
+	reply, err := db.Prepare(`CREATE TABLE IF NOT EXISTS replies(id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT, post_id INTEGER, comment_id INTEGER, fromWho INTEGER, toWho INTEGER,  created_time datetime,  FOREIGN KEY(comment_id) REFERENCES comments(id), FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE )`)
+	if err != nil {
+		log.Println(err)
+	}
+	replyCommentBridge, err := db.Prepare(`CREATE TABLE IF NOT EXISTS commentBridge(id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER, reply_comment_id INTEGER, comment_id INTEGER, fromWhoId INTEGER, toWhoId INTEGER, created_time datetime,  FOREIGN KEY(comment_id) REFERENCES comments(id), FOREIGN KEY(reply_comment_id) REFERENCES replyComment(id), FOREIGN KEY(toWhoId) REFERENCES users(id), FOREIGN KEY(fromWhoId) REFERENCES users(id), FOREIGN KEY(post_id) REFERENCES posts(id) )`)
 	if err != nil {
 		log.Println(err)
 	}
 
+	category, err := db.Prepare(`CREATE TABLE IF NOT EXISTS  category(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE)`)
+	if err != nil {
+		log.Println(err)
+	}
+	replyCommentBridge.Exec()
+ 	reply.Exec()
 	postCategoryBridge.Exec()
 	session.Exec()
 	post.Exec()
