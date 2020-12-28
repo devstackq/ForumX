@@ -55,7 +55,7 @@ func Init() {
 	if err != nil {
 		log.Println(err)
 	}
-	replyCommentBridge, err := db.Prepare(`CREATE TABLE IF NOT EXISTS commentBridge(id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER, reply_comment_id INTEGER, comment_id INTEGER, fromWhoId INTEGER, toWhoId INTEGER, created_time datetime,  FOREIGN KEY(comment_id) REFERENCES comments(id), FOREIGN KEY(reply_comment_id) REFERENCES replyComment(id), FOREIGN KEY(toWhoId) REFERENCES users(id), FOREIGN KEY(fromWhoId) REFERENCES users(id), FOREIGN KEY(post_id) REFERENCES posts(id) )`)
+	replyAnswer, err := db.Prepare(`CREATE TABLE IF NOT EXISTS answerReply(id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT, post_id INTEGER, reply_id INTEGER, comment_id INTEGER, fromWho INTEGER, toWho INTEGER, created_time datetime,  FOREIGN KEY(comment_id) REFERENCES comments(id), FOREIGN KEY(reply_id) REFERENCES replies(id), FOREIGN KEY(toWho) REFERENCES users(id), FOREIGN KEY(fromWho) REFERENCES users(id), FOREIGN KEY(post_id) REFERENCES posts(id) )`)
 	if err != nil {
 		log.Println(err)
 	}
@@ -64,18 +64,18 @@ func Init() {
 	if err != nil {
 		log.Println(err)
 	}
-	replyCommentBridge.Exec()
- 	reply.Exec()
+	replyAnswer.Exec()
+	reply.Exec()
 	postCategoryBridge.Exec()
 	session.Exec()
 	post.Exec()
 	comment.Exec()
 	user.Exec()
 	voteState.Exec()
-	notify.Exec()	
+	notify.Exec()
 	category.Exec()
 	putCategoriesInDb()
-	
+
 	//send packege - DB conn
 	controllers.DB = db
 	models.DB = db
@@ -86,7 +86,7 @@ func Init() {
 //first call -> put categories values
 func putCategoriesInDb() {
 
-count := utils.GetCountTable("category", db)
+	count := utils.GetCountTable("category", db)
 
 	if count != 3 {
 		categories := []string{"science", "love", "sapid"}

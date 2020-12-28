@@ -15,16 +15,16 @@ func LeaveComment(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/comment") {
 
-			commentInput := r.FormValue("comment-text")
+		commentInput := r.FormValue("comment-text")
 
-			if utils.CheckLetter(commentInput) {
-				comment := models.Comment{
-					Content: commentInput,
-					PostID:  r.FormValue("curr"),
-					UserID:  session.UserID,
-				}
-				comment.LeaveComment()
+		if utils.CheckLetter(commentInput) {
+			comment := models.Comment{
+				Content: commentInput,
+				PostID:  r.FormValue("curr"),
+				UserID:  session.UserID,
 			}
+			comment.LeaveComment()
+		}
 		http.Redirect(w, r, "/post?id="+r.FormValue("curr"), 302)
 	}
 }
@@ -43,15 +43,15 @@ func UpdateComment(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				fmt.Println(err)
 			}
-			
+
 			utils.RenderTemplate(w, "header", utils.IsAuth(r))
 			utils.RenderTemplate(w, "update_comment", comment)
 		}
 		if r.Method == "POST" {
 
 			comment := models.Comment{
-				ID:      cid,
-				Content: r.FormValue("content"),
+				ID:          cid,
+				Content:     r.FormValue("content"),
 				UpdatedTime: time.Now(),
 			}
 
@@ -73,38 +73,36 @@ func DeleteComment(w http.ResponseWriter, r *http.Request) {
 //AnswerComment func replyComment
 func ReplyComment(w http.ResponseWriter, r *http.Request) {
 
-//post 8, 5 commentId, Reply 1 id, from Uid13, To 24, currentReplyId, answerReplyId
+	//post 8, 5 commentId, Reply 1 id, from Uid13, To 24, currentReplyId, answerReplyId
 	if utils.URLChecker(w, r, "/reply/comment/replyId") {
 
 		content := r.FormValue("answerComment")
 		currentReplyID := r.FormValue("replyId")
-		cID,_:= strconv.Atoi(r.FormValue("commentId"))
-		
+
+		cID, _ := strconv.Atoi(r.FormValue("commentId"))
 
 		pid := r.FormValue("postId")
 		var toWhom int
-		var lastInsertCommentID int64
+		//var lastInsertCommentID int64
 
+		//if answer comment -> show UserID,  commentCreate, else replies FromWho
 		//DB.QueryRow("SELECT creator_id FROM comments WHERE id = ?", currentCommentID).Scan(&toWhom)
 		DB.QueryRow("SELECT fromWho FROM replies WHERE id = ?", currentReplyID).Scan(&toWhom)
 		//else get comment table, user_id, if 1 answer - in comment
-
 		//if no reply, create First reply -> init reply this comment
 		if utils.CheckLetter(content) {
 
 			comment := models.Comment{
 				CommentID: cID,
-				Content: content,
-				PostID:  pid,
+				Content:   content,
+				PostID:    pid,
 				FromWhom:  session.UserID,
-				ToWhom: toWhom,
-
+				ToWhom:    toWhom,
 			}
-			fmt.Print(comment, "reply commen", currentReplyID)
-
+			fmt.Print(comment, "reply commen ", currentReplyID, toWhom)
 			//lastInsertCommentID = comment.LeaveComment()
 			//user_id INTEGER, content TEXT, post_id INTEGER, comment_id INTEGER, fromWhoId INTEGER, toWhomId INTEGER,  created_time datetime
-			commentPrepare, err := DB.Prepare(`INSERT INTO replies( content, post_id, comment_id, fromWho, toWho, created_time) VALUES(?,?,?,?,?,?)`)
+			commentPrepare, err := DB.Prepare(`INSERT INTO replies(content, post_id, comment_id, fromWho, toWho, created_time) VALUES(?,?,?,?,?,?)`)
 			if err != nil {
 				log.Println(err)
 			}
@@ -114,7 +112,9 @@ func ReplyComment(w http.ResponseWriter, r *http.Request) {
 			}
 			commentExec.LastInsertId()
 		}
-		fmt.Println(toWhom, content, cID, "last inserted comment ID", lastInsertCommentID)
+		// 1,3,1,1
+
+		//fmt.Println(toWhom, content, cID, "last inserted comment ID", lastInsertCommentID)
 
 		//if have flag -> answered bool, -> show Naswer by comment
 		// || comments -> table RepliesComments - child each  Comment

@@ -29,39 +29,39 @@ var (
 
 //Posts struct
 type Post struct {
-	ID            int             `json:"id"`
-	Title         string          `json:"title"`
-	Content       string          `json:"content"`
-	CreatorID     int             `json:"creatorId"`
-	CreateTime   time.Time       `json:"createTime"`
-	UpdateTime   time.Time       `json:"updateTime"`
-	Endpoint      string          `json:"endpoint"`
-	FullName      string          `json:"fullName"`
-	Image         []byte          `json:"image"`
-	ImageHTML     string          `json:"imageHtml"`
-	PostIDEdit    int             `json:"postEditId"`
-	AuthorForPost int             `json:"authorPost"`
-	Like          int             `json:"like"`
-	Dislike       int             `json:"dislike"`
-	SVG           bool            `json:"svg"`
-	PBGID         int             `json:"pbgId"`
-	PBGPostID     int             `json:"pbgPostId"`
-	PBGCategory   string          `json:"pbgCategory"`
-	FileS         multipart.File  `json:"fileS"`
-	FileI         multipart.File  `json:"fileB"`
+	ID            int              `json:"id"`
+	Title         string           `json:"title"`
+	Content       string           `json:"content"`
+	CreatorID     int              `json:"creatorId"`
+	CreateTime    time.Time        `json:"createTime"`
+	UpdateTime    time.Time        `json:"updateTime"`
+	Endpoint      string           `json:"endpoint"`
+	FullName      string           `json:"fullName"`
+	Image         []byte           `json:"image"`
+	ImageHTML     string           `json:"imageHtml"`
+	PostIDEdit    int              `json:"postEditId"`
+	AuthorForPost int              `json:"authorPost"`
+	Like          int              `json:"like"`
+	Dislike       int              `json:"dislike"`
+	SVG           bool             `json:"svg"`
+	PBGID         int              `json:"pbgId"`
+	PBGPostID     int              `json:"pbgPostId"`
+	PBGCategory   string           `json:"pbgCategory"`
+	FileS         multipart.File   `json:"fileS"`
+	FileI         multipart.File   `json:"fileB"`
 	Session       *general.Session `json:"session"`
-	Categories    []string        `json:"categories"`
-	Temp          string          `json:"temp"`
-	IsPhoto       bool            `json:"isPhoto"`
-	Time          string          `json:"time"`
-	CountPost     int             `json:"countPost"`
-	Authenticated bool            `json:"isAuth"`
-	Edited bool `json:"edited"`
+	Categories    []string         `json:"categories"`
+	Temp          string           `json:"temp"`
+	IsPhoto       bool             `json:"isPhoto"`
+	Time          string           `json:"time"`
+	CountPost     int              `json:"countPost"`
+	Authenticated bool             `json:"isAuth"`
+	Edited        bool             `json:"edited"`
 }
 
 //PostCategory struct
 type PostCategory struct {
-	PostID   int64 `json:"postId"`
+	PostID   int64  `json:"postId"`
 	Category string `json:"category"`
 }
 
@@ -71,7 +71,6 @@ type Filter struct {
 	Like     string `json:"like"`
 	Date     string `json:"date"`
 }
-
 
 //GetAllPost function
 func (filter *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, string, string) {
@@ -132,9 +131,9 @@ func (filter *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, st
 		post.Temp = "Science"
 		post.Endpoint = "/science"
 		rows, err = DB.Query("SELECT * FROM posts  LEFT JOIN post_cat_bridge  ON post_cat_bridge.post_id = posts.id   WHERE category_id=?  ORDER  BY create_time  DESC LIMIT 5", 1)
-	if err != nil {
-		log.Println(err)
-	}
+		if err != nil {
+			log.Println(err)
+		}
 	case "/love":
 		leftJoin = true
 		post.Temp = "Love"
@@ -163,7 +162,7 @@ func (filter *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, st
 				fmt.Println(err)
 			}
 		} else {
-			if err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreateTime,  &post.UpdateTime, &post.Image, &post.Like, &post.Dislike); err != nil {
+			if err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreateTime, &post.UpdateTime, &post.Image, &post.Like, &post.Dislike); err != nil {
 				fmt.Println(err)
 			}
 		}
@@ -183,7 +182,7 @@ func (filter *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, st
 //UpdatePost fucntion
 func (p *Post) UpdatePost() {
 	_, err := DB.Exec("UPDATE  posts SET title=?, content=?, image=?, update_time=? WHERE id=?",
-		p.Title, p.Content, p.Image,  p.UpdateTime, p.ID)
+		p.Title, p.Content, p.Image, p.UpdateTime, p.ID)
 	if err != nil {
 		log.Println(err)
 	}
@@ -292,7 +291,7 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 //GetPostByID function take from all post, only post by id, then write p struct Post
 func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post) {
-//write new structure data
+	//write new structure data
 	p := Post{}
 	err = DB.QueryRow("SELECT * FROM posts WHERE id = ?", post.ID).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreateTime, &p.UpdateTime, &p.Image, &p.Like, &p.Dislike)
 	if err != nil {
@@ -310,7 +309,7 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post) {
 	if diff > 0 {
 		p.Time = p.UpdateTime.Format("2006 Jan _2 15:04:05")
 		p.Edited = true
-	}else {
+	} else {
 		p.Time = p.CreateTime.Format("2006 Jan _2 15:04:05")
 	}
 
@@ -337,32 +336,31 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post) {
 		if diff > 0 {
 			comment.Time = comment.UpdatedTime.Format("2006 Jan _2 15:04:05")
 			comment.Edited = true
-		}else {
+		} else {
 			comment.Time = comment.CreatedTime.Format("2006 Jan _2 15:04:05")
 		}
 		DB.QueryRow("SELECT full_name FROM users WHERE id = ?", comment.UserID).Scan(&comment.Author)
 
-		// replyCommentQuery, err := DB.Query("SELECT * FROM replyComment WHERE comment_id =?", comment.ID)
-		// //many reply - 1 comment, by ID
-		// replyComment := Comment{}
-		// for replyCommentQuery.Next() {
-
-		// 	err = replyCommentQuery.Scan(&replyComment.ID, &replyComment.Content, &replyComment.PostID, &replyComment.ReplyID, &replyComment.FromWhom, &replyComment.ToWhom, &replyComment.Time)
-		// 	if err != nil {
-		// 		log.Println(err.Error())
-		// 	}
-		// 	//fmt.Println("/", replyComment.ID, "ReplCom ID")
-		// 	replyComment.CreatedTime = replyComment.Time.Format("2006 Jan _2 15:04:05")
-		// 	DB.QueryRow("SELECT full_name FROM users WHERE id = ?", replyComment.FromWhom).Scan(&replyComment.Author)
-		// 	//write answer by comment - answer answer
-		// 	comment.RepliesComments = append(comment.RepliesComments, replyComment)
-		// 	//append comment - 1 comment ->
-		// 	// write query - get list answer -> by
-		// }
+		//----------------
+		replyQuery, err := DB.Query("SELECT * FROM replies WHERE comment_id=?", comment.ID)
+		//many reply - 1 comment, by ID
+		replyComment := &Comment{}
+		for replyQuery.Next() {
+			err = replyQuery.Scan(&replyComment.ID, &replyComment.Content, &replyComment.PostID, &replyComment.ReplyID, &replyComment.CommentID, &replyComment.FromWhom, &replyComment.ToWhom, &replyComment.Time)
+			if err != nil {
+				log.Println(err.Error())
+			}
+			//replyComment.CreatedTime = replyComment.Time.Format("2006 Jan _2 15:04:05")
+			DB.QueryRow("SELECT full_name FROM users WHERE id = ?", replyComment.FromWhom).Scan(&replyComment.Author)
+			//write answer by comment - answer answer
+			comment.RepliesComments = append(comment.RepliesComments, replyComment)
+			//append comment - 1 comment ->
+			// write query - get list answer -> by
+		}
 		comments = append(comments, comment)
 	}
 	if err != nil {
-	log.Println(err)
+		log.Println(err)
 	}
 	return comments, p
 }
@@ -382,7 +380,7 @@ func (pcb *PostCategory) CreateBridge() {
 }
 
 //Search post by contain title
-func Search(w http.ResponseWriter, r *http.Request) ([]Post) {
+func Search(w http.ResponseWriter, r *http.Request) []Post {
 
 	var posts []Post
 	psu, err := DB.Query("SELECT * FROM posts WHERE title LIKE ?", "%"+r.FormValue("search")+"%")
