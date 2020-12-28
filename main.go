@@ -11,6 +11,9 @@ func main() {
 	config.Init()
 	controllers.Init()
 
+	//Comments table, parent field, 2 form, 1 form udner post, 2 form under comment
+	// 1 form - parent nil, - relation only post, 2 form -> parent - commentId, relation comment
+
 	//update token, comapre if expires norm && expires time < time.Now(),diff == 30 min - Set refresh cookie
 	//cookie time -> change after, in Browser, -> save cookie, local -> and compare Db cookie,
 	//session filed, created_time -add field, and set Time, then compare if Backend - session Time, differnce 1 hour -> update  NewCookie, and time in Db
