@@ -20,7 +20,6 @@ var (
 	auth = general.API.Authenticated
 )
 
-
 //GetAllPosts  by category || all posts
 func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 
@@ -28,7 +27,7 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 		utils.RenderTemplate(w, "404page", http.StatusNotFound)
 		return
 	}
-//methods Filter struct -> if no case filter : default get All post
+	//methods Filter struct -> if no case filter : default get All post
 	filterValue := models.Filter{
 		Like:     r.FormValue("likes"),
 		Date:     r.FormValue("date"),
@@ -49,6 +48,7 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 		utils.RenderTemplate(w, "category_post_template", posts)
 	}
 }
+
 //GetPostByID  1 post by id
 func GetPostByID(w http.ResponseWriter, r *http.Request) {
 
@@ -57,22 +57,22 @@ func GetPostByID(w http.ResponseWriter, r *http.Request) {
 		id, _ := strconv.Atoi(r.FormValue("id"))
 		var temp string
 		err = DB.QueryRow("select content from posts where id=?", id).Scan(&temp)
-	if err != nil {
-		log.Println(err)
-		utils.RenderTemplate(w, "404page", http.StatusBadRequest)
-		return 
-	}
-	fmt.Println(temp)
-		
-			pid := models.Post{ID: id}
-			comments, post := pid.GetPostByID(r)
-		
-			utils.RenderTemplate(w, "header", utils.IsAuth(r))
-			utils.RenderTemplate(w, "posts", post)
-			utils.RenderTemplate(w, "comment_post", comments)
-			//utils.RenderTemplate(w, "reply_comment", repliesComment)
+		if err != nil {
+			log.Println(err)
+			utils.RenderTemplate(w, "404page", 404)
+			return
 		}
+		fmt.Println(temp)
+
+		pid := models.Post{ID: id}
+		comments, post := pid.GetPostByID(r)
+
+		utils.RenderTemplate(w, "header", utils.IsAuth(r))
+		utils.RenderTemplate(w, "posts", post)
+		utils.RenderTemplate(w, "comment_post", comments)
+		//utils.RenderTemplate(w, "reply_comment", repliesComment)
 	}
+}
 
 //CreatePost  function
 func CreatePost(w http.ResponseWriter, r *http.Request) {
@@ -83,7 +83,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 			utils.RenderTemplate(w, "header", utils.IsAuth(r))
 			utils.RenderTemplate(w, "create_post", &msg)
 		}
-		
+
 		if r.Method == "POST" {
 			//r.ParseMultipartForm(10 << 20)
 			f, _, _ := r.FormFile("uploadfile")
@@ -117,7 +117,7 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 		pid, _ := strconv.Atoi(r.FormValue("id"))
 
 		if r.Method == "GET" {
-		//send data - client
+			//send data - client
 			var p models.Post
 			DB.QueryRow("SELECT * FROM posts WHERE id = ?", pid).Scan(&p.ID, &p.Title, &p.Content, &p.CreatorID, &p.CreateTime, &p.UpdateTime, &p.Image, &p.Like, &p.Dislike)
 			p.ImageHTML = base64.StdEncoding.EncodeToString(p.Image)
@@ -129,13 +129,13 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "POST" {
 
 			p := models.Post{
-				Title:   r.FormValue("title"),
-				Content: r.FormValue("content"),
-				Image:   utils.IsImage(r),
-				ID:      pid,
-				UpdateTime:  time.Now(),
+				Title:      r.FormValue("title"),
+				Content:    r.FormValue("content"),
+				Image:      utils.IsImage(r),
+				ID:         pid,
+				UpdateTime: time.Now(),
 			}
-			
+
 			p.UpdatePost()
 		}
 		//http.Redirect(w, r, "/profile", 302)
@@ -158,15 +158,15 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 func Search(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/search") {
-			foundPosts := models.Search(w, r)
-			utils.RenderTemplate(w, "header", utils.IsAuth(r))
-			if foundPosts == nil {
-				msg := []byte(fmt.Sprintf("<h2 id='notFound'> Nihuya ne naideno </h2>"))
-				w.Header().Set("Content-Type", "application/json")
-				w.Write(msg)
-				utils.RenderTemplate(w, "index", nil)
-			} else {
-				utils.RenderTemplate(w, "index", foundPosts)
-			}
+		foundPosts := models.Search(w, r)
+		utils.RenderTemplate(w, "header", utils.IsAuth(r))
+		if foundPosts == nil {
+			msg := []byte(fmt.Sprintf("<h2 id='notFound'> Nihuya ne naideno </h2>"))
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(msg)
+			utils.RenderTemplate(w, "index", nil)
+		} else {
+			utils.RenderTemplate(w, "index", foundPosts)
 		}
 	}
+}

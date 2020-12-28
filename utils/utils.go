@@ -37,6 +37,7 @@ var (
 	Token    string
 	AuthType string
 )
+
 //API struct
 type API struct {
 	Authenticated bool `json:"authentificated"`
@@ -85,10 +86,20 @@ func IsCookie(w http.ResponseWriter, r *http.Request, cookie string) (bool, gene
 }
 
 //CheckLetter correct letter
-func CheckLetter(value string) bool {
-	for _, v := range value {
-		if v >= 97 && v <= 122 || v >= 65 && v <= 90 || v >= 32 && v <= 64 || v > 128 {
-			return true
+func IsValidLetter(value string, typeLetter string) bool {
+
+	if typeLetter == "user" {
+		for _, v := range value {
+			if v >= 97 && v <= 122 && v >= 65 && v <= 90 || v >= 48 && v <= 57 {
+				return true
+			}
+		}
+	} else if typeLetter == "post" {
+
+		for _, v := range value {
+			if v >= 97 && v <= 122 || v >= 65 && v <= 90 || v >= 32 && v <= 64 || v > 128 {
+				return true
+			}
 		}
 	}
 	return false
@@ -96,7 +107,7 @@ func CheckLetter(value string) bool {
 
 //CheckMethod anonim callback function, call parent Func -> then call child Func if condition True
 func CheckMethod(method string, tmpl string, isAuth bool, msg string, w http.ResponseWriter, f func(http.ResponseWriter)) {
-	 if (method == "GET" ) &&  (tmpl == "signin" || tmpl == "signup") {
+	if (method == "GET") && (tmpl == "signin" || tmpl == "signup") {
 		RenderTemplate(w, tmpl, isAuth)
 	} else {
 		f(w)
@@ -236,8 +247,8 @@ func SetCookie(w http.ResponseWriter, uuid string) {
 		Name:    "_cookie",
 		Value:   uuid,
 		Path:    "/",
-		Expires: time.Now().Add(21 * time.Minute),
-		//MaxAge:   1200,
+		Expires: time.Now().Add(100 * time.Second),
+		//	MaxAge:   -1,
 		HttpOnly: false,
 	}
 	http.SetCookie(w, &cookie)
@@ -251,7 +262,7 @@ func IsImage(r *http.Request) []byte {
 
 	if f != nil {
 		imgBytes = FileByte(r, "post")
-	}else {
+	} else {
 		imgBytes = []byte{0, 0}
 	}
 	return imgBytes
@@ -371,6 +382,7 @@ func ReSession(uid int, s *general.Session) {
 	//set nil local session
 	*s = general.Session{}
 }
+
 //QueryDb comment
 func QueryDb(table string, db *sql.DB, queryType string, fields ...string) {
 }

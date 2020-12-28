@@ -17,7 +17,7 @@ func LeaveComment(w http.ResponseWriter, r *http.Request) {
 
 		commentInput := r.FormValue("comment-text")
 
-		if utils.CheckLetter(commentInput) {
+		if utils.IsValidLetter(commentInput, "post") {
 			comment := models.Comment{
 				Content: commentInput,
 				PostID:  r.FormValue("curr"),
@@ -74,7 +74,7 @@ func DeleteComment(w http.ResponseWriter, r *http.Request) {
 func ReplyComment(w http.ResponseWriter, r *http.Request) {
 
 	//post 8, 5 commentId, Reply 1 id, from Uid13, To 24, currentReplyId, answerReplyId
-	if utils.URLChecker(w, r, "/reply/comment/replyId") {
+	if utils.URLChecker(w, r, "/reply/comment") {
 
 		content := r.FormValue("answerComment")
 		currentReplyID := r.FormValue("replyId")
@@ -83,14 +83,13 @@ func ReplyComment(w http.ResponseWriter, r *http.Request) {
 
 		pid := r.FormValue("postId")
 		var toWhom int
-		//var lastInsertCommentID int64
 
 		//if answer comment -> show UserID,  commentCreate, else replies FromWho
 		//DB.QueryRow("SELECT creator_id FROM comments WHERE id = ?", currentCommentID).Scan(&toWhom)
 		DB.QueryRow("SELECT fromWho FROM replies WHERE id = ?", currentReplyID).Scan(&toWhom)
 		//else get comment table, user_id, if 1 answer - in comment
 		//if no reply, create First reply -> init reply this comment
-		if utils.CheckLetter(content) {
+		if utils.IsValidLetter(content, "post") {
 
 			comment := models.Comment{
 				CommentID: cID,
@@ -112,23 +111,6 @@ func ReplyComment(w http.ResponseWriter, r *http.Request) {
 			}
 			commentExec.LastInsertId()
 		}
-		// 1,3,1,1
-
-		//fmt.Println(toWhom, content, cID, "last inserted comment ID", lastInsertCommentID)
-
-		//if have flag -> answered bool, -> show Naswer by comment
-		// || comments -> table RepliesComments - child each  Comment
-
-		// replyCommentPrepare, err := DB.Prepare(`INSERT INTO commentBridge( post_id, comment_id, reply_comment_id, fromWhoId, toWhoId, create_time) VALUES(?, ?, ?, ?, ?, ?)`)
-		// if err != nil {
-		// 	log.Println(err)
-		// }
-		// _, err = replyCommentPrepare.Exec(pid, cID, lastInsertCommentID, session.UserID, toWhom, time.Now())
-		// if err != nil {
-		// 	log.Println(err)
-		// }
-		// defer replyCommentPrepare.Close()
-
 		http.Redirect(w, r, "/post?id="+pid, 302)
 	}
 }

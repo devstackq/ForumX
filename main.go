@@ -11,13 +11,18 @@ func main() {
 	config.Init()
 	controllers.Init()
 
-	//post 8, 5 comment, Reply 1 id, from Uid13, To 24, currentReplyId, answerReplyId
-	
+	//update token, comapre if expires norm && expires time < time.Now(),diff == 30 min - Set refresh cookie
+	//cookie time -> change after, in Browser, -> save cookie, local -> and compare Db cookie,
+	//session filed, created_time -add field, and set Time, then compare if Backend - session Time, differnce 1 hour -> update  NewCookie, and time in Db
+
+	//not delete rows in table- add field - visible, if Client delete post/comment-> filed visible false
+	//try - create div - content editable
+	//edit - user -> send  data inputs
 	//optimisation, and prettier code, -> 10 princip projectio programmin - post models
 
 	//create uniq Func -> queryDb(table, ...fields string, db)
 	// todo another Func add CheckMethod
-	//Start - reply system
+	//Start - reply system, ParentId - comment, 2 form,- 1 form not parent, second form, have parent - commentId
 
 	//valid Input data, and , logger - add midlaweare
 	//add last seen in System- when logout, save time

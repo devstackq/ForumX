@@ -238,7 +238,7 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//check empty values
-	if utils.CheckLetter(p.Title) && utils.CheckLetter(p.Content) {
+	if utils.IsValidLetter(p.Title, "post") && utils.IsValidLetter(p.Content, "post") {
 
 		createPostPrepare, err := DB.Prepare(`INSERT INTO posts(title, content, creator_id, create_time, image) VALUES(?,?,?,?,?)`)
 		if err != nil {
@@ -341,22 +341,6 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post) {
 		}
 		DB.QueryRow("SELECT full_name FROM users WHERE id = ?", comment.UserID).Scan(&comment.Author)
 
-		//----------------
-		replyQuery, err := DB.Query("SELECT * FROM replies WHERE comment_id=?", comment.ID)
-		//many reply - 1 comment, by ID
-		replyComment := &Comment{}
-		for replyQuery.Next() {
-			err = replyQuery.Scan(&replyComment.ID, &replyComment.Content, &replyComment.PostID, &replyComment.ReplyID, &replyComment.CommentID, &replyComment.FromWhom, &replyComment.ToWhom, &replyComment.Time)
-			if err != nil {
-				log.Println(err.Error())
-			}
-			//replyComment.CreatedTime = replyComment.Time.Format("2006 Jan _2 15:04:05")
-			DB.QueryRow("SELECT full_name FROM users WHERE id = ?", replyComment.FromWhom).Scan(&replyComment.Author)
-			//write answer by comment - answer answer
-			comment.RepliesComments = append(comment.RepliesComments, replyComment)
-			//append comment - 1 comment ->
-			// write query - get list answer -> by
-		}
 		comments = append(comments, comment)
 	}
 	if err != nil {

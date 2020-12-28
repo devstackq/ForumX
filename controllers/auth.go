@@ -19,7 +19,7 @@ var (
 	//GoogleConfig *oauth2.Config
 	oAuthState = "pseudo-random"
 	//logout -> session clear
-	session    = &general.Session{}
+	session = &general.Session{}
 )
 
 //Signup system function
@@ -34,42 +34,56 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 				log.Println(err)
 			}
 			iB := utils.FileByte(r, "user")
-			//checkerEmail & password
-			if utils.IsEmailValid(r.FormValue("email")) {
 
-				fullName := r.FormValue("fullname")
-				if fullName == "" {
-					fullName = "No Name"
-				}
-				if intAge == 0 {
-					intAge = 16
-				}
-				utils.AuthType = r.FormValue("authType")
-				pwd, _ := r.Form["password"]
-				if pwd[0] == pwd[1] {
-					if utils.IsPasswordValid(r.FormValue("password")) {
-						u := models.User{
-							FullName: fullName,
-							Email:    r.FormValue("email"),
-							Username: r.FormValue("username"),
-							Age:      intAge,
-							Sex:      r.FormValue("sex"),
-							City:     r.FormValue("city"),
-							Image:    iB,
-							Password: r.FormValue("password"),
+			fullName := r.FormValue("fullname")
+			if fullName == "" {
+				fullName = "No Name"
+			}
+			username := r.FormValue("username")
+
+			if utils.IsValidLetter(fullName, "user") {
+				if utils.IsValidLetter(username, "user") {
+
+					//checkerEmail & password
+					if utils.IsEmailValid(r.FormValue("email")) {
+
+						if intAge == 0 {
+							intAge = 16
 						}
-						u.Signup(w, r)
-						http.Redirect(w, r, "/signin", 302)
+						utils.AuthType = r.FormValue("authType")
+						pwd, _ := r.Form["password"]
+						if pwd[0] == pwd[1] {
+							if utils.IsPasswordValid(r.FormValue("password")) {
+								u := models.User{
+									FullName: fullName,
+									Email:    r.FormValue("email"),
+									Username: username,
+									Age:      intAge,
+									Sex:      r.FormValue("sex"),
+									City:     r.FormValue("city"),
+									Image:    iB,
+									Password: r.FormValue("password"),
+								}
+								u.Signup(w, r)
+								http.Redirect(w, r, "/signin", 302)
+							} else {
+								msg := "Incorrect password: must be 8 symbols, 1 big, 1 special character, example: 9Password!"
+								utils.RenderTemplate(w, "signup", &msg)
+							}
+						} else {
+							msg := "Password fields: not match epta"
+							utils.RenderTemplate(w, "signup", &msg)
+						}
 					} else {
-						msg := "Incorrect password: must be 8 symbols, 1 big, 1 special character, example: 9Password!"
+						msg := "Incorrect email address: example god@mail.kz"
 						utils.RenderTemplate(w, "signup", &msg)
 					}
 				} else {
-					msg := "Password fields: not match epta"
+					msg := "Incorrect usernname field: access latin symbols and numbers"
 					utils.RenderTemplate(w, "signup", &msg)
 				}
 			} else {
-				msg := "Incorrect email address: example god@mail.kz"
+				msg := "Incorrect name field access latin symbols"
 				utils.RenderTemplate(w, "signup", &msg)
 			}
 		})

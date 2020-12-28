@@ -18,7 +18,7 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 			//if userId now, createdPost uid equal -> show
 			dislikedPost, likedPost, posts, comments, user := models.GetUserProfile(r, w, session)
-	
+
 			//check if current cookie equal - cookie
 			utils.RenderTemplate(w, "header", utils.IsAuth(r))
 			utils.RenderTemplate(w, "profile", user)
@@ -52,7 +52,7 @@ func GetAnotherProfile(w http.ResponseWriter, r *http.Request) {
 
 //GetUserActivities func
 func GetUserActivities(w http.ResponseWriter, r *http.Request) {
-	
+
 	if utils.URLChecker(w, r, "/activity") {
 
 		notifies := models.GetUserActivities(w, r, session)
@@ -75,9 +75,12 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 		if r.Method == "POST" {
 			age, _ := strconv.Atoi(r.FormValue("age"))
-
+			var temp string
+			if r.FormValue("fullname") == "" {
+				DB.QueryRow("select full_name from users where id =?", session.UserID).Scan(&temp)
+			}
 			p := models.User{
-				FullName: r.FormValue("fullname"),
+				FullName: temp,
 				Age:      age,
 				Sex:      r.FormValue("sex"),
 				City:     r.FormValue("city"),

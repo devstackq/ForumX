@@ -51,21 +51,11 @@ func Init() {
 	if err != nil {
 		log.Println(err)
 	}
-	reply, err := db.Prepare(`CREATE TABLE IF NOT EXISTS replies(id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT, post_id INTEGER, comment_id INTEGER, fromWho INTEGER, toWho INTEGER,  created_time datetime,  FOREIGN KEY(comment_id) REFERENCES comments(id), FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE )`)
-	if err != nil {
-		log.Println(err)
-	}
-	replyAnswer, err := db.Prepare(`CREATE TABLE IF NOT EXISTS answerReply(id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT, post_id INTEGER, reply_id INTEGER, comment_id INTEGER, fromWho INTEGER, toWho INTEGER, created_time datetime,  FOREIGN KEY(comment_id) REFERENCES comments(id), FOREIGN KEY(reply_id) REFERENCES replies(id), FOREIGN KEY(toWho) REFERENCES users(id), FOREIGN KEY(fromWho) REFERENCES users(id), FOREIGN KEY(post_id) REFERENCES posts(id) )`)
-	if err != nil {
-		log.Println(err)
-	}
 
 	category, err := db.Prepare(`CREATE TABLE IF NOT EXISTS  category(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE)`)
 	if err != nil {
 		log.Println(err)
 	}
-	replyAnswer.Exec()
-	reply.Exec()
 	postCategoryBridge.Exec()
 	session.Exec()
 	post.Exec()

@@ -10,10 +10,27 @@ import (
 //Коллбэки же позволяют нам быть уверенными в том, что определенный код не начнет исполнение до того момента, пока другой код не завершит исполнение.
 // high order function func(func)(callback)
 func IsValidCookie(f http.HandlerFunc) http.HandlerFunc {
-	
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		//check expires cookie
 		c, err := r.Cookie("_cookie")
+		// s := c.Expires
+		// s.Format()
+
+		//		fmt.Println(s.Second, "sec")
+		// t := time.Now().
+
+		// t -= 21600
+		//diff := time.Now().Sub(c.Expires)
+		//	fmt.Println(time.Now(), t)
+
+		// if diff > 0 {
+		// 	p.Time = p.UpdateTime.Format("2006 Jan _2 15:04:05")
+		// 	p.Edited = true
+		// } else {
+		// 	p.Time = p.CreateTime.Format("2006 Jan _2 15:04:05")
+		// }
+
 		if err != nil {
 			log.Println(err, "expires timeout || cookie deleted")
 			utils.Logout(w, r, session)
@@ -49,7 +66,7 @@ func Init() {
 	mux.HandleFunc("/comment", IsValidCookie(LeaveComment))
 	mux.HandleFunc("/edit/comment", IsValidCookie(UpdateComment))
 	mux.HandleFunc("/delete/comment", IsValidCookie(DeleteComment))
-	mux.HandleFunc("/reply/comment/replyId", IsValidCookie(ReplyComment))
+	mux.HandleFunc("/reply/comment", IsValidCookie(ReplyComment))
 
 	mux.HandleFunc("/votes/post", IsValidCookie(VotesPost))
 	mux.HandleFunc("/votes/comment", IsValidCookie(VotesComment))
@@ -67,7 +84,6 @@ func Init() {
 	mux.HandleFunc("/user/id", IsValidCookie(GetAnotherProfile))
 	mux.HandleFunc("/edit/user", IsValidCookie(UpdateProfile))
 	mux.HandleFunc("/delete/account", IsValidCookie(DeleteAccount))
-
 
 	mux.HandleFunc("/activity", IsValidCookie(GetUserActivities))
 	mux.HandleFunc("/search", Search)
