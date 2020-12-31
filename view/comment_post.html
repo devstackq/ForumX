@@ -36,17 +36,17 @@
                 {{.Dislike}}
             </span>
         </div>
-        {{  $cid = .ID}}
+        {{ $cid = .ID}}
         {{/* <button id="btn-reply" onclick="showAnswerComment()">Reply</button> */}}
     </div>
-        <form class="answer-form visible-form" id="answerCommentFormId" action="/reply/comment" method="POST">
+    <!-- <form class="answer-form visible-form" id="answerCommentFormId" action="/reply/comment" method="POST">
         <textarea name="answerComment" id="" cols="66" rows="6"></textarea>
         <input type="hidden" name="postId" value="{{.PostID}}">
         <input type="hidden" name="commentId" value="{{$cid}}">
         <input type="hidden" name="replyId" value="{{.ID}}">
         <input type="submit" value="reply" />
-    </form>
-    </div>
+    </form> -->
+</div>
 
-    {{end}}
-    {{end}}
+{{end}}
+{{end}}
