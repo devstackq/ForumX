@@ -110,8 +110,10 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 					Email:    person.Email,
 					Username: person.Username,
 					Password: person.Password,
+					Session: session,
 				}
-				u.Signin(w, r, *session)
+				u.Signin(w, r)
+				//set session then compare, if s.startTime < 10 - set NewCookie
 			}
 		})
 	}
@@ -122,7 +124,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/logout") {
 		if r.Method == "GET" {
-			models.Logout(w, r, session)
+			models.Logout(w, r, *session)
 		}
 	}
 }
@@ -237,8 +239,9 @@ func SigninSideService(w http.ResponseWriter, r *http.Request, u models.User) {
 		u := models.User{
 			Email:    u.Email,
 			FullName: u.Name,
+			Session: session,
 		}
-		u.Signin(w, r, *session) //login
+		u.Signin(w, r) //login
 	} else {
 		//if github = location -> else Almaty
 		u := models.User{
@@ -249,8 +252,9 @@ func SigninSideService(w http.ResponseWriter, r *http.Request, u models.User) {
 			Sex:      "Male",
 			City:     u.Location,
 			Image:    utils.FileByte(r, "user"),
+			Session:  session,
 		}
 		u.Signup(w, r)
-		u.Signin(w, r, *session)
+		u.Signin(w, r)
 	}
 }

@@ -31,6 +31,7 @@ type User struct {
 	Name        string    `json:"name"`
 	Location    string    `json:"location"`
 	Username    string    `json:"username"`
+	Session *general.Session
 }
 
 //Notify struct
@@ -55,13 +56,13 @@ type Notify struct {
 }
 
 //GetUserProfile function
-func GetUserProfile(r *http.Request, w http.ResponseWriter, s *general.Session) ([]Post, []Post, []Post, []Comment, User) {
+func (user *User) GetUserProfile(r *http.Request, w http.ResponseWriter) ([]Post, []Post, []Post, []Comment, User) {
 
 	//time.AfterFunc(10, checkCookieLife(cookie, w, r)) try check every 30 min cookie
 	u := User{}
-	liked := VotedPosts("like_state", s.UserID)
-	disliked := VotedPosts("dislike_state", s.UserID)
-	err = DB.QueryRow("SELECT id, full_name, email, username, isAdmin, age, sex, created_time, city, image  FROM users WHERE id = ?", s.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.Username, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
+	liked := VotedPosts("like_state", user.Session.UserID)
+	disliked := VotedPosts("dislike_state", user.Session.UserID)
+	err = DB.QueryRow("SELECT id, full_name, email, username, isAdmin, age, sex, created_time, city, image  FROM users WHERE id = ?", user.Session.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.Username, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
 	//Age, sex, picture, city, date ?
 	if err != nil {
 		log.Println(err)
@@ -73,7 +74,7 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, s *general.Session) 
 	u.ImageHTML = base64.StdEncoding.EncodeToString(u.Image)
 
 	//get posts current user
-	pStmp, err := DB.Query("SELECT * FROM posts WHERE creator_id=?", s.UserID)
+	pStmp, err := DB.Query("SELECT * FROM posts WHERE creator_id=?", user.Session.UserID)
 	postsCreated := []Post{}
 
 	for pStmp.Next() {
@@ -82,12 +83,12 @@ func GetUserProfile(r *http.Request, w http.ResponseWriter, s *general.Session) 
 		if err != nil {
 			log.Println(err.Error())
 		}
-		post.AuthorForPost = s.UserID
+		post.AuthorForPost = user.Session.UserID
 		post.Time = post.CreateTime.Format("2006 Jan _2 15:04:05")
 		postsCreated = append(postsCreated, post)
 	}
 
-	commentQuery, err := DB.Query("SELECT * FROM comments WHERE creator_id=?", s.UserID)
+	commentQuery, err := DB.Query("SELECT * FROM comments WHERE creator_id=?", user.Session.UserID)
 
 	var comments []Comment
 	var cmt Comment

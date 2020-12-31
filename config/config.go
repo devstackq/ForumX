@@ -35,7 +35,7 @@ func Init() {
 	if err != nil {
 		log.Println(err)
 	}
-	session, err := db.Prepare(`CREATE TABLE IF NOT EXISTS "session"("id" INTEGER PRIMARY KEY AUTOINCREMENT, "uuid"	TEXT, "user_id"	INTEGER UNIQUE)`)
+	session, err := db.Prepare(`CREATE TABLE IF NOT EXISTS "session"("id" INTEGER PRIMARY KEY AUTOINCREMENT, "uuid"	TEXT, "user_id"	INTEGER UNIQUE, cookie_time datetime)`)
 	if err != nil {
 		log.Println(err)
 	}

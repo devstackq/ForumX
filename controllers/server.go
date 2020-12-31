@@ -2,44 +2,44 @@ package controllers
 
 import (
 	"ForumX/utils"
+	"fmt"
 	"log"
 	"net/http"
+	"time"
 )
 
 //анонимная функция вызывается, и делает логику, смотрит куки, и если надо вызовет хендлер, а отом вернет результат вызова анонимной фукнции
 //Коллбэки же позволяют нам быть уверенными в том, что определенный код не начнет исполнение до того момента, пока другой код не завершит исполнение.
 // high order function func(func)(callback)
+//case 1: signin -> set session, & cookie Browser, -> redirect Middleware(Profile)
+//each handler - isCookie() - check Browser cookie value - and Db, if ok -> save session - global variable
 func IsValidCookie(f http.HandlerFunc) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		//check expires cookie
 		c, err := r.Cookie("_cookie")
-		// s := c.Expires
-		// s.Format()
-
-		//		fmt.Println(s.Second, "sec")
-		// t := time.Now().
-
-		// t -= 21600
-		//diff := time.Now().Sub(c.Expires)
-		//	fmt.Println(time.Now(), t)
-
-		// if diff > 0 {
-		// 	p.Time = p.UpdateTime.Format("2006 Jan _2 15:04:05")
-		// 	p.Edited = true
-		// } else {
-		// 	p.Time = p.CreateTime.Format("2006 Jan _2 15:04:05")
-		// }
-
 		if err != nil {
 			log.Println(err, "expires timeout || cookie deleted")
-			utils.Logout(w, r, session)
+			utils.Logout(w, r, *session)
 			return
 		}
+		//cookie Browser -> send IsCookie(check if this user ->)
 		// then call handler -> middleware
 		if isValidCookie, sessionF := utils.IsCookie(w, r, c.Value); isValidCookie {
-			//write session data - global variable
-			session = &sessionF
+			err = DB.QueryRow("SELECT cookie_time FROM session WHERE user_id = ?", sessionF.UserID).Scan(&sessionF.Time)		
+			if err != nil {
+				log.Println(err)
+			}			
+			strToTime, _ := time.Parse(time.RFC3339, sessionF.Time)
+			diff := time.Now().Sub(strToTime)
+			
+			if int(diff.Minutes()) > 290 && int(diff.Seconds()) < 298   {
+				uuid := utils.CreateUuid()
+				utils.SetCookie(w, uuid)
+				utils.ReSession(sessionF.UserID, session, "timeout", uuid)
+				fmt.Println("change cookie Browser and update sessiontime and uuid in Db")
+			}
+			*session = sessionF
 			f(w, r)
 		}
 	}

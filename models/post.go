@@ -244,6 +244,7 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err)
 		}
+		
 		createPostExec, err := createPostPrepare.Exec(p.Title, p.Content, p.Session.UserID, time.Now(), fileBytes)
 		if err != nil {
 			log.Println(err)

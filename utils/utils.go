@@ -15,6 +15,7 @@ import (
 	"time"
 	"unicode"
 
+	uuid "github.com/satori/go.uuid"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -54,35 +55,35 @@ func IsAuth(r *http.Request) API {
 	return auth
 }
 
-//IsCookie check cookie all case
+//IsCookie check cookie all case, set session value - each time - when call handler
 func IsCookie(w http.ResponseWriter, r *http.Request, cookie string) (bool, general.Session) {
-
-	s := general.Session{UUID: cookie}
+	//cookie browser -> compare ...
+	temp := general.Session{UUID: cookie}
 	//if have _cookie in  browser, get userId - in  session table ->
 	if IsAuth(r).Authenticated {
 		// get userid by borswerCookie
-		err = DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", s.UUID).Scan(&s.UserID)
+		err = DB.QueryRow("SELECT user_id FROM session WHERE uuid = ?", temp.UUID).Scan(&temp.UserID)
 		if err != nil {
 			log.Println(err, "warn: no session with this cookie")
-			Logout(w, r, &s)
-			return false, s
+			Logout(w, r, temp)
+			return false, temp
 		}
 		//get uuid by userId in session table
-		err = DB.QueryRow("SELECT uuid FROM session WHERE user_id = ?", s.UserID).Scan(&s.DbCookie)
+		err = DB.QueryRow("SELECT uuid FROM session WHERE user_id = ?", temp.UserID).Scan(&temp.DbCookie)
 		if err != nil {
-			log.Println(err, "warn: no session with this UserID")
-			Logout(w, r, &s)
-			return false, s
+			log.Println(err, "warn: no session this User")
+			Logout(w, r, temp)
+			return false, temp
 		}
 		//sesseionCookie != dbCookie
-		if s.DbCookie != s.UUID {
+		if temp.DbCookie != temp.UUID {
 			log.Println(err, "warn: reSession || cookie changed")
-			Logout(w, r, &s)
+			Logout(w, r, temp)
 			//s = general.Session{}
-			return false, s
+			return false, temp
 		}
 	}
-	return true, s
+	return true, temp
 }
 
 //CheckLetter correct letter
@@ -90,7 +91,7 @@ func IsValidLetter(value string, typeLetter string) bool {
 
 	if typeLetter == "user" {
 		for _, v := range value {
-			if v >= 97 && v <= 122 && v >= 65 && v <= 90 || v >= 48 && v <= 57 {
+			if v >= 97 && v <= 122 || v >= 65 && v <= 90 || v >= 48 && v <= 57 {
 				return true
 			}
 		}
@@ -126,12 +127,12 @@ func RenderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 }
 
 //IsCookieExpiration if cookie time = 0, delete session and cookie client
-func Logout(w http.ResponseWriter, r *http.Request, s *general.Session) {
+func Logout(w http.ResponseWriter, r *http.Request, s general.Session) {
 
 	DeleteCookie(w)
 	DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).Scan(&s.ID)
 	_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
-	*s = general.Session{}
+	s = general.Session{}
 	fmt.Println(s, "session after logout")
 	http.Redirect(w, r, "/signin", 302)
 
@@ -181,7 +182,6 @@ func AuthError(w http.ResponseWriter, r *http.Request, err error, text string, a
 	}
 }
 
-//URLChecker function
 func URLChecker(w http.ResponseWriter, r *http.Request, url string) bool {
 
 	if r.URL.Path != url {
@@ -193,14 +193,9 @@ func URLChecker(w http.ResponseWriter, r *http.Request, url string) bool {
 
 //IsEmailValid function
 func IsEmailValid(email string) bool {
-	e := strings.Split(email, "@")
-	Re := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-	if e[1] == "mail.kz" && Re.MatchString(email) {
-		return true
-	}
-	return false
+	Re := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,6}$`)
+ 	 return Re.MatchString(email) 
 }
-
 //IsPasswordValid function
 func IsPasswordValid(s string) bool {
 	var (
@@ -236,6 +231,7 @@ func DeleteCookie(w http.ResponseWriter) {
 		Value:    "",
 		Path:     "/",
 		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
 		HttpOnly: false,
 	}
 	http.SetCookie(w, &cookieDelete)
@@ -247,10 +243,10 @@ func SetCookie(w http.ResponseWriter, uuid string) {
 		Name:    "_cookie",
 		Value:   uuid,
 		Path:    "/",
-		Expires: time.Now().Add(100 * time.Second),
-		//	MaxAge:   -1,
+		Expires: time.Now().Add(300 * time.Minute),
 		HttpOnly: false,
 	}
+	//set current time, then compare query - current time, setted time in session
 	http.SetCookie(w, &cookie)
 }
 
@@ -365,22 +361,40 @@ func SetCommentNotify(pid string, fromWhom, toWhom int, lid int64) {
 	defer voteNotifyPrepare.Close()
 }
 
-func ReSession(uid int, s *general.Session) {
+func CreateUuid() string{
+		
+	uuid := uuid.Must(uuid.NewV4(), err).String()
+	if err != nil {
+		log.Println(err)
+	}
+	return uuid
+
+}
+
+func ReSession(uid int, s *general.Session, typeReSession, uuid string) {
 
 	var sid int
 	//first time enter signin system
 	err = DB.QueryRow("SELECT id FROM session WHERE user_id=?", uid).Scan(&sid)
 	if err != nil {
-		log.Println(err, "no have session by uid")
+		log.Println(err, "no have session by uid, first Enter system")
 		return
 	}
+	if typeReSession == "timeout" {
+		_, err := DB.Exec("UPDATE session SET uuid=?, cookie_time=? WHERE id = ?", uuid, time.Now(), sid)
+		if err != nil {
+			log.Println(err)
+		}
+	}else {
 	//same  email signin -> session, if have session -> drop session -> ReLogin
 	_, err := DB.Exec("DELETE FROM session WHERE id = ?", sid)
 	if err != nil {
 		log.Println(err)
 	}
+	log.Println("deleted prev session, and create new session -> ReSession")
 	//set nil local session
 	*s = general.Session{}
+}
 }
 
 //QueryDb comment

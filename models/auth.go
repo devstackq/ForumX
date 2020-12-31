@@ -52,7 +52,9 @@ func (u User) Signup(w http.ResponseWriter, r *http.Request) {
 }
 
 //Signin function dsds
-func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, s general.Session) {
+//if user no system -> create uuid, save save in Db & browser, -> redirect middleware(profile)
+// if second time -> check by Email || username, if  
+func (uStr *User) Signin(w http.ResponseWriter, r *http.Request) {
 
 	var user User
 
@@ -70,7 +72,7 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, s general.Sessi
 				utils.AuthError(w, r, err, "user by Email not found", utils.AuthType)
 				return
 			}
-			utils.ReSession(user.ID, &s)
+			utils.ReSession(user.ID, uStr.Session, "", "")
 		} else if uStr.Username != "" {
 			err = DB.QueryRow("SELECT id, password FROM users WHERE username=?", uStr.Username).Scan(&user.ID, &user.Password)
 			if err != nil {
@@ -78,7 +80,7 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, s general.Sessi
 				utils.AuthError(w, r, err, "user by Username not found", utils.AuthType)
 				return
 			}
-			utils.ReSession(user.ID, &s)
+			utils.ReSession(user.ID, uStr.Session, "", "")
 		}
 		//check pwd, if not correct, error
 		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(uStr.Password))
@@ -87,25 +89,29 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, s general.Sessi
 			return
 		}
 	} else if utils.AuthType == "google" || utils.AuthType == "github" {
-		utils.ReSession(user.ID, &s)
+		utils.ReSession(user.ID, uStr.Session, "", "")
 	}
-	//get user by Id, and write session struct
-	//create new session values
+	
+	//1 time set uuid user, set cookie in Browser
 	newSession := general.Session{
 		UserID: user.ID,
 	}
+	
 	uuid := uuid.Must(uuid.NewV4(), err).String()
 	if err != nil {
 		utils.AuthError(w, r, err, "uuid problem", utils.AuthType)
 		return
 	}
 	//create uuid and set uid DB table session by userid,
-	userPrepare, err := DB.Prepare(`INSERT INTO session(uuid, user_id) VALUES (?, ?)`)
+	userPrepare, err := DB.Prepare(`INSERT INTO session(uuid, user_id, cookie_time) VALUES (?, ?, ?)`)
 	if err != nil {
 		log.Println(err)
 	}
 
-	_, err = userPrepare.Exec(uuid, newSession.UserID)
+	_, err = userPrepare.Exec(uuid,  newSession.UserID, time.Now())
+	if err != nil {
+		log.Println(err)
+	}
 	defer userPrepare.Close()
 
 	if err != nil {
@@ -114,6 +120,7 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, s general.Sessi
 		log.Println(err)
 		return
 	}
+	
 	// get user in info by session Id
 	err = DB.QueryRow("SELECT id, uuid FROM session WHERE user_id = ?", newSession.UserID).Scan(&newSession.ID, &newSession.UUID)
 	if err != nil {
@@ -121,15 +128,15 @@ func (uStr *User) Signin(w http.ResponseWriter, r *http.Request, s general.Sessi
 		log.Println(err, "her")
 		return
 	}
-
 	utils.SetCookie(w, newSession.UUID)
+	//user.Session.StartTimeCookie = time.Now().Add(time.Minute * 60)
 	utils.AuthError(w, r, nil, "success", utils.AuthType)
 	fmt.Println(utils.AuthType, "auth type")
 	http.Redirect(w, r, "/profile", 302)
 }
 
 //Logout function
-func Logout(w http.ResponseWriter, r *http.Request, s *general.Session) {
+func Logout(w http.ResponseWriter, r *http.Request, s general.Session) {
 	
 	utils.Logout(w, r, s)
 	if utils.AuthType == "google" {
