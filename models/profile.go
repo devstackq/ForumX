@@ -95,7 +95,7 @@ func (user *User) GetUserProfile(r *http.Request, w http.ResponseWriter) ([]Post
 	defer commentQuery.Close()
 
 	for commentQuery.Next() {
-		err = commentQuery.Scan(&cmt.ID, &cmt.Content, &cmt.PostID, &cmt.UserID, &cmt.CreatedTime, &cmt.UpdatedTime, &cmt.Like, &cmt.Dislike)
+		err = commentQuery.Scan(&cmt.ID, &cmt.ParentID, &cmt.Content, &cmt.PostID, &cmt.UserID, &cmt.ToWhom, &cmt.FromWhom, &cmt.CreatedTime, &cmt.UpdatedTime, &cmt.Like, &cmt.Dislike)
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -111,6 +111,7 @@ func (user *User) GetUserProfile(r *http.Request, w http.ResponseWriter) ([]Post
 		cmt.Time = cmt.CreatedTime.Format("2006 Jan _2 15:04:05")
 		comments = append(comments, cmt)
 	}
+
 	return disliked, liked, postsCreated, comments, u
 }
 

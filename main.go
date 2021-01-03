@@ -53,8 +53,6 @@ func main() {
 	//500 status - check
 	// docker check
 
-	//done, add search by content
-	//,cookie expired -> logout, add cookie time, diff 10 minute - Resession
 
 }
 

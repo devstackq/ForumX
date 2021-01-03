@@ -21,7 +21,6 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 				Session : session,
 			}
 			dislikedPost, likedPost, posts, comments, user := u.GetUserProfile(r, w)
-
 			//check if current cookie equal - cookie
 			utils.RenderTemplate(w, "header", utils.IsAuth(r))
 			utils.RenderTemplate(w, "profile", user)
@@ -96,8 +95,8 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 			}
 
 			p.UpdateProfile()
+			http.Redirect(w, r, "/profile", http.StatusFound)
 		}
-		http.Redirect(w, r, "/profile", http.StatusFound)
 	}
 }
 

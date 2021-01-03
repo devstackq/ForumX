@@ -2,7 +2,6 @@
 <div class="profile-wrapper">
   <div class="profile-info">
     <h3>Welcome {{.FullName}}</h3>
-
     {{if .SVG}}
     <img alt=" " width="220px" src="data:image/svg+xml;base64, {{.ImageHTML}} "> {{else}}
     <img width="220px" src="data:image/jpeg;base64, {{.ImageHTML}}" alt=" "> {{end}}

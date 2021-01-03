@@ -1,11 +1,11 @@
 {{define "another_user"}}
 
 <div class="wrapper-another-user">
-    <h3>Welcome to guest: {{.FullName}} page</h3>
+    <h3>Welcome to guest page: {{.FullName}} </h3>
     <div class="img-wrapper">
         {{if .SVG}}
-        <img alt=" " width="500px" src="data:image/svg+xml;base64, {{.ImageHTML}} "> {{else}}
-        <img class="post-img" src="data:image/jpeg;base64, {{.ImageHTML}}" alt=" "> {{end}}
+        <img alt=" " width="100px" src="data:image/svg+xml;base64, {{.ImageHTML}} "> {{else}}
+        <img class="post-img" width="100px" src="data:image/jpeg;base64, {{.ImageHTML}}" alt=" "> {{end}}
     </div>
     Name: {{.FullName}} <br /> Email : {{.Email}}<br /> Age : {{.Age}}<br /> Sex : {{.Sex}}<br /> From : {{.City}}
     <br /> On site with : {{.CreatedTime}}<br />

@@ -5,7 +5,7 @@ body {
 }
 
 .main {
-  margin: 0 auto;
+  margin: 10px auto;
   background-color: #fff;
   max-width: 1200px;
   position: relative;
@@ -86,7 +86,7 @@ body {
   background: transparent;
   border: 1px solid black;
   width: 100%;
-  max-width: 80vw;
+  max-width: 54vw;
   outline: none;
   color: steelblue;
   margin-bottom: 10px;
@@ -136,6 +136,14 @@ body {
   padding: 2px 5px;
   white-space: nowrap;
   overflow: hidden;
+}
+
+.wrapper-edit {
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  margin: 0 auto;
 }
 
 .wrapper-create {
@@ -259,7 +267,9 @@ a.links {
 }
 
 .profile-post-like {
+  margin: 0 auto;
   width: 100%;
+  max-width: 1240px;
 }
 
 .profile-post-create {
@@ -666,8 +676,8 @@ a.dislike {
 
 #category {
   position: absolute;
-  top: 94px;
-  left: 10%;
+  top: 70px;
+  left: 2%;
   color: #000;
   margin: 0;
   z-index: 2;

@@ -62,8 +62,7 @@ func GetPostByID(w http.ResponseWriter, r *http.Request) {
 			utils.RenderTemplate(w, "404page", 404)
 			return
 		}
-		fmt.Println(temp)
-
+		//fmt.Println(temp)
 		pid := models.Post{ID: id}
 		comments, post := pid.GetPostByID(r)
 
@@ -128,18 +127,16 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 
 		if r.Method == "POST" {
 
-			p := models.Post{
+			p := models.Post {
 				Title:      r.FormValue("title"),
 				Content:    r.FormValue("content"),
 				Image:      utils.IsImage(r),
 				ID:         pid,
 				UpdateTime: time.Now(),
 			}
-
 			p.UpdatePost()
+			http.Redirect(w, r, "/post?id="+strconv.Itoa(int(pid)), 302)
 		}
-		//http.Redirect(w, r, "/profile", 302)
-		http.Redirect(w, r, "/post?id="+strconv.Itoa(int(pid)), 302)
 	}
 }
 

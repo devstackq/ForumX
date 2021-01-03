@@ -39,7 +39,7 @@ func UpdateComment(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 
 			var comment models.Comment
-			err = DB.QueryRow("SELECT * FROM comments WHERE id = ?", cid).Scan(&comment.ID, &comment.Content, &comment.PostID, &comment.UserID, &comment.CreatedTime, &comment.UpdatedTime, &comment.Like, &comment.Dislike)
+			err = DB.QueryRow("SELECT * FROM comments WHERE id = ?", cid).Scan(&comment.ID, &comment.ParentID, &comment.Content, &comment.PostID, &comment.UserID, &comment.ToWhom, &comment.FromWhom, &comment.CreatedTime, &comment.UpdatedTime, &comment.Like, &comment.Dislike)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -56,8 +56,9 @@ func UpdateComment(w http.ResponseWriter, r *http.Request) {
 			}
 
 			comment.UpdateComment()
-		}
 		http.Redirect(w, r, "/profile", 302)
+
+		}
 	}
 }
 
