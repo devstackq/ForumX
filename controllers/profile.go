@@ -38,9 +38,14 @@ func GetAnotherProfile(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/user/id") {
 
-		if r.Method == "POST" {
+		//if r.Method == "POST" {
 
 			uid := models.User{Temp: r.FormValue("uid")}
+
+			if uid.Temp == "0" {
+				uid.Temp = r.URL.Query().Get("uid")
+			}
+			fmt.Println(uid, "UID")
 			posts, user, err := uid.GetAnotherProfile(r)
 			if err != nil {
 				log.Println(err)
@@ -49,7 +54,6 @@ func GetAnotherProfile(w http.ResponseWriter, r *http.Request) {
 			utils.RenderTemplate(w, "header", utils.IsAuth(r))
 			utils.RenderTemplate(w, "another_user", user)
 			utils.RenderTemplate(w, "created_post", posts)
-		}
 	}
 }
 

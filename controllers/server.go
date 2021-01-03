@@ -8,8 +8,6 @@ import (
 	"time"
 )
 
-//анонимная функция вызывается, и делает логику, смотрит куки, и если надо вызовет хендлер, а отом вернет результат вызова анонимной фукнции
-//Коллбэки же позволяют нам быть уверенными в том, что определенный код не начнет исполнение до того момента, пока другой код не завершит исполнение.
 // high order function func(func)(callback)
 //case 1: signin -> set session, & cookie Browser, -> redirect Middleware(Profile)
 //each handler - isCookie() - check Browser cookie value - and Db, if ok -> save session - global variable

@@ -1,8 +1,7 @@
 {{define "comment_post"}}
 {{$id :=0}}
-{{$cid :=0}}
 {{range .}} {{$id = .PostID}}
-<div onLoad="showAnswerForm();" class="comment-wrapperz">
+<div class="comment-wrapperz">
 
     <div class="comment-underpost">
         <div class="comment-wrapper-1">
@@ -10,10 +9,17 @@
                 <input type="hidden" name="uid" value="{{.UserID}}">
                 <input type="submit" value="{{.Author}}">
             </form>
-
             {{if eq .Edited true }} <span class="edited-comment"> Edited </span>{{end}}
             <span class="time-comment"> {{.Time}} </span>
         </div>
+        {{if gt .ParentID 0 }}
+        <div class="replied-container">
+            <span> <a href="/user/id?uid={{.FromWhom}}" alt="">{{.Author}}</a> ответил на
+                комментарий: <span class="replied-content">{{.RepliedContent}}</span>
+                пользователю : <a href="/user/id?uid={{.ToWhom}}" alt=""> {{.Replied}}</a>
+            </span>
+        </div>
+        {{end}}
 
         <p class="comment-wrapper-p"> {{.Content}}</p>
         <div class="like-comment-wrapper comment-btn-like">
@@ -26,7 +32,7 @@
             <span class="" style="color:red; font-size: 15px; padding-left:5px;">
                 {{.Like}}
             </span>
-            <form class="dislike-c  omment-wrap" action="/votes/comment?commentID={{.ID}}" method="POST">
+            <form class="dislike-comment-wrap" action="/votes/comment?commentID={{.ID}}" method="POST">
                 <span class="fa fa-thumbs-down vote-down"> </span>
                 <input type="hidden" name="commentDislike" value="1">
                 <input class="" type="submit" value="     ">
@@ -36,17 +42,26 @@
                 {{.Dislike}}
             </span>
         </div>
-        {{ $cid = .ID}}
-        {{/* <button id="btn-reply" onclick="showAnswerComment()">Reply</button> */}}
+        <button key={{.ID}} id="btnReplyId" onclick="toggle_visibility({{.ID}})">Reply</button>
     </div>
-    <!-- <form class="answer-form visible-form" id="answerCommentFormId" action="/reply/comment" method="POST">
-        <textarea name="answerComment" id="" cols="66" rows="6"></textarea>
-        <input type="hidden" name="postId" value="{{.PostID}}">
-        <input type="hidden" name="commentId" value="{{$cid}}">
-        <input type="hidden" name="replyId" value="{{.ID}}">
-        <input type="submit" value="reply" />
-    </form> -->
-</div>
 
+</div>
+<form style="display:none" key={{.ID}} class="answer-form visible-form" id="answerCommentFormId{{.ID}}"
+    action="/reply/comment" method="POST">
+    <textarea name="answerComment" cols="66" rows="6"></textarea>
+    <input type="hidden" name="postId" value="{{.PostID}}">
+    <input type="hidden" name="parentId" value="{{.ID}}">
+    <input type="submit" value="send" />
+</form>
 {{end}}
+
+<script>
+    function toggle_visibility(id) {
+        var e = document.getElementById("answerCommentFormId" + id);
+        if (e.style.display == 'block')
+            e.style.display = 'none';
+        else
+            e.style.display = 'block';
+    }
+</script>
 {{end}}

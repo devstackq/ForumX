@@ -70,47 +70,44 @@ func DeleteComment(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/profile", 302)
 }
 
-//AnswerComment func replyComment
+// if have parentId-, when answer another comment, getByIdComment ->  get All data, then, show
+//message cleint side, fromWho, toWhom answer
 func ReplyComment(w http.ResponseWriter, r *http.Request) {
 
-	//post 8, 5 commentId, Reply 1 id, from Uid13, To 24, currentReplyId, answerReplyId
 	if utils.URLChecker(w, r, "/reply/comment") {
 
 		content := r.FormValue("answerComment")
-		currentReplyID := r.FormValue("replyId")
+		parent, _ := strconv.Atoi(r.FormValue("parentId"))
+		//commentID, _ := strconv.Atoi(r.FormValue("commentId"))
+		postId := r.FormValue("postId")
+		comment := models.Comment{}
 
-		cID, _ := strconv.Atoi(r.FormValue("commentId"))
-
-		pid := r.FormValue("postId")
-		var toWhom int
-
-		//if answer comment -> show UserID,  commentCreate, else replies FromWho
-		//DB.QueryRow("SELECT creator_id FROM comments WHERE id = ?", currentCommentID).Scan(&toWhom)
-		DB.QueryRow("SELECT fromWho FROM replies WHERE id = ?", currentReplyID).Scan(&toWhom)
-		//else get comment table, user_id, if 1 answer - in comment
-		//if no reply, create First reply -> init reply this comment
 		if utils.IsValidLetter(content, "post") {
+			//get creator_id -> when answer by post, else get fromWho, reply another comment
+		err = DB.QueryRow("SELECT creator_id FROM comments WHERE id = ?", parent).Scan(&comment.ToWhom)
+		if err != nil {
+			log.Println(err, "not find user")
+		}
 
-			comment := models.Comment{
-				CommentID: cID,
-				Content:   content,
-				PostID:    pid,
-				FromWhom:  session.UserID,
-				ToWhom:    toWhom,
-			}
-			fmt.Print(comment, "reply commen ", currentReplyID, toWhom)
-			//lastInsertCommentID = comment.LeaveComment()
-			//user_id INTEGER, content TEXT, post_id INTEGER, comment_id INTEGER, fromWhoId INTEGER, toWhomId INTEGER,  created_time datetime
-			commentPrepare, err := DB.Prepare(`INSERT INTO replies(content, post_id, comment_id, fromWho, toWho, created_time) VALUES(?,?,?,?,?,?)`)
+		fmt.Println(parent, "parentId", parent, "replyID", parent, "cid", postId, "pid")
+
+			comment.CommentID= parent
+			comment.Content=   content
+			comment.PostID=   postId
+			comment.FromWhom= session.UserID
+			comment.ParentID = parent
+			comment.UserID = session.UserID
+			
+			commentPrepare, err := DB.Prepare(`INSERT INTO comments(parent_id, content, post_id, creator_id, toWho, fromWho, create_time) VALUES(?,?,?,?,?,?,?)`)
 			if err != nil {
 				log.Println(err)
 			}
-			commentExec, err := commentPrepare.Exec(comment.Content, comment.PostID, comment.CommentID, comment.FromWhom, comment.ToWhom, time.Now())
+			commentExec, err := commentPrepare.Exec(comment.ParentID, comment.Content, comment.PostID, comment.UserID, comment.ToWhom,  comment.FromWhom, time.Now())
 			if err != nil {
 				log.Println(err)
 			}
 			commentExec.LastInsertId()
 		}
-		http.Redirect(w, r, "/post?id="+pid, 302)
+		http.Redirect(w, r, "/post?id="+postId, 302)
 	}
 }

@@ -103,7 +103,7 @@ func (user *User) GetUserProfile(r *http.Request, w http.ResponseWriter) ([]Post
 		if err != nil {
 			log.Println(err.Error())
 		}
-		err = DB.QueryRow("SELECT title FROM posts WHERE id = ?", post.ID).Scan(&cmt.TitlePost)
+		err = DB.QueryRow("SELECT thread FROM posts WHERE id = ?", post.ID).Scan(&cmt.TitlePost)
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -132,7 +132,7 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request, s *general.Sessio
 		//get data/comment data by id
 		n := Notify{}
 		// commnentId - delete, but notify - Have row
-		err = DB.QueryRow("SELECT title, create_time, update_time FROM posts WHERE id = ?", v.PostID).Scan(&n.Content, &n.CreatedTime, &n.UpdatedTime)
+		err = DB.QueryRow("SELECT thread, create_time, update_time FROM posts WHERE id = ?", v.PostID).Scan(&n.Content, &n.CreatedTime, &n.UpdatedTime)
 		if err != nil {
 			log.Println(err)
 		}		

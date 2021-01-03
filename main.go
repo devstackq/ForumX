@@ -30,7 +30,6 @@ func main() {
 
 	//no rows in result set  -> fix
 
-	//add writeHeader()
 	//http: superfluous response.WriteHeader  fix
 
 	// try errors -> with gorutine
@@ -54,8 +53,8 @@ func main() {
 	//500 status - check
 	// docker check
 
-	// done: category - table, nickname auth, url post/id=?, add 2 password form, createbutton in main page, show user name activity,  optimisation code, signin system, -> another session delete
-	//,cookie expired -> logout
+	//done, add search by content
+	//,cookie expired -> logout, add cookie time, diff 10 minute - Resession
 
 }
 

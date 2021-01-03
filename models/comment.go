@@ -21,12 +21,15 @@ type Comment struct {
 	UpdatedTime time.Time    `json:"updatedTime"`
 	ToWhom      int       `json:"toWhom"`
 	FromWhom    int       `json:"fromWhom"`
+	Replied    string       `json:"replied"`
 	ReplyID     int       `json:"replyId"`
 	Parent int `json:"parent"`
 	Children []*Comment `json:"children"`
 	RepliesComments []*Comment `json:"repliesComments"`
 	Edited bool `json:"edited"`
 	CommentID int `json:"cid"`
+	ParentID int `json:"parentId"`
+	RepliedContent string `json:"repliedContent"`
 }
 
 

@@ -181,7 +181,7 @@ func (filter *Filter) GetAllPost(r *http.Request, next, prev string) ([]Post, st
 
 //UpdatePost fucntion
 func (p *Post) UpdatePost() {
-	_, err := DB.Exec("UPDATE  posts SET title=?, content=?, image=?, update_time=? WHERE id=?",
+	_, err := DB.Exec("UPDATE  posts SET thread=?, content=?, image=?, update_time=? WHERE id=?",
 		p.Title, p.Content, p.Image, p.UpdateTime, p.ID)
 	if err != nil {
 		log.Println(err)
@@ -240,7 +240,7 @@ func (p *Post) CreatePost(w http.ResponseWriter, r *http.Request) {
 	//check empty values
 	if utils.IsValidLetter(p.Title, "post") && utils.IsValidLetter(p.Content, "post") {
 
-		createPostPrepare, err := DB.Prepare(`INSERT INTO posts(title, content, creator_id, create_time, image) VALUES(?,?,?,?,?)`)
+		createPostPrepare, err := DB.Prepare(`INSERT INTO posts(thread, content, creator_id, create_time, image) VALUES(?,?,?,?,?)`)
 		if err != nil {
 			log.Println(err)
 		}
@@ -317,7 +317,7 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post) {
 	p.ImageHTML = base64.StdEncoding.EncodeToString(p.Image)
 	DB.QueryRow("SELECT full_name FROM users WHERE id = ?", p.CreatorID).Scan(&p.FullName)
 
-	stmp, err := DB.Query("SELECT * FROM comments WHERE  post_id =?", p.ID)
+	stmp, err := DB.Query("SELECT * FROM comments WHERE  post_id=?", p.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -328,7 +328,7 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post) {
 	for stmp.Next() {
 		//get each comment Post -> by Id, -> get each replyComment by comment_id -> get replyAnswer by reply_com_id
 		comment := Comment{}
-		err = stmp.Scan(&comment.ID, &comment.Content, &comment.PostID, &comment.UserID, &comment.CreatedTime, &comment.UpdatedTime, &comment.Like, &comment.Dislike)
+		err = stmp.Scan(&comment.ID, &comment.ParentID, &comment.Content, &comment.PostID, &comment.UserID, &comment.ToWhom, &comment.FromWhom, &comment.CreatedTime, &comment.UpdatedTime, &comment.Like, &comment.Dislike)
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -340,12 +340,33 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post) {
 		} else {
 			comment.Time = comment.CreatedTime.Format("2006 Jan _2 15:04:05")
 		}
-		DB.QueryRow("SELECT full_name FROM users WHERE id = ?", comment.UserID).Scan(&comment.Author)
+		
+		err = 	DB.QueryRow("SELECT full_name FROM users WHERE id = ?", comment.UserID).Scan(&comment.Author)
+		if err != nil {
+			log.Println(err)
+		}
+	if comment.ParentID  > 0 {
 
+			err = 	DB.QueryRow("SELECT creator_id, toWho FROM comments WHERE id = ?", comment.ID).Scan(&comment.FromWhom, &comment.ToWhom)
+			if err != nil {
+				log.Println(err)
+			}
+			
+			err = 	DB.QueryRow("SELECT full_name FROM users WHERE id = ?", comment.FromWhom).Scan(&comment.Author)
+			if err != nil {
+				log.Println(err)
+			}
+			err = 	DB.QueryRow("SELECT full_name FROM users WHERE id = ?", comment.ToWhom).Scan(&comment.Replied)
+			if err != nil {
+				log.Println(err)
+			}
+			err = 	DB.QueryRow("SELECT content FROM comments WHERE id = ?", comment.ParentID).Scan(&comment.RepliedContent)
+			if err != nil {
+				log.Println(err)
+			}
+
+		}	
 		comments = append(comments, comment)
-	}
-	if err != nil {
-		log.Println(err)
 	}
 	return comments, p
 }
@@ -368,16 +389,37 @@ func (pcb *PostCategory) CreateBridge() {
 func Search(w http.ResponseWriter, r *http.Request) []Post {
 
 	var posts []Post
-	psu, err := DB.Query("SELECT * FROM posts WHERE title LIKE ?", "%"+r.FormValue("search")+"%")
-	defer psu.Close()
-
-	for psu.Next() {
-		err = psu.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreateTime, &post.UpdateTime, &post.Image, &post.Like, &post.Dislike)
+	psbt, err := DB.Query("SELECT * FROM posts WHERE thread LIKE ?", "%"+r.FormValue("search")+"%")
+	if err != nil {
+		log.Println(err, "not find by thread")
+		return nil
+	}
+	psbc, err := DB.Query("SELECT * FROM posts WHERE content LIKE ?", "%"+r.FormValue("search")+"%")
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+	
+	defer psbc.Close()
+	defer psbt.Close()
+	
+	for psbt.Next() {
+		err = psbt.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreateTime, &post.UpdateTime, &post.Image, &post.Like, &post.Dislike)
 		if err != nil {
 			log.Println(err)
 		}
 		post.Time = post.CreateTime.Format("2006 Jan _2 15:04:05")
 		posts = append(posts, post)
 	}
+
+	for psbc.Next() {
+		err = psbc.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreateTime, &post.UpdateTime, &post.Image, &post.Like, &post.Dislike)
+		if err != nil {
+			log.Println(err)
+		}
+		post.Time = post.CreateTime.Format("2006 Jan _2 15:04:05")
+		posts = append(posts, post)
+	}
+
 	return posts
 }
