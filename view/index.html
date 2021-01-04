@@ -2,7 +2,7 @@
 
 <div class="main">
     {{template "search"}} {{template "filter_post" }}
-
+    <a id="create_post" class="link-profile create-btn" href="/create/post">add post</a>
     {{ range $key, $value := . }}
     <a class="links" href="/post?id={{$value.ID}}">
         <div class="wrapper-main">

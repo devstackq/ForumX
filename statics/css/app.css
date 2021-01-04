@@ -1,11 +1,14 @@
 body {
-  background-color: #000;
-  margin: 0;
   padding: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 80vw;
+  margin: 0 auto;
+  background-color: black;
 }
 
 .main {
-  margin: 10px auto;
+  margin: 20px auto 0;
   background-color: #fff;
   max-width: 1200px;
   position: relative;
@@ -13,7 +16,7 @@ body {
 }
 
 .wrapper-main {
-  margin: 12px auto 0;
+  margin: 16px auto 0;
   border-radius: 6px;
   background-color: slategray;
   color: #fff;
@@ -45,11 +48,13 @@ body {
 }
 
 .wrapper-filter {
-  margin: 20px auto 20px;
+  margin: 20px auto 30px;
   color: #000;
   width: 100%;
-  max-width: 1040px;
+  max-width: 1000px;
   position: relative;
+  padding: 10px 0;
+  border: 1px solid gray;
 }
 
 .wrapper-filter h4 {
@@ -74,22 +79,26 @@ body {
   position: absolute;
   right: 20px;
   border: none;
+  bottom: 10%;
 }
 
 .search-wrapper {
-  margin: 10px 0;
-  padding: 3px 10px;
+  margin: 10px auto;
+  position: relative;
+  width: 100%;
+  max-width: 1000px;
+}
+#create_post {
+  margin-left: 85%;
 }
 
 .search-wrapper input[type="text"] {
-  padding: 10px;
+  padding: 10px 0 10px 10px;
   background: transparent;
   border: 1px solid black;
-  width: 100%;
-  max-width: 54vw;
+  width: 98%;
   outline: none;
   color: steelblue;
-  margin-bottom: 10px;
 }
 
 .search-wrapper input[type="submit"]:hover,
@@ -102,21 +111,29 @@ body {
   padding: 10px 14px;
   background: #000;
   border: 1px solid #fff;
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 
 .navbar-wrapper {
   background: #fff;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 0 auto -20px;
   padding: 10px 18px 20px;
   border-bottom: 2px solid slategray;
   position: relative;
-  height: 100%;
-  /* max-height: 100vh; */
+}
+#notify-post {
+  color: red;
+  margin: 0 auto;
+  position: absolute;
+  left: 50%;
+  font-size: 20px;
 }
 
 .nav {
-  margin-top: 15px;
+  padding: 10px;
 }
 
 .nav-link {
@@ -339,9 +356,8 @@ a.links {
   position: relative;
   background: #fff;
   color: #000;
-  margin: 0px auto 0;
+  margin: 10px auto 0;
   padding: 36px 18px 18px;
-  margin-bottom: 24px;
 }
 
 .post-wrapper h2 {
@@ -349,18 +365,15 @@ a.links {
 }
 
 .author-wrapper {
-  color: red;
-  display: flex;
-  align-items: center;
   position: absolute;
   right: 10px;
-  bottom: 0;
-  z-index: 10;
+  bottom: 26%;
+  z-index: 2;
 }
 
-.author-wrapper label {
+/* .author-wrapper label {
   margin-right: 20px;
-}
+} */
 
 .like-wrapper input[type="submit"]:hover {
   cursor: pointer;
@@ -403,19 +416,18 @@ a.links {
 .comment-wrapperz {
   background: #fff;
   max-width: 1200px;
-  margin: 10px auto;
+  margin: 0px auto;
+  padding: 10px 20px 5px 20px;
 }
 
 .comment-wrapper {
-  width: 100%;
-  max-width: 1200px;
   margin: 0 auto;
   color: #fff;
   position: relative;
 }
-
-.comment-wrapper textarea {
-  padding: 10px;
+.comment-wrapper {
+  margin-top: 20px;
+  margin-left: -15px;
 }
 
 .comment-underpost {
@@ -655,6 +667,7 @@ a.dislike {
   border: none;
   position: relative;
   align-items: center;
+  margin: 10px 0;
 }
 
 .lukas {
@@ -699,12 +712,11 @@ a.dislike {
 }
 
 #category {
-  position: absolute;
-  top: 70px;
-  left: 2%;
   color: #000;
-  margin: 0;
   z-index: 2;
+  font-weight: 700;
+  font-size: 20px;
+  margin-left: 60%;
 }
 
 .user-info {
@@ -713,6 +725,8 @@ a.dislike {
   top: 165px;
   line-height: 22px;
   font-size: 14px;
+  display: flex;
+  flex-direction: column;
 }
 
 .create-btn {
@@ -828,7 +842,7 @@ a.dislike {
 .post-content {
   width: 100%;
   padding: 16px;
-  box-shadow: 1px 2px 3px grey;
+  box-shadow: 6px 4px 12px grey;
   line-height: 24px;
 }
 
@@ -872,8 +886,8 @@ a.dislike {
   background: #000 !important;
   color: gold !important;
   position: absolute;
-  right: 18px;
-  top: 18px;
+  right: 28px;
+  top: 14px;
 }
 
 .logout-link:hover {
@@ -883,8 +897,8 @@ a.dislike {
 
 .auth-container {
   position: absolute;
-  right: 120px;
-  bottom: 18px;
+  right: 28px;
+  bottom: 45%;
 }
 
 .google-signin {

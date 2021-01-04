@@ -24,7 +24,7 @@ type Comment struct {
 	Replied    string       `json:"replied"`
 	ReplyID     int       `json:"replyId"`
 	Parent int `json:"parent"`
-	Children []*Comment `json:"children"`
+	Children []Comment `json:"children"`
 	Edited bool `json:"edited"`
 	CommentID int `json:"cid"`
 	ParentID int `json:"parentId"`

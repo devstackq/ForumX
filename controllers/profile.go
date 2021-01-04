@@ -39,7 +39,6 @@ func GetAnotherProfile(w http.ResponseWriter, r *http.Request) {
 	if utils.URLChecker(w, r, "/user/id") {
 
 		//if r.Method == "POST" {
-
 			uid := models.User{Temp: r.FormValue("uid")}
 
 			if uid.Temp == "0" {
@@ -123,7 +122,7 @@ func DeleteAccount(w http.ResponseWriter, r *http.Request) {
 			}
 			p.DeleteAccount(w, r)
 			fmt.Println("deleted account by ID", p.ID)
+			http.Redirect(w, r, "/", 302)
 		}
-		http.Redirect(w, r, "/", 302)
 	}
 }

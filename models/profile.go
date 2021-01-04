@@ -65,7 +65,6 @@ func (user *User) GetUserProfile(r *http.Request, w http.ResponseWriter) ([]Post
 	liked := VotedPosts("like_state", user.Session.UserID)
 	disliked := VotedPosts("dislike_state", user.Session.UserID)
 	err = DB.QueryRow("SELECT id, full_name, email, username, isAdmin, age, sex, created_time, city, image, last_seen  FROM users WHERE id = ?", user.Session.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.Username, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image, &u.LastTime)
-	//Age, sex, picture, city, date ?
 	if err != nil {
 		log.Println(err)
 	}
@@ -128,7 +127,9 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request, s *general.Sessio
 
 	var notifies []Notify
 	nQuery, err := DB.Query("SELECT * FROM notify WHERE to_whom=?", s.UserID)
-
+	if err != nil {
+		log.Println(err)
+	}
 	for nQuery.Next() {
 		n := Notify{}
 		err = nQuery.Scan(&n.ID, &n.PostID, &n.UserLostID, &n.VoteState, &n.CreatedTime, &n.ToWhom, &n.CommentID)

@@ -191,25 +191,27 @@ func (p *Post) UpdatePost() {
 //DeletePost function, delete rows, notify, voteState, comment, by postId
 func (p *Post) DeletePost() {
 
-	_, err = DB.Exec("DELETE FROM comments  WHERE post_id =?", p.ID)
-	if err != nil {
-		log.Println(err)
-	}
-	_, err = DB.Exec("DELETE FROM notify  WHERE post_id =?", p.ID)
-	if err != nil {
-		log.Println(err)
-	}
 	_, err = DB.Exec("DELETE FROM voteState  WHERE post_id =?", p.ID)
 	if err != nil {
-		log.Println(err)
+		log.Println(err, "3")
 	}
+	_, err := DB.Exec("DELETE FROM comments  WHERE post_id =?", p.ID)
+	if err != nil {
+		log.Println(err, "1")
+	}
+	
+	_, err = DB.Exec("DELETE FROM notify  WHERE post_id =?", p.ID)
+	if err != nil {
+		log.Println(err, "2")
+	}
+
 	_, err = DB.Exec("DELETE FROM post_cat_bridge  WHERE post_id =?", p.ID)
 	if err != nil {
-		log.Println(err)
+		log.Println(err, "4")
 	}
 	_, err = DB.Exec("DELETE FROM posts WHERE id =?", p.ID)
 	if err != nil {
-		log.Println(err)
+		log.Println(err, "5")
 	}
 }
 
@@ -361,9 +363,9 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post) {
 				log.Fatal(err)
 			}
 
-		if comRep.ParentID == comment.ID {
-
-		comment.Children = append(comment.Children,  &comRep)
+		if comRep.ParentID == comment.ParentID {
+			fmt.Println(comRep.ParentID, comment.ParentID, "gretta2", comRep)
+		comment.Children = append(comment.Children,  comRep)
 	}
 }
 		
@@ -386,11 +388,12 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post) {
 			if err != nil {
 				log.Println(err)
 			}
-
 		}
+
 	comments = append(comments, comment)
 	}
-fmt.Println(comment.Children)
+
+fmt.Println(comment.Children, "child")
 	return comments, p
 }
 
@@ -425,12 +428,14 @@ func Search(w http.ResponseWriter, r *http.Request) []Post {
 	
 	defer psbc.Close()
 	defer psbt.Close()
+	var  pTID int
 	
 	for psbt.Next() {
 		err = psbt.Scan(&post.ID, &post.Title, &post.Content, &post.CreatorID, &post.CreateTime, &post.UpdateTime, &post.Image, &post.Like, &post.Dislike)
 		if err != nil {
 			log.Println(err)
 		}
+		pTID = post.ID
 		post.Time = post.CreateTime.Format("2006 Jan _2 15:04:05")
 		posts = append(posts, post)
 	}
@@ -440,9 +445,11 @@ func Search(w http.ResponseWriter, r *http.Request) []Post {
 		if err != nil {
 			log.Println(err)
 		}
+		//check duplicate id - appen 1 item
 		post.Time = post.CreateTime.Format("2006 Jan _2 15:04:05")
-		posts = append(posts, post)
+		if pTID != post.ID {
+			posts = append(posts, post)
+		}
 	}
-
 	return posts
 }

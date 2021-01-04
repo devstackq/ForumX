@@ -35,14 +35,19 @@ func GetAllPosts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	posts, endpoint, category := filterValue.GetAllPost(r, r.FormValue("next"), r.FormValue("prev"))
-
 	utils.RenderTemplate(w, "header", utils.IsAuth(r))
-
+	if posts == nil {
+		msg := []byte(fmt.Sprintf("<span id='notify-post'> Post nil </span>", ))
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(msg)
+		//utils.RenderTemplate(w, "category_post_template", posts)
+		return
+	}
 	if endpoint == "/" {
 		utils.RenderTemplate(w, "index", posts)
 	} else {
 		//send category value
-		msg := []byte(fmt.Sprintf("<h3 id='category'> %s </h3>", category))
+		msg := []byte(fmt.Sprintf("<span id='category'> %s </span>", category))
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(msg)
 		utils.RenderTemplate(w, "category_post_template", posts)
@@ -158,7 +163,7 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		foundPosts := models.Search(w, r)
 		utils.RenderTemplate(w, "header", utils.IsAuth(r))
 		if foundPosts == nil {
-			msg := []byte(fmt.Sprintf("<h2 id='notFound'> Nihuya ne naideno </h2>"))
+			msg := []byte(fmt.Sprintf("<h2 id='notFound'> Not found</h2>"))
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(msg)
 			utils.RenderTemplate(w, "index", nil)

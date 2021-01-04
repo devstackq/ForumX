@@ -3,6 +3,7 @@ package general
 import "time"
 
 //general structure -> for child packages use
+//give in Browser coookie, save in server, then each call handler -> compare server uuid - Db uuid
 type Session struct {
 	ID          int    `json:"id"`
 	UUID        string `json:"uuid"`

@@ -11,16 +11,16 @@ func main() {
 	config.Init()
 	controllers.Init()
 
+	//wsl installed
+
 	//signup page - todo js, like signin
 	//try - comment under - replies comment show
-	//create post - main page
+	//create post -  out main page
 	//design -> another site, copy colors, etc
 	//try errors -> with gorutine
-	//no row set db - fix
+	//no row set db - fix handle
 	//superflios writeheader
 	// Heroku deploy
-
-	//done : save copokie - local - Map[string]string + for check - session.Value in Db & server side, - get 1 from Browser then use server Cookie, each handler
 
 	//not require, optional:
 	//not delete rows in table- add field - visible, if Client delete post/comment-> filed visible false
@@ -33,10 +33,9 @@ func main() {
 	//try - event -> add sound & confetti -Login
 	//config, router refactor
 	// перегрузку методов - exp.go
-	// use constructor 
+	// use constructor
 	// use anonim func
 	// use gorutine
 	// func use with Interface
 	//10 principe write coding
 }
-
