@@ -79,7 +79,6 @@ func ReplyComment(w http.ResponseWriter, r *http.Request) {
 
 		content := r.FormValue("answerComment")
 		parent, _ := strconv.Atoi(r.FormValue("parentId"))
-		//commentID, _ := strconv.Atoi(r.FormValue("commentId"))
 		postId := r.FormValue("postId")
 		comment := models.Comment{}
 
@@ -103,11 +102,10 @@ func ReplyComment(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Println(err)
 			}
-			commentExec, err := commentPrepare.Exec(comment.ParentID, comment.Content, comment.PostID, comment.UserID, comment.ToWhom,  comment.FromWhom, time.Now())
+			_, err = commentPrepare.Exec(comment.ParentID, comment.Content, comment.PostID, comment.UserID, comment.ToWhom,  comment.FromWhom, time.Now())
 			if err != nil {
 				log.Println(err)
 			}
-			commentExec.LastInsertId()
 		}
 		http.Redirect(w, r, "/post?id="+postId, 302)
 	}

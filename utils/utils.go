@@ -130,12 +130,21 @@ func RenderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 func Logout(w http.ResponseWriter, r *http.Request, s general.Session) {
 
 	DeleteCookie(w)
-	DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).Scan(&s.ID)
+	err = DB.QueryRow("SELECT id FROM session WHERE uuid = ?", s.UUID).Scan(&s.ID)
+	if err != nil {
+		log.Println(err)	
+	}
 	_, err = DB.Exec("DELETE FROM session WHERE id = ?", s.ID)
+	if err != nil {
+		log.Println(err)
+	}
+	_, err = DB.Exec("UPDATE users SET last_seen=? WHERE id = ?",  time.Now(), s.UserID)
+	if err != nil {
+		log.Println(err, "time set")
+	}
 	s = general.Session{}
 	fmt.Println(s, "session after logout")
 	http.Redirect(w, r, "/signin", 302)
-
 }
 
 //FileByte func for convert receive file - to fileByte

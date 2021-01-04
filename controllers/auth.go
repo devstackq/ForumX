@@ -26,7 +26,7 @@ var (
 func Signup(w http.ResponseWriter, r *http.Request) {
 
 	if utils.URLChecker(w, r, "/signup") {
-
+	//callback anonim function
 		utils.CheckMethod(r.Method, "signup", auth, "", w, func(http.ResponseWriter) {
 			intAge, err := strconv.Atoi(r.FormValue("age"))
 			//switch add
@@ -75,7 +75,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 							utils.RenderTemplate(w, "signup", &msg)
 						}
 					} else {
-						msg := "Incorrect email address: example god@mail.kz"
+						msg := "Incorrect email address: example god@yandex.com"
 						utils.RenderTemplate(w, "signup", &msg)
 					}
 				} else {
@@ -148,7 +148,10 @@ func GoogleUserData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	googleData := models.User{}
-	json.Unmarshal(content, &googleData)
+	err = json.Unmarshal(content, &googleData)
+	if err != nil {
+		log.Println(err)
+	}
 	fmt.Println(googleData, "google data")
 	SigninSideService(w, r, googleData)
 }

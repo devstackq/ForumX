@@ -32,6 +32,8 @@ type User struct {
 	Location    string    `json:"location"`
 	Username    string    `json:"username"`
 	Session *general.Session
+	LastTime  time.Time `json:"lastTime"`
+	LastSeen  string `json:"lastSeen"`
 }
 
 //Notify struct
@@ -62,7 +64,7 @@ func (user *User) GetUserProfile(r *http.Request, w http.ResponseWriter) ([]Post
 	u := User{}
 	liked := VotedPosts("like_state", user.Session.UserID)
 	disliked := VotedPosts("dislike_state", user.Session.UserID)
-	err = DB.QueryRow("SELECT id, full_name, email, username, isAdmin, age, sex, created_time, city, image  FROM users WHERE id = ?", user.Session.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.Username, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image)
+	err = DB.QueryRow("SELECT id, full_name, email, username, isAdmin, age, sex, created_time, city, image, last_seen  FROM users WHERE id = ?", user.Session.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.Username, &u.IsAdmin, &u.Age, &u.Sex, &u.CreatedTime, &u.City, &u.Image, &u.LastTime)
 	//Age, sex, picture, city, date ?
 	if err != nil {
 		log.Println(err)
@@ -70,11 +72,15 @@ func (user *User) GetUserProfile(r *http.Request, w http.ResponseWriter) ([]Post
 	if u.Image[0] == 60 {
 		u.SVG = true
 	}
+	u.LastSeen = u.LastTime.Format("2006 Jan _2 15:04:05")
 	u.Temp = u.CreatedTime.Format("2006 Jan _2 15:04:05")
 	u.ImageHTML = base64.StdEncoding.EncodeToString(u.Image)
 
 	//get posts current user
 	pStmp, err := DB.Query("SELECT * FROM posts WHERE creator_id=?", user.Session.UserID)
+	if err != nil {
+		log.Println(err.Error())
+	}
 	postsCreated := []Post{}
 
 	for pStmp.Next() {
@@ -89,7 +95,9 @@ func (user *User) GetUserProfile(r *http.Request, w http.ResponseWriter) ([]Post
 	}
 
 	commentQuery, err := DB.Query("SELECT * FROM comments WHERE creator_id=?", user.Session.UserID)
-
+	if err != nil {
+		log.Println(err.Error())
+	}
 	var comments []Comment
 	var cmt Comment
 	defer commentQuery.Close()

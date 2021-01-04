@@ -39,7 +39,7 @@ func Init() {
 	if err != nil {
 		log.Println(err)
 	}
-	user, err := db.Prepare(`CREATE TABLE IF NOT EXISTS "users"("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "full_name" TEXT NOT NULL, "email"	TEXT NOT NULL UNIQUE, "username" TEXT NOT NULL UNIQUE, "password" TEXT, "isAdmin" INTEGER DEFAULT 0, "age" INTEGER, "sex" TEXT, "created_time"	datetime, "city" TEXT, "image"	BLOB NOT NULL)`)
+	user, err := db.Prepare(`CREATE TABLE IF NOT EXISTS "users"("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "full_name" TEXT NOT NULL, "email"	TEXT NOT NULL UNIQUE, "username" TEXT NOT NULL UNIQUE, "password" TEXT, "isAdmin" INTEGER DEFAULT 0, "age" INTEGER, "sex" TEXT, "created_time"	datetime, "last_seen" datetime, "city" TEXT, "image"	BLOB NOT NULL)`)
 	if err != nil {
 		log.Println(err)
 	}
