@@ -3,6 +3,7 @@ package controllers
 import (
 	"ForumX/models"
 	"ForumX/utils"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -64,7 +65,12 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request) {
 		notifies := models.GetUserActivities(w, r, session)
 		utils.RenderTemplate(w, "header", utils.IsAuth(r))
 		if notifies != nil {
+			
 			utils.RenderTemplate(w, "activity", notifies)
+		}else {
+			msg := []byte(fmt.Sprintf("<h3> %s </h3>", "Empty notification"))
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(msg)
 		}
 	}
 }
@@ -75,19 +81,24 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	if utils.URLChecker(w, r, "/edit/user") {
 
 		if r.Method == "GET" {
+			var u models.User
+
+		err = DB.QueryRow("SELECT id, full_name, email, username, age, sex, city, image FROM users where id=?", session.UserID).Scan(&u.ID, &u.FullName, &u.Email, &u.Username, &u.Age, &u.Sex, &u.City, &u.Image)	
+			if err != nil {
+				log.Println(err)
+			}
+		u.ImageHTML = base64.StdEncoding.EncodeToString(u.Image)
 			utils.RenderTemplate(w, "header", utils.IsAuth(r))
-			utils.RenderTemplate(w, "profile_update", "")
+			utils.RenderTemplate(w, "profile_update", u)
 		}
 
 		if r.Method == "POST" {
 			age, _ := strconv.Atoi(r.FormValue("age"))
-			var temp string
-			if r.FormValue("fullname") == "" {
-				DB.QueryRow("select full_name from users where id =?", session.UserID).Scan(&temp)
-			}
+		
 			p := models.User{
-				FullName: temp,
+				FullName: r.FormValue("fullname"),
 				Age:      age,
+				Username: r.FormValue("nickname"),
 				Sex:      r.FormValue("sex"),
 				City:     r.FormValue("city"),
 				Image:    utils.FileByte(r, "user"),

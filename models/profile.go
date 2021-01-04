@@ -186,7 +186,9 @@ func GetUserActivities(w http.ResponseWriter, r *http.Request, s *general.Sessio
 			fmt.Println("user: ", n.UserLost, " Comment u Post: ", n.Content, " in ", v.CreatedTime)
 			n.CLID = v.PostID
 		}
-		result = append(result, n)
+		if n.PID > 0 || n.CID > 0 || n.CLID > 0 || n.VoteState > 0 {
+			result = append(result, n)
+		}
 	}
 	return result
 }
@@ -227,10 +229,11 @@ func (user *User) GetAnotherProfile(r *http.Request) ([]Post, User, error) {
 //UpdateProfile function
 func (u *User) UpdateProfile() {
 
-	_, err := DB.Exec("UPDATE  users SET full_name=?, age=?, sex=?, city=?, image=? WHERE id =?",
-		u.FullName, u.Age, u.Sex, u.City, u.Image, u.ID)
+	_, err := DB.Exec("UPDATE  users SET full_name=?, username=?, age=?, sex=?, city=?, image=? WHERE id =?",
+		u.FullName, u.Username, u.Age, u.Sex, u.City, u.Image, u.ID)
 	if err != nil {
-	log.Println(err)	}
+	log.Println(err)	
+}
 }
 
 //DeleteAccount then dlogut - delete cookie, delete lsot comment, session Db, voteState

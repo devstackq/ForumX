@@ -11,8 +11,9 @@ func main() {
 	config.Init()
 	controllers.Init()
 
-	//Comments table, parent field, 2 form, 1 form udner post, 2 form under comment
-	// 1 form - parent nil, - relation only post, 2 form -> parent - commentId, relation comment
+	// show notify - activity page
+	//signup page - todo js, like signin
+	//try - comment under - replies comment show
 	//design -> another site, copy colors, etc
 	// Heroku deploy
 
@@ -52,7 +53,6 @@ func main() {
 	// try architect like - Zhassymov Gt Search
 	//500 status - check
 	// docker check
-
 
 }
 

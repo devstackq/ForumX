@@ -111,6 +111,8 @@ body {
   padding: 10px 18px 20px;
   border-bottom: 2px solid slategray;
   position: relative;
+  height: 100%;
+  /* max-height: 100vh; */
 }
 
 .nav {
@@ -178,6 +180,11 @@ body {
   color: #000;
   line-height: 40px;
   padding: 10px;
+}
+
+.wrapper-main-edit form {
+  display: flex;
+  flex-direction: column;
 }
 
 .create-post-label {
@@ -253,6 +260,15 @@ a.links {
   line-height: 26px;
   position: relative;
 }
+.activity-card {
+  padding: 9px;
+  background: lightgray;
+  margin-bottom: 3px;
+  line-height: 26px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
 
 .user-post-card a {
   color: red !important;
@@ -275,7 +291,18 @@ a.links {
 .profile-post-create {
   width: 100%;
 }
-
+.activity-container a {
+  padding: 4px 9px;
+  background-color: black;
+  color: #fff;
+  margin-left: 10px;
+}
+.activity-container span {
+  font-style: italic;
+  font-weight: 600;
+  font-size: 18px;
+  margin: 0 9px;
+}
 .profile-comment-create {
   width: 100%;
   color: #000;
@@ -549,7 +576,6 @@ a.links {
   min-width: 960px;
   max-width: 1200px;
   padding: 18px;
-  height: 100vh;
 }
 
 .signup-container {
@@ -557,8 +583,6 @@ a.links {
   border-radius: 1%;
   width: 100%;
   max-width: 450px;
-  height: 100%;
-  height: 690px;
   padding: 18px 38px;
   background: lightslategray;
   color: #fff;

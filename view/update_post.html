@@ -5,6 +5,7 @@
     <h2> Edit post </h2>
 
     <form method="POST" action="/edit/post" class="wrapper-edit" enctype="multipart/form-data" autocomplete="off">
+
         <input type="hidden" name="id" value="{{ .ID }}" />
         <label for="">Thread:
             <input type="text" name="title" placeholder="title" value={{.Title}} />
@@ -29,7 +30,7 @@
         </label>
         <img width="120px" height="100px" class="post-img" src="data:image/jpeg;base64, {{.ImageHTML}}" alt="image">
         <label for="">Image:
-            <input type="file" name="uploadfile" accept="image/*" />
+            <input type="file" name="uploadfile" accept="image/*" value={{.Image}} />
         </label>
         <input type="submit" value="edit" />
     </form>

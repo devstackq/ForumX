@@ -317,22 +317,21 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post) {
 	p.ImageHTML = base64.StdEncoding.EncodeToString(p.Image)
 	DB.QueryRow("SELECT full_name FROM users WHERE id = ?", p.CreatorID).Scan(&p.FullName)
 
-	stmp, err := DB.Query("SELECT * FROM comments WHERE  post_id=?", p.ID)
+	cmtq, err := DB.Query("SELECT * FROM comments WHERE  post_id=?", p.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer stmp.Close()
+	defer cmtq.Close()
 	//write each fields inside Comment struct -> then  append Array Comments
 	var comments []Comment
 
-	for stmp.Next() {
+	for cmtq.Next() {
 		//get each comment Post -> by Id, -> get each replyComment by comment_id -> get replyAnswer by reply_com_id
 		comment := Comment{}
-		err = stmp.Scan(&comment.ID, &comment.ParentID, &comment.Content, &comment.PostID, &comment.UserID, &comment.ToWhom, &comment.FromWhom, &comment.CreatedTime, &comment.UpdatedTime, &comment.Like, &comment.Dislike)
+		err = cmtq.Scan(&comment.ID, &comment.ParentID, &comment.Content, &comment.PostID, &comment.UserID, &comment.ToWhom, &comment.FromWhom, &comment.CreatedTime, &comment.UpdatedTime, &comment.Like, &comment.Dislike)
 		if err != nil {
 			log.Println(err.Error())
 		}
-
 		diff := comment.UpdatedTime.Sub(comment.CreatedTime)
 		if diff > 0 {
 			comment.Time = comment.UpdatedTime.Format("2006 Jan _2 15:04:05")
@@ -345,6 +344,29 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post) {
 		if err != nil {
 			log.Println(err)
 		}
+
+		cmtReplq, err := DB.Query("SELECT * FROM comments WHERE  post_id=?", p.ID)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer cmtReplq.Close()
+		//write each fields inside Comment struct -> then  append Array Comments
+		//var comments []Comment
+	
+		for cmtReplq.Next() {
+
+			comRep := Comment{}
+			err = cmtReplq.Scan(&comRep.ID, &comRep.ParentID, &comRep.Content, &comRep.PostID, &comRep.UserID, &comRep.ToWhom, &comRep.FromWhom, &comRep.CreatedTime, &comRep.UpdatedTime, &comRep.Like, &comRep.Dislike)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+		if comRep.ParentID == comment.ID {
+
+		comment.Children = append(comment.Children,  &comRep)
+	}
+}
+		
 	if comment.ParentID  > 0 {
 
 			err = 	DB.QueryRow("SELECT creator_id, toWho FROM comments WHERE id = ?", comment.ID).Scan(&comment.FromWhom, &comment.ToWhom)
@@ -365,9 +387,10 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post) {
 				log.Println(err)
 			}
 
-		}	
-		comments = append(comments, comment)
+		}
+	comments = append(comments, comment)
 	}
+fmt.Println(comment.Children)
 	return comments, p
 }
 

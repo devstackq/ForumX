@@ -1,20 +1,19 @@
 {{define "activity"}}
 
-<div class="profile-post-create">
+<div class="activity-container">
     <h3>Activities</h3>
     {{range .}}
-    <div class="user-post-card">
+    <div class="activity-card">
         {{if gt .PID 0 }}
-        <span class="notify-time"> {{.Time}} </span>
+        <p class="notify-time"> {{.Time}} </p>
         <form action="/user/id?{{.UID}}" method="post" class="author-post">
             <input type="hidden" name="uid" value="{{.UID}}">
             <input type="submit" value="{{.UserLost}}">
         </form>
-        <br />
-        {{if eq .VoteState 2 }} Disiked Post {{end}}
-        {{if eq .VoteState 1 }} Liked Post{{end}}
+        {{if eq .VoteState 2 }} <span>Disiked Post </span> {{end}}
+        {{if eq .VoteState 1 }} <span> Liked Post </span>{{end}}
         "{{.Content}}"
-        <a href="/post?id={{.PID}}"> see </a>
+        <a href="/post?id={{.PID}}">see </a>
         {{end}}
         {{if .CID}} {{if gt .CID 0 }}
 
@@ -23,16 +22,15 @@
             <input type="submit" value="{{.UserLost}}">
         </form>
         <span class="notify-time"> {{.Time}} </span>
-        <br />
-        {{if eq .VoteState 2 }} Disiked Comment {{end}}
-        {{if eq .VoteState 1 }} Liked Comment{{end}}
+        {{if eq .VoteState 2 }} <span> Disiked Comment </span> {{end}}
+        {{if eq .VoteState 1 }} <span> Liked Comment </span>{{end}}
         "{{.Content}}"
         <a href="/post?id={{.CIDPID}}">see</a>
         {{end}} {{end}}
 
         {{if .CLID}}
         {{if gt .CLID 0 }}
-        <span class="notify-time"> {{.Time}} </span>
+        <p class="notify-time"> {{.Time}} </p>
         {{if eq .Editted true}}
         <span class="edited-notify">Edited</span>
         {{end}}
@@ -40,8 +38,7 @@
             <input type="hidden" name="uid" value="{{.UID}}">
             <input type="submit" value="{{.UserLost}}">
         </form>
-        <br />
-        Lost comment
+        <span> Lost comment </span>
         "{{.Content}}" <a href="/post?id={{.CLID}}"> see </a> {{end}} {{end}}
     </div>
     {{end}} {{end}}

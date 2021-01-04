@@ -16,7 +16,7 @@
     <div class="github-signin"> <a href="/githubSignin"> Github Sign in </a></div>
 </div>
 
-<p id="notify"> {{.}} </p>
+<span id="notify"> {{ if . }} {{.}} {{end}} </span>
 
 </div>
 </div>
@@ -55,7 +55,7 @@
     }
 
     function defAuthSendData() {
-       // let email = document.getElementById("email").value;
+        // let email = document.getElementById("email").value;
         let name = document.getElementById("name").value;
         let password = document.getElementById("password").value;
         let s = name.split("@")
@@ -64,10 +64,10 @@
         console.log(s, "split user")
         if (s.length > 1) {
             email = name
-        }else {
+        } else {
             username = name
         }
-            user.email = email,
+        user.email = email,
             user.password = password,
             user.username = username,
             user.type = "default"
