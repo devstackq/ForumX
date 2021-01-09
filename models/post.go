@@ -22,7 +22,6 @@ var (
 	DB      *sql.DB
 	rows    *sql.Rows
 	post    Post
-	comment Comment
 	msg     = general.API.Message
 	pageNum = 1
 )
@@ -326,6 +325,7 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post) {
 	defer cmtq.Close()
 	//write each fields inside Comment struct -> then  append Array Comments
 	var comments []Comment
+	var was []int
 
 	for cmtq.Next() {
 		//get each comment Post -> by Id, -> get each replyComment by comment_id -> get replyAnswer by reply_com_id
@@ -362,20 +362,19 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post) {
 			if err != nil {
 				log.Fatal(err)
 			}
-
-		if comRep.ParentID == comment.ParentID {
-			fmt.Println(comRep.ParentID, comment.ParentID, "gretta2", comRep)
-		comment.Children = append(comment.Children,  comRep)
+		//9, 10 -> 8, iskluchit 9,10
+			if comRep.ParentID == comment.ID {
+				comment.Children = append(comment.Children,  comRep)
+				was = append(was, comRep.ID)
+			}
 	}
-}
-		
+	//write - in comments [], uniqum comments, add toggle
 	if comment.ParentID  > 0 {
 
 			err = 	DB.QueryRow("SELECT creator_id, toWho FROM comments WHERE id = ?", comment.ID).Scan(&comment.FromWhom, &comment.ToWhom)
 			if err != nil {
 				log.Println(err)
 			}
-			
 			err = 	DB.QueryRow("SELECT full_name FROM users WHERE id = ?", comment.FromWhom).Scan(&comment.Author)
 			if err != nil {
 				log.Println(err)
@@ -389,13 +388,28 @@ func (post *Post) GetPostByID(r *http.Request) ([]Comment, Post) {
 				log.Println(err)
 			}
 		}
+		
+		//write - uniq by comment.ID
+		fmt.Println(was)
 
-	comments = append(comments, comment)
+		comments = append(comments, comment)
 	}
+	//8, 11 if current Comment.ID - have, inner -  comment.ParentID, Exclude this comment
 
-fmt.Println(comment.Children, "child")
+	//if comment.ID == parentID, recursive append
+	// for _, com := range comments {
+	// 	for _, child := range com.Children {
+	// 		// if RecursiveAppend(&com, child.ID) {
+	// 		// 	res = append(res, com)
+	// 		// }
+	// 	}
+	// }
+
+	//check, comapre comment.ID == Children.ID, || add 1 table
+
 	return comments, p
 }
+
 
 //CreateBridge create post  -> post_id relation category
 func (pcb *PostCategory) CreateBridge() {
